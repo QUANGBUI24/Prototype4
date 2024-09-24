@@ -1,9 +1,7 @@
-from typing import Dict, List
+from typing import List
 
 from UML_CORE.UML_ATTRIBUTE.uml_attribute import UMLAttribute as Attribute
 from UML_CORE.UML_METHOD.uml_method import UMLMethod as Method
-from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relationship
-
 
 class UMLClass:
     #################################################################
@@ -17,8 +15,8 @@ class UMLClass:
         # Store method name and the related method object
         # so we can easily access to the its details
         self.__method_list: List[Method] = []
-        # Store source class, destination class, and the type of relationship (e.g. Composition, Aggregation, etc.)
-        self.__relationship_list: List[Relationship] = []
+        # # Store source class, destination class, and the type of relationship (e.g. Composition, Aggregation, etc.)
+        # self.__relationship_list: List[Relationship] = []
 
     #################################################################
     # Method to get UML class's data members #
@@ -31,9 +29,6 @@ class UMLClass:
     def _get_class_method_list(self) -> List[Method]:
         return self.__method_list
 
-    def _get_class_relationship_list(self) -> List[Relationship]:
-        return self.__relationship_list
-
     #################################################################
     # Method to modify UML class's data members #
     def _set_class_name(self, new_class_name: str):
@@ -44,11 +39,6 @@ class UMLClass:
 
     def _set_class_method_list(self, new_method_list: List[Method]):
         self.__method_list = new_method_list
-
-    def _set_class_relationship_list(
-        self, new_relationship_list: List[Relationship]
-    ):
-        self.__relationship_list = new_relationship_list
         
     #################################################################
     # Method to convert uml class to json format #

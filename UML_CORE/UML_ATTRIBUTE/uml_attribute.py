@@ -12,12 +12,12 @@ class UMLAttribute:
         
     #################################################################
     # Method to get attribute's data members #
-    def _get_attribute_name(self) -> str:
+    def _get_name(self) -> str:
         return self.__attribute_name
 
     #################################################################
     # Method to modify attribute's data members #
-    def _set_attribute_name(self, new_name: str):
+    def _set_name(self, new_name: str):
         self.__attribute_name = new_name
 
     #################################################################

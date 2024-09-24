@@ -41,7 +41,7 @@ class UMLRelationship:
     # Method to convert relationship to json format #
     def _convert_to_json_relationship(self) -> dict[str, str]:
         return {
-            "source": self.get_source_class().get_class_name(),
-            "destination": self.get_destination_class().get_class_name(),
+            "source": self.__source_class,
+            "destination": self.__destination_class,
             "type": self.__rel_type
         }

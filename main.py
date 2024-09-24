@@ -1,18 +1,8 @@
 
-from UML_MANAGEMENT.uml_core_manager import UMLCoreManager as Manager
-import json
-import os
+from UML_MANAGER.uml_core_manager import UMLCoreManager as Manager
 
 UML_MANAGER = Manager()
-
-
-def save_data_to_json(file_name: str, format):
-    file_path = f"UML_SAVE_FILES/{file_name}.json"
-    # If the file doesn't exist, create it and write the data list
-    with open(file_path, "w") as json_file:
-        json.dump(format, json_file, indent=4)
-        print("\nSuccessfully saved data!")
-       
+class_list = UML_MANAGER._get_class_list()      
 
 def main():
     UML_MANAGER._add_class("Human")
@@ -20,27 +10,33 @@ def main():
     UML_MANAGER._add_attribute("Human", "Head")
     UML_MANAGER._add_attribute("Human", "Legs")
     
+    UML_MANAGER._add_method("Human", "Walk")
+    UML_MANAGER._add_method("Human", "Run")
+
+    # print()
+    # UML_MANAGER._display_method()
+    
     UML_MANAGER._add_class("House")
     UML_MANAGER._add_attribute("House", "Roof")
     UML_MANAGER._add_attribute("House", "Garage")
     UML_MANAGER._add_attribute("House", "Door")
     
-    
     UML_MANAGER._add_class("Cat")
+    UML_MANAGER._add_class("Dog")
+    UML_MANAGER._add_class("Chicken")
+    
     UML_MANAGER._add_relationship("Human", "Cat", "aggregation")
-    UML_MANAGER._delete_relationship("Human", "Cat")
-    print()
-    # UML_MANAGER._display_rel()
-    test_format = UML_MANAGER._class_json_format("Human")
-    final_format = UML_MANAGER._final_format(test_format)
-    save_data_to_json("data", final_format)
+    UML_MANAGER._add_relationship("Human", "House", "composition")
+    UML_MANAGER._add_relationship("Human", "Dog", "aggregation")
+    UML_MANAGER._add_relationship("Dog", "Cat", "aggregation")
     
-    # test_format = UML_MANAGER._class_json_format("House")
-    # final_format = UML_MANAGER._final_format(test_format)
-    # save_data_to_json("data", final_format)
+    temp = UML_MANAGER._get_relationship_format_list()
     
-    # print(test_format)
-  
+    # for ele in temp:
+    #     print(ele)
+    
+    UML_MANAGER.save()
+    
 
 
 if __name__ == "__main__":
