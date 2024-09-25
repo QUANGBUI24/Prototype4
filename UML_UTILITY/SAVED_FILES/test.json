@@ -1,0 +1,80 @@
+{
+    "classes": [
+        {
+            "name": "Human",
+            "fields": [
+                {
+                    "name": "Body"
+                },
+                {
+                    "name": "Head"
+                },
+                {
+                    "name": "Legs"
+                }
+            ],
+            "methods": [
+                {
+                    "name": "Walk",
+                    "params": []
+                },
+                {
+                    "name": "Run",
+                    "params": []
+                }
+            ]
+        },
+        {
+            "name": "House",
+            "fields": [
+                {
+                    "name": "Roof"
+                },
+                {
+                    "name": "Garage"
+                },
+                {
+                    "name": "Door"
+                }
+            ],
+            "methods": []
+        },
+        {
+            "name": "Cat",
+            "fields": [],
+            "methods": []
+        },
+        {
+            "name": "Dog",
+            "fields": [],
+            "methods": []
+        },
+        {
+            "name": "Chicken",
+            "fields": [],
+            "methods": []
+        }
+    ],
+    "relationships": [
+        {
+            "source": "Human",
+            "destination": "Cat",
+            "type": "aggregation"
+        },
+        {
+            "source": "Human",
+            "destination": "House",
+            "type": "composition"
+        },
+        {
+            "source": "Human",
+            "destination": "Dog",
+            "type": "aggregation"
+        },
+        {
+            "source": "Dog",
+            "destination": "Cat",
+            "type": "aggregation"
+        }
+    ]
+}

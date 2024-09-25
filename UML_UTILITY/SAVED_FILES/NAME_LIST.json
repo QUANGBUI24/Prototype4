@@ -4,5 +4,8 @@
     },
     {
         "format": "off"
+    },
+    {
+        "test": "off"
     }
 ]

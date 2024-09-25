@@ -121,5 +121,20 @@ class UMLStorageManager:
             # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
             print(f"\nError decoding JSON from {file_path}.")
             return None
-                
+        
+    # Update saved file list #
+    def _update_saved_list(self, saved_list: List[Dict]):
+        file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST.json"
+        try:
+            # Open the file and save the name list in JSON format
+            with open(file_path, "w") as file:
+                json.dump(saved_list, file, indent=4)
+        except FileNotFoundError:
+                # Handle the case where the file is not found
+            print(f"\nFile {file_path} not found.")
+            return None
+        except json.JSONDecodeError:
+            # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
+            print(f"\nError decoding JSON from {file_path}.")
+            return None
 ###################################################################################################

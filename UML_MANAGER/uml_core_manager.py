@@ -1,5 +1,6 @@
 ###################################################################################################
 
+import os
 from itertools import zip_longest
 from enum import Enum
 from typing import Dict, List
@@ -73,7 +74,7 @@ class UMLCoreManager:
     ## CLASS RELATED ##
     
     # Add class #
-    def _add_class(self, class_name: str):
+    def _add_class(self, class_name: str, is_loading: bool):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=False)
         # If the class has already existed, stop
@@ -82,10 +83,11 @@ class UMLCoreManager:
         # Else, add the class
         new_class = self.create_class(class_name)
         self.__class_list[class_name] = new_class
-        print(f"\nSuccessfully added class '{class_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully added class '{class_name}'!")
         
     # Delete class #
-    def _delete_class(self, class_name: str):
+    def _delete_class(self, class_name: str, is_loading: bool):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
@@ -93,10 +95,11 @@ class UMLCoreManager:
             return
         # Else, delete class
         self.__class_list.pop(class_name)
-        print(f"\nSuccessfully removed class '{class_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully removed class '{class_name}'!")
         
     # Rename class #
-    def _rename_class(self, current_name: str, new_name: str):
+    def _rename_class(self, current_name: str, new_name: str, is_loading: bool):
         # Check if we are able to rename
         is_able_to_rename = self.__check_class_rename(current_name, new_name)
         # If not, stop
@@ -109,12 +112,13 @@ class UMLCoreManager:
         class_object._set_class_name(new_name)   
         # Update name in relationship list
         self.__update_name_in_relationship(current_name, new_name)
-        print(f"\nSuccessfully renamed from class '{current_name}' to class '{new_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully renamed from class '{current_name}' to class '{new_name}'!")
         
     ## ATTRIBUTE RELATED ##
     
     # Add attribute #
-    def _add_attribute(self, class_name: str, attribute_name: str):
+    def _add_attribute(self, class_name: str, attribute_name: str, is_loading: bool):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
@@ -133,10 +137,11 @@ class UMLCoreManager:
         new_attribute = self.create_attribute(attribute_name)
         # Add attribute
         attribute_list.append(new_attribute)
-        print(f"\nSuccessfully added attribute '{attribute_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully added attribute '{attribute_name}'!")
         
     # Delete attribute #
-    def _delete_attribute(self, class_name: str, attribute_name: str):
+    def _delete_attribute(self, class_name: str, attribute_name: str, is_loading):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
@@ -155,22 +160,24 @@ class UMLCoreManager:
         chosen_attribute = self.__get_chosen_attribute_or_method(class_name, attribute_name, is_attribute=True)
         # Remove the chosen attribute 
         attribute_list.remove(chosen_attribute)
-        print(f"\nSuccessfully removed attribute '{attribute_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully removed attribute '{attribute_name}'!")
         
     # Rename attribute #
-    def _rename_attribute(self, class_name: str, current_attribute_name: str, new_attribute_name: str):
+    def _rename_attribute(self, class_name: str, current_attribute_name: str, new_attribute_name: str, is_loading: bool):
         is_able_to_rename = self.__check_attribute_or_method_rename(class_name, current_attribute_name, new_attribute_name, is_attribute=True)
         if not is_able_to_rename:
             return
         # Get the attribute
         chosen_attribute = self.__get_chosen_attribute_or_method(class_name, current_attribute_name, is_attribute=True)
         chosen_attribute._set_name(new_attribute_name)
-        print(f"\nSuccessfully renamed from attribute '{current_attribute_name}' to attribute '{new_attribute_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully renamed from attribute '{current_attribute_name}' to attribute '{new_attribute_name}'!")
         
     ## METHOD RELATED ##
     
     # Add method #
-    def _add_method(self, class_name: str, method_name: str):
+    def _add_method(self, class_name: str, method_name: str, is_loading: bool):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
@@ -189,10 +196,11 @@ class UMLCoreManager:
         new_method = self.create_method(method_name)
         # Add method
         method_list.append(new_method)
-        print(f"\nSuccessfully added method '{method_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully added method '{method_name}'!")
         
     # Delete method #
-    def _delete_method(self, class_name: str, method_name: str):
+    def _delete_method(self, class_name: str, method_name: str, is_loading):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
@@ -211,22 +219,24 @@ class UMLCoreManager:
         chosen_method = self.__get_chosen_attribute_or_method(class_name, method_name, is_attribute=False)
         # Remove the chosen attribute 
         method_list.remove(chosen_method)
-        print(f"\nSuccessfully removed method '{method_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully removed method '{method_name}'!")
         
     # Rename method #
-    def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
+    def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str, is_loading: bool):
         is_able_to_rename = self.__check_attribute_or_method_rename(class_name, current_method_name, new_method_name, is_attribute=False)
         if not is_able_to_rename:
             return
         # Get the method
         chosen_method = self.__get_chosen_attribute_or_method(class_name, current_method_name, is_attribute=False)
         chosen_method._set_name(new_method_name)
-        print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
+        if not is_loading:
+            print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
         
     ## RELATIONSHIP RELATED ##
     
     # Add relationship #
-    def _add_relationship(self, source_class_name: str, destination_class_name: str, rel_type: str):
+    def _add_relationship(self, source_class_name: str, destination_class_name: str, rel_type: str, is_loading: bool):
         # Check if source class exists or not
         is_source_class_exist = self.__validate_class_existence(source_class_name, should_exist=True)
         # If the class does not exist, stop
@@ -250,10 +260,11 @@ class UMLCoreManager:
         new_relationship = self.create_relationship(source_class_name, destination_class_name, rel_type)
         # Add new relationship to the list
         self.__relationship_list.append(new_relationship)
-        print(f"\nSuccessfully added relationship from class '{source_class_name}' to class '{destination_class_name}' of type '{rel_type}'!")
+        if not is_loading:
+            print(f"\nSuccessfully added relationship from class '{source_class_name}' to class '{destination_class_name}' of type '{rel_type}'!")
         
     # Delete relationship #
-    def _delete_relationship(self, source_class_name: str, destination_class_name: str):
+    def _delete_relationship(self, source_class_name: str, destination_class_name: str, is_loading: bool):
         # Check if source class exists or not
         is_source_class_exist = self.__validate_class_existence(source_class_name, should_exist=True)
         # If the class does not exist, stop
@@ -273,7 +284,8 @@ class UMLCoreManager:
         current_relationship = self.__get_chosen_relationship(source_class_name)
         # Remove relationship
         self.__relationship_list.remove(current_relationship)
-        print(f"\nSuccessfully removed relationship between class '{source_class_name}' to class '{destination_class_name}'!")      
+        if not is_loading:
+            print(f"\nSuccessfully removed relationship between class '{source_class_name}' to class '{destination_class_name}'!")      
         
     #################################################################
     ### HELPER FUNCTIONS ###  
@@ -525,7 +537,7 @@ class UMLCoreManager:
         print("\nPlease provide a name for the file you'd like to save or choose file from the list to override.")
         print("Type 'quit' to go back to main menu:")
         # Show the list of saved files
-        self.__display_saved_file_name()
+        self._display_saved_list()
         print("==> ", end="")
         user_input = input()
         # Prevent user from overriding NAME_LIST.json
@@ -549,7 +561,7 @@ class UMLCoreManager:
         print("\nPlease provide a name for the file you'd like to load.")
         print("Type 'quit' to go back to main menu:")
         # Show the list of saved files
-        self.__display_saved_file_name()
+        self._display_saved_list()
         print("==> ", end="")
         user_input = input()
         # Prevent user from loading NAME_LIST.json
@@ -565,6 +577,8 @@ class UMLCoreManager:
             return
         main_data = self.__main_data = self.__storage._load_data_from_json(user_input)
         self.__update_data_members(main_data)
+        self.__check_file_and_set_status(user_input)
+        print(f"\nSuccessfully loaded data from '{user_input}.json'!")
         
     # Update main data to store data to json file #
     def __update_main_data(self, user_input: str, class_data_list: List, relationship_data_list: List) -> Dict:
@@ -593,16 +607,16 @@ class UMLCoreManager:
                 attribute_list = data['attributes']
                 method_list = data['methods']
                 # Add the class
-                self._add_class(class_name)
+                self._add_class(class_name, is_loading=True)
                 # Add the attributes for the class
                 for each_attribute in attribute_list:
-                    self._add_attribute(class_name, each_attribute)
+                    self._add_attribute(class_name, each_attribute, is_loading=True)
                 # Add the methods for the class
                 for each_method in method_list:
-                    self._add_method(class_name, each_method)
+                    self._add_method(class_name, each_method, is_loading=True)
         # Re-create relationship 
         for each_dictionary in relationship_data:
-            self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"])
+            self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
         
     # This function help extracting class, attribute and method from json file and put into a list #
     def _extract_class_data(self, class_data: List[Dict]) -> List:
@@ -613,13 +627,119 @@ class UMLCoreManager:
             methods = [method['name'] for method in ele['methods']]
             class_info_list.append({class_name: {'attributes': attributes,'methods': methods}})
         return class_info_list
+    
+    # Delete Saved File #
+    def _delete_saved_file(self):
+        print("\nChoose a file you want to delete:")
+        self._display_saved_list()
+        file_name = input()
+        is_file_exist = self._check_saved_file_exist(file_name)
+        if not is_file_exist:
+            print(f"File '{file_name}.json' does not exist!")
+            return
+        # Get saved file's name list
+        save_list = self.__storage._get_saved_list()
+        for dictionary in save_list:
+            if file_name in dictionary:
+                save_list.remove(dictionary)
+        # Update the saved list 
+        self.__storage._update_saved_list(save_list)
+        # Physically remove the file   
+        file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
+        os.remove(file_path)
+        print(f"\nSuccessfully removed file '{file_name}.json'")
         
+    # Check if a saved file exist #
+    def _check_saved_file_exist(self, file_name: str):
+        saved_list = self.__storage._get_saved_list()
+        for element in saved_list:
+            for name in element:
+                if file_name == name:
+                    return True
+        return False
+    
+    # End Session To Go Back To Blank Program #
+    def _end_session(self):
+        self.__set_all_file_off()
+        self.__reset_storage()
+        print("\nSuccessfully back to default program!")
+    
+    # Get active file #
+    def _get_active_file(self) -> str:
+        saved_list = self.__storage._get_saved_list()
+        for each_dictionary in saved_list:
+            for key, val in each_dictionary.items():
+                if val == "on":
+                    return key
+        return "No active file!"
+    
+    # Clear the current active file #
+    def _clear_current_active_data(self):
+        saved_list = self.__storage._get_saved_list()
+        if len(saved_list) == 0:
+            print("\nNo file!")
+            return
+        current_active_file = self._get_active_file()
+        if current_active_file == "No active file!":
+            print("\nNo active file!")
+            return
+        self.__reset_storage()
+        self.__storage._save_data_to_json(current_active_file, self.__main_data)
+        print(f"\nSuccessfully clear data in file '{current_active_file}.json'")
+        
+    def _exit(self):
+        self.__set_all_file_off()
+        print("\nExited Program")
+    
+    # Set all file status to off #
+    def __set_all_file_off(self):
+        saved_list = self.__storage._get_saved_list()
+        for each_dictionary in saved_list:
+            for key in each_dictionary:
+                each_dictionary[key] = "off"
+        self.__storage._update_saved_list(saved_list)
+    
+    # Set file status #
+    def __set_file_status(self, file_name: str, status: str):
+        saved_list = self.__storage._get_saved_list()
+        for each_dictionary in saved_list:
+            for key in each_dictionary:
+                if key == file_name:
+                    each_dictionary[key] = status
+    
+    # Check file name and set its status #               
+    def __check_file_and_set_status(self, file_name: str) -> str:
+        saved_list = self.__storage._get_saved_list()
+        for each_dictionary in saved_list:
+            for key in each_dictionary:
+                if each_dictionary[key] == "on":
+                    each_dictionary[key] = "off"
+        self.__set_file_status(file_name, status="on")
+        # Update the saved list 
+        self.__storage._update_saved_list(saved_list)
+        
+    # Reset all storage #
+    def __reset_storage(self):
+        self.__class_list: Dict[str, Class] = {}
+        self.__storage: Storage = Storage()
+        self.__relationship_list: List = []
+        self.__main_data: Dict = {}
+    
     #################################################################
-    ### CLASS DETAIL ###
+    ### DISPLAY CLASS ###
     
-    ## DISPLAY DETAIL RELATED ##
+    # Display wrapper #
+    def _display_wrapper(self):
+        if len(self.__class_list) == 0:
+            print("\nNo class to display!")
+            return
+        is_detail = self._ask_user_choices("print all class detail")
+        if is_detail:
+            self._display_class_list_detail()
+        else:
+            self._display_list_of_only_class_name()
     
-    # Display Class List #
+    # Display class list #
     def _display_class_list_detail(self, classes_per_row=3):
         # Generate class details split into lines
         class_details_list = [
@@ -635,29 +755,105 @@ class UMLCoreManager:
             for lines in zip_longest(*chunk, fillvalue=" " * 20):
                 print("   ".join(line.ljust(30) for line in lines))
             print("\n-------------------------------------------------------------------------------------------------\n")
-    
-    ## DETAIL RELATED ##
+            
+    # Display Relationship List #
+    def _display_relationship_list(self, classes_per_row=3):
+        if len(self.__relationship_list) == 0:
+            print("\nNo relationship to display!")
+            return
+        # Generate class details split into lines
+        class_relationship_detail_list = [
+            self.__get_relationship_detail(class_name).split("\n")
+            for class_name in self.__class_list
+        ]
+        print("\n-------------------------------------------------------------------------------------------------\n")
+        # Chunk the class relationship details into groups of `classes_per_row`
+        for i in range(0, len(class_relationship_detail_list), classes_per_row):
+            chunk = class_relationship_detail_list[i : i + classes_per_row]
+
+            # Use zip_longest to align and print side by side
+            for lines in zip_longest(*chunk, fillvalue=" " * 20):
+                print("   ".join(line.ljust(30) for line in lines))
+            print("\n-------------------------------------------------------------------------------------------------\n")
     
     # Get class detail #
     def __get_class_detail(self, class_name: str) -> str:
+        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
+        if not is_class_exist:
+            return
+        class_object = self.__class_list[class_name]
+        output = []
+        output.append("|===================|")
+        output.append(f"{"--     Name     --":^21}")
+        output.append(f"{class_name:^20}")
+        output.append("|*******************|")
+        output.append(f"{"--  Attribute  --":^21}")
+        attribute_list = class_object._get_class_attribute_list()
+        for attribute in attribute_list:
+            output.append(f"{attribute._get_name():^21}")
+        output.append("|*******************|")
+        relationship_list = self.__relationship_list
+        output.append(f"{"-- Relationship  --":^21}")
+        for element in relationship_list:
+            if element._get_source_class() == class_name:
+                output.append(f"{"--------------":^20}")
+                output.append(f"  Source: {class_name}")
+                output.append(f"  Destination: {element._get_destination_class()}")
+                output.append(f"  Type: {element._get_type()}")
+        output.append("|===================|")
+        return "\n".join(output)
+    
+    # Get Class Relationships #
+    def __get_relationship_detail(self, class_name: str) -> str:
         class_object = self.__class_list[class_name]
         if class_object is None:
             print(f"\nClass '{class_name}' does not exist!")
             return
         output = []
-        output.append("| Class Name |")
-        output.append(f"{class_name:^10}")
-        output.append("| Attribute |")
-        attribute_list = class_object._get_class_attribute_list()
-        for attribute in attribute_list:
-            output.append(f"{attribute._get_name():^10}")
-        relationship_list = self.__relationship_list
-        for element in relationship_list:
+        output.append("|===================|")
+        output.append(f"{"--     Name     --":^21}")
+        output.append(f"{class_name:^20}")
+        output.append("|*******************|")
+        rel_list = self.__relationship_list
+        output.append("|===================|")
+        output.append(f"{"-- Relationship  --":^21}")
+        for element in rel_list:
             if element._get_source_class() == class_name:
-                output.append(f"Source: {class_name}")
-                output.append(f"Destination: {element._get_destination_class()}")
-                output.append(f"Type: {element._get_type()}")
+                output.append(f"{"|-----------|":^20}")
+                output.append(f"{ element._get_source_class():^20}")
+                output.append(f"{ element._get_destination_class():^20}")
+                output.append(f"{ element._get_type():^20}")
+                output.append(f"{"|-----------|":^20}")
+        output.append("|===================|")
         return "\n".join(output)
+
+    # Display only list of class names #
+    def _display_list_of_only_class_name(self):
+        print("\n|===================|")
+        print(f"{"--     Name     --":^20}")
+        print("|*******************|")
+        class_list = self.__class_list
+        for class_name in class_list:
+            print(f"{class_name:^20}")
+        print("|===================|")
+        
+    # Display Class Details #
+    def _display_single_class_detail(self, class_name: str):
+        classes_detail_list = self.__get_class_detail(class_name)
+        if classes_detail_list is not None:
+            print(f"\n{classes_detail_list}")
+        
+    # Display saved file's names #
+    def _display_saved_list(self):
+        saved_list = self.__storage._get_saved_list()
+        if len(saved_list) == 0:
+            print("\nNo saved file exists!")
+            return
+        print("\n|===================|")
+        for dictionary in saved_list:
+            for key in dictionary:
+                print(f"{key:^20}")
+        print("|===================|\n")
            
     #################################################################
     ### UTILITY FUNCTIONS ###  
@@ -669,18 +865,6 @@ class UMLCoreManager:
             print(f"{type.value:^20}")
         print("|=================|")
         
-    # Display saved file's names #
-    def __display_saved_file_name(self):
-        saved_list = self.__storage._get_saved_list()
-        if len(saved_list) == 0:
-            print("\nNo saved file exists!")
-            return
-        print("\n|===================|")
-        for dictionary in saved_list:
-            for key in dictionary:
-                print(f"{key:^20}")
-        print("|===================|\n")
-        
     # Saved file check #
     def __saved_file_name_check(self, save_file_name: str) -> bool:
         saved_list = self.__storage._get_saved_list()
@@ -689,5 +873,18 @@ class UMLCoreManager:
                 if file_name == save_file_name:
                     return True
         return False
+    
+    # Ask For User Choices #
+    def _ask_user_choices(self, action: str) -> bool:
+        while True:
+            user_input = input(f"\nDo you want to {action}? (Yes/No): ").lower()
+            if user_input in ["yes", "y"]:
+                return True
+            elif user_input in ["no", "n"]:
+                return False
+            else:
+                print("Invalid input. Please enter 'Yes' or 'No'.")
+                
+
     
 ###################################################################################################
