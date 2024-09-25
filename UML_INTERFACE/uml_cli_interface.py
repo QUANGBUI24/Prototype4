@@ -145,6 +145,10 @@ class UMLCommandLineInterface:
     def end_session(self):
         ProgramManager._end_session()
         
+    # Sort class list #
+    def sort_class_list(self):
+        ProgramManager._sort_class_list()
+        
     # Turn off all file statuses when exiting program #
     def exit(self):
         ProgramManager._exit()
@@ -316,7 +320,7 @@ class UMLCommandLineInterface:
                 self.end_session()
             # Sort the class list #
             elif command == InterfaceOptions.SORT.value:
-                pass
+                self.sort_class_list()
             # Show the main menu again #
             elif command == InterfaceOptions.HELP.value:
                 self.__prompt_menu()

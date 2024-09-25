@@ -788,6 +788,35 @@ class UMLCoreManager:
                 print("   ".join(line.ljust(30) for line in lines))
             print("\n-------------------------------------------------------------------------------------------------\n")
     
+    # Display only list of class names #
+    def _display_list_of_only_class_name(self):
+        print("\n|===================|")
+        print(f"{"--     Name     --":^20}")
+        print("|*******************|")
+        class_list = self.__class_list
+        for class_name in class_list:
+            print(f"{class_name:^20}")
+        print("|===================|")
+        
+    # Display Class Details #
+    def _display_single_class_detail(self, class_name: str):
+        classes_detail_list = self.__get_class_detail(class_name)
+        if classes_detail_list is not None:
+            print(f"\n{classes_detail_list}")
+        
+    # Display saved file's names #
+    def _display_saved_list(self):
+        saved_list = self.__storage_manager._get_saved_list()
+        if len(saved_list) == 0:
+            print("\nNo saved file exists!")
+            return
+        print("\n|===================|")
+        for dictionary in saved_list:
+            for key in dictionary:
+                print(f"{key:^20}")
+        print("|===================|\n")
+        
+    
     # Get class detail #
     def __get_class_detail(self, class_name: str) -> str:
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
@@ -843,35 +872,26 @@ class UMLCoreManager:
                 output.append(f"{"|-----------|":^20}")
         output.append("|===================|")
         return "\n".join(output)
-
-    # Display only list of class names #
-    def _display_list_of_only_class_name(self):
-        print("\n|===================|")
-        print(f"{"--     Name     --":^20}")
-        print("|*******************|")
+    
+    # Get class list #
+    def __get_list_of_class_name(self) -> List[str]:
+        class_name_list: List[str] = []
         class_list = self.__class_list
         for class_name in class_list:
-            print(f"{class_name:^20}")
-        print("|===================|")
-        
-    # Display Class Details #
-    def _display_single_class_detail(self, class_name: str):
-        classes_detail_list = self.__get_class_detail(class_name)
-        if classes_detail_list is not None:
-            print(f"\n{classes_detail_list}")
-        
-    # Display saved file's names #
-    def _display_saved_list(self):
-        saved_list = self.__storage_manager._get_saved_list()
-        if len(saved_list) == 0:
-            print("\nNo saved file exists!")
+            class_name_list.append(class_name)
+        return class_name_list
+    
+    # Sorting Class List #
+    def _sort_class_list(self):
+        class_list = self.__class_list
+        if len(class_list) == 0:
+            print("\nNo class to sort!")
             return
-        print("\n|===================|")
-        for dictionary in saved_list:
-            for key in dictionary:
-                print(f"{key:^20}")
-        print("|===================|\n")
-           
+        sorted_class_list = dict(sorted(class_list.items()))
+        self.__class_list = sorted_class_list
+        self._display_class_list_detail()
+        
+         
     #################################################################
     ### UTILITY FUNCTIONS ###  
     
