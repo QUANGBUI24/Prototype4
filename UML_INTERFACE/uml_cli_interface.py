@@ -3,7 +3,6 @@
 
 from enum import Enum
 from UML_MANAGER.uml_core_manager import UMLCoreManager as Manager
-from UML_MANAGER.uml_storage_manager import UMLStorageManager as Storage
 
 ###################################################################################################
 

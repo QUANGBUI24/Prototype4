@@ -911,6 +911,4 @@ class UMLCoreManager:
             else:
                 print("Invalid input. Please enter 'Yes' or 'No'.")
                 
-
-    
 ###################################################################################################
