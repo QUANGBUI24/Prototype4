@@ -609,9 +609,7 @@ class UMLCoreManager:
     def __update_data_members(self, main_data: Dict):
         class_data = main_data["classes"]
         relationship_data = main_data["relationships"]
-        self.__class_list = {}
-        self.__main_data = {}
-        self.__relationship_list = []
+        self.__reset_storage()
         # Re-create class, attribute, object, and method
         extracted_class_data = self._extract_class_data(class_data)
         for each_pair in extracted_class_data:
@@ -733,7 +731,6 @@ class UMLCoreManager:
     # Reset all storage #
     def __reset_storage(self):
         self.__class_list: Dict[str, Class] = {}
-        self.__storage_manager: Storage = Storage()
         self.__relationship_list: List = []
         self.__main_data: Dict = {}
     
