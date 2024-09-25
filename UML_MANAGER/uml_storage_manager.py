@@ -20,8 +20,9 @@ from typing import List, Dict
 
 ###################################################################################################
 
-# UML Class Storage Manager Constructor #
 class UMLStorageManager:
+    
+    # This function load the saved file name at the beginning #
     @staticmethod
     def load_name():
         file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST.json"
@@ -58,17 +59,14 @@ class UMLStorageManager:
     ## SAVE/LOAD RELATED ##
     
     # Save the current data to a JSON file #
-    def _save_data_to_json(self, file_name: str, class_data_list: List[Dict], relationship_data_list: List[Dict]):
+    def _save_data_to_json(self, file_name: str, main_data: Dict):
         file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
         try:
             # Check if the file exists
             if not os.path.exists(file_path):
                 # If the file doesn't exist, create it and write the data list
                 with open(file_path, "w") as json_file:
-                    new_structure = {"classes":[], "relationships":[]}
-                    new_structure["classes"] = class_data_list
-                    new_structure["relationships"] = relationship_data_list
-                    json.dump(new_structure, json_file, indent=4)
+                    json.dump(main_data, json_file, indent=4)
                     return
             # If the file exists and the file name is in the saved list, update the data
             for dictionary in self.__saved_file_name_list:
@@ -77,8 +75,7 @@ class UMLStorageManager:
                     with open(file_path, "r") as json_file:
                         data = json.load(json_file)
                         # Overwrite the loaded data with the current data list
-                        data["classes"] = class_data_list
-                        data["relationships"] = relationship_data_list
+                        data = main_data
                     # Save the updated data to the file
                     with open(file_path, "w") as json_file:
                         json.dump(data, json_file, indent=4)
@@ -105,11 +102,16 @@ class UMLStorageManager:
             return None
         
     # Save the new file name to the saved file list #
-    def _add_name_to_saved_file(self, saved_list: List[Dict]):
+    def _add_name_to_saved_file(self, file_name: str):
         file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST.json"
+        saved_list = self.__saved_file_name_list
+        for pair in saved_list:
+            if file_name in pair:
+                return
+        saved_list.append({file_name : "off"})
         try:
             # Open the file and save the name list in JSON format
-            with open(saved_list, "w") as file:
+            with open(file_path, "w") as file:
                 json.dump(saved_list, file, indent=4)
         except FileNotFoundError:
                 # Handle the case where the file is not found

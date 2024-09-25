@@ -1,5 +1,6 @@
 ###################################################################################################
 
+from itertools import zip_longest
 from enum import Enum
 from typing import Dict, List
 from UML_CORE.UML_CLASS.uml_class import UMLClass as Class
@@ -30,10 +31,13 @@ class UMLCoreManager:
         self.__class_list: Dict[str, Class] = {}
         self.__storage: Storage = Storage()
         self.__relationship_list: List = []
-        self.__main_data: Dict = {{"classes":[]}, {"relationships":[]}}
+        self.__main_data: Dict = {}
         
     def _get_class_list(self) -> Dict[str, Class]:
         return self.__class_list
+    
+    def _get_main_data(self) -> Dict:
+        return self.__main_data
         
     #################################################################
     ### STATIC FUNCTIONS ###
@@ -516,7 +520,7 @@ class UMLCoreManager:
     ### SAVE/LOAD ###
     
     # Save data #
-    def save(self):
+    def _save(self):
         # Prompt the user for a file name to save
         print("\nPlease provide a name for the file you'd like to save or choose file from the list to override.")
         print("Type 'quit' to go back to main menu:")
@@ -529,21 +533,20 @@ class UMLCoreManager:
             print(f"\nYou can't save to '{user_input}.json'")
             return 
         if user_input == "quit":
+            print("\nCanceled saving!")
             return
+        # Class data list to put in the main data
         class_data_list = []
-        relationship_data_list = self._get_relationship_format_list()
-        # Add file name to saved list if it is a new one
-        self.__storage._add_name_to_saved_file(user_input)
-        for class_name in self.__class_list:
-            class_data_format = self._class_json_format(class_name)
-            class_data_list.append(class_data_format)
-            self.__storage._save_data_to_json(user_input, class_data_list, relationship_data_list)
+        # Relationship list to put in the main data
+        relationship_data_list = []
+        main_data = self.__update_main_data(user_input, class_data_list, relationship_data_list)
+        self.__storage._save_data_to_json(user_input, main_data)
         print(f"\nSuccessfully saved data to '{user_input}.json'!")
         
     # Load data #
-    def load(self):
+    def _load(self):
         # Prompt the user for a file name to save
-        print("\nPlease provide a name for the file you'd like to save or choose file from the list to override.")
+        print("\nPlease provide a name for the file you'd like to load.")
         print("Type 'quit' to go back to main menu:")
         # Show the list of saved files
         self.__display_saved_file_name()
@@ -554,15 +557,108 @@ class UMLCoreManager:
             print(f"\nYou can't load from '{user_input}.json'")
             return 
         if user_input == "quit":
+            print("\nCanceled loading!")
             return
         is_loading = self.__saved_file_name_check(user_input)
         if not is_loading:
             print(f"\nFile '{user_input}.json' does not exist")
             return
-        self.__main_data = self.__storage._load_data_from_json(user_input)
+        main_data = self.__main_data = self.__storage._load_data_from_json(user_input)
+        self.__update_data_members(main_data)
         
-            
-                       
+    # Update main data to store data to json file #
+    def __update_main_data(self, user_input: str, class_data_list: List, relationship_data_list: List) -> Dict:
+        relationship_data_list = self._get_relationship_format_list()
+        main_data = self.__main_data
+        # Add file name to saved list if it is a new one
+        self.__storage._add_name_to_saved_file(user_input)
+        for class_name in self.__class_list:
+            class_data_format = self._class_json_format(class_name)
+            class_data_list.append(class_data_format)
+        main_data["classes"] = class_data_list
+        main_data["relationships"] = relationship_data_list
+        return main_data
+    
+    # Update UMLCoreManager data after loading a file #
+    def __update_data_members(self, main_data: Dict):
+        class_data = main_data["classes"]
+        relationship_data = main_data["relationships"]
+        self.__class_list = {}
+        self.__main_data = {}
+        self.__relationship_list = []
+        # Re-create class, attribute, object, and method
+        extracted_class_data = self._extract_class_data(class_data)
+        for each_pair in extracted_class_data:
+            for class_name, data in each_pair.items(): 
+                attribute_list = data['attributes']
+                method_list = data['methods']
+                # Add the class
+                self._add_class(class_name)
+                # Add the attributes for the class
+                for each_attribute in attribute_list:
+                    self._add_attribute(class_name, each_attribute)
+                # Add the methods for the class
+                for each_method in method_list:
+                    self._add_method(class_name, each_method)
+        # Re-create relationship 
+        for each_dictionary in relationship_data:
+            self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"])
+        
+    # This function help extracting class, attribute and method from json file and put into a list #
+    def _extract_class_data(self, class_data: List[Dict]) -> List:
+        class_info_list = []
+        for ele in class_data:
+            class_name = ele["name"]
+            attributes = [field['name'] for field in ele['fields']]
+            methods = [method['name'] for method in ele['methods']]
+            class_info_list.append({class_name: {'attributes': attributes,'methods': methods}})
+        return class_info_list
+        
+    #################################################################
+    ### CLASS DETAIL ###
+    
+    ## DISPLAY DETAIL RELATED ##
+    
+    # Display Class List #
+    def _display_class_list_detail(self, classes_per_row=3):
+        # Generate class details split into lines
+        class_details_list = [
+            self.__get_class_detail(class_name).split("\n")
+            for class_name in self.__class_list
+        ]
+        print("\n-------------------------------------------------------------------------------------------------\n")
+        # Chunk the class details into groups of `classes_per_row`
+        for i in range(0, len(class_details_list), classes_per_row):
+            chunk = class_details_list[i : i + classes_per_row]
+
+            # Use zip_longest to align and print side by side
+            for lines in zip_longest(*chunk, fillvalue=" " * 20):
+                print("   ".join(line.ljust(30) for line in lines))
+            print("\n-------------------------------------------------------------------------------------------------\n")
+    
+    ## DETAIL RELATED ##
+    
+    # Get class detail #
+    def __get_class_detail(self, class_name: str) -> str:
+        class_object = self.__class_list[class_name]
+        if class_object is None:
+            print(f"\nClass '{class_name}' does not exist!")
+            return
+        output = []
+        output.append("| Class Name |")
+        output.append(f"{class_name:^10}")
+        output.append("| Attribute |")
+        attribute_list = class_object._get_class_attribute_list()
+        for attribute in attribute_list:
+            output.append(f"{attribute._get_name():^10}")
+        relationship_list = self.__relationship_list
+        for element in relationship_list:
+            if element._get_source_class() == class_name:
+                output.append(f"Source: {class_name}")
+                output.append(f"Destination: {element._get_destination_class()}")
+                output.append(f"Type: {element._get_type()}")
+        return "\n".join(output)
+           
     #################################################################
     ### UTILITY FUNCTIONS ###  
     
@@ -594,23 +690,4 @@ class UMLCoreManager:
                     return True
         return False
     
-    # Display info (TEMPORARY) #
-    def _display_attr(self):
-        for key, val in self.__class_list.items():
-            attr_list = val._get_class_attribute_list()
-            for attr in attr_list:
-                print(attr)
-                
-    def _display_method(self):
-        for key, val in self.__class_list.items():
-            method_list = val._get_class_method_list()
-            for method in method_list:
-                print(method)
-                
-    def _display_rel(self):
-        rel_list = self.__relationship_list
-        for rel in rel_list:
-            print(rel)
-            
-                
 ###################################################################################################

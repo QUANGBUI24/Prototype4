@@ -23,7 +23,7 @@ class UMLRelationship:
     def _get_destination_class(self) -> str:
         return self.__destination_class
     
-    def _get_relationship(self) -> str:
+    def _get_type(self) -> str:
         return self.__rel_type
 
     #################################################################
@@ -34,7 +34,7 @@ class UMLRelationship:
     def _set_destination_class(self, new_destination: str):
         self.__destination_class = new_destination
         
-    def _set_relationship(self, new_type: str):
+    def _set_type(self, new_type: str):
         self.__rel_type = new_type
 
     #################################################################

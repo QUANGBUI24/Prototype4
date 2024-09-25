@@ -29,13 +29,13 @@ def main():
     UML_MANAGER._add_relationship("Human", "House", "composition")
     UML_MANAGER._add_relationship("Human", "Dog", "aggregation")
     UML_MANAGER._add_relationship("Dog", "Cat", "aggregation")
+
     
-    temp = UML_MANAGER._get_relationship_format_list()
     
-    # for ele in temp:
-    #     print(ele)
+    # UML_MANAGER._load()
+    # UML_MANAGER._display_class_list_detail()
     
-    UML_MANAGER.save()
+    UML_MANAGER._save()
     
 
 

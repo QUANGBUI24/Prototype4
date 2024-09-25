@@ -37,7 +37,7 @@
     {
       "source": "Tire",
       "destination": "Car",
-      "type": "Composition"
+      "type": "composition"
     }
   ]
 }
