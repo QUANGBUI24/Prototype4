@@ -873,14 +873,6 @@ class UMLCoreManager:
         output.append("|===================|")
         return "\n".join(output)
     
-    # Get class list #
-    def __get_list_of_class_name(self) -> List[str]:
-        class_name_list: List[str] = []
-        class_list = self.__class_list
-        for class_name in class_list:
-            class_name_list.append(class_name)
-        return class_name_list
-    
     # Sorting Class List #
     def _sort_class_list(self):
         class_list = self.__class_list
