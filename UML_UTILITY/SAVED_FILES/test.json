@@ -75,6 +75,11 @@
             "source": "Dog",
             "destination": "Cat",
             "type": "aggregation"
+        },
+        {
+            "source": "Chicken",
+            "destination": "Cat",
+            "type": "aggregation"
         }
     ]
 }

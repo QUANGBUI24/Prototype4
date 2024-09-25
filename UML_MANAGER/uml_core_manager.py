@@ -30,8 +30,8 @@ class UMLCoreManager:
     def __init__(self):
         # {class_name : Class} pair
         self.__class_list: Dict[str, Class] = {}
-        self.__storage: Storage = Storage()
-        self.__relationship_list: List = []
+        self.__storage_manager: Storage = Storage()
+        self.__relationship_list: List[Relationship] = []
         self.__main_data: Dict = {}
         
     def _get_class_list(self) -> Dict[str, Class]:
@@ -95,6 +95,8 @@ class UMLCoreManager:
             return
         # Else, delete class
         self.__class_list.pop(class_name)
+        # Clean up connected relationship
+        self.__clean_up_relationship(class_name)
         if not is_loading:
             print(f"\nSuccessfully removed class '{class_name}'!")
         
@@ -324,6 +326,16 @@ class UMLCoreManager:
             return False
         return True
     
+    # Clean Up Relationship #
+    def __clean_up_relationship(self, class_name: str):
+        # Create a new list that excludes relationships with dest or source equal to class_name
+        relationship_list = self.__relationship_list
+        relationship_list[:] = [
+            relationship
+            for relationship in relationship_list
+            if relationship._get_source_class() != class_name and relationship._get_destination_class() != class_name
+        ]
+    
     # Update source/destination class name when we rename a class name #
     def __update_name_in_relationship(self, current_name: str, new_name: str):
         # Get relationship list
@@ -552,7 +564,7 @@ class UMLCoreManager:
         # Relationship list to put in the main data
         relationship_data_list = []
         main_data = self.__update_main_data(user_input, class_data_list, relationship_data_list)
-        self.__storage._save_data_to_json(user_input, main_data)
+        self.__storage_manager._save_data_to_json(user_input, main_data)
         print(f"\nSuccessfully saved data to '{user_input}.json'!")
         
     # Load data #
@@ -575,7 +587,7 @@ class UMLCoreManager:
         if not is_loading:
             print(f"\nFile '{user_input}.json' does not exist")
             return
-        main_data = self.__main_data = self.__storage._load_data_from_json(user_input)
+        main_data = self.__main_data = self.__storage_manager._load_data_from_json(user_input)
         self.__update_data_members(main_data)
         self.__check_file_and_set_status(user_input)
         print(f"\nSuccessfully loaded data from '{user_input}.json'!")
@@ -585,7 +597,7 @@ class UMLCoreManager:
         relationship_data_list = self._get_relationship_format_list()
         main_data = self.__main_data
         # Add file name to saved list if it is a new one
-        self.__storage._add_name_to_saved_file(user_input)
+        self.__storage_manager._add_name_to_saved_file(user_input)
         for class_name in self.__class_list:
             class_data_format = self._class_json_format(class_name)
             class_data_list.append(class_data_format)
@@ -638,12 +650,12 @@ class UMLCoreManager:
             print(f"File '{file_name}.json' does not exist!")
             return
         # Get saved file's name list
-        save_list = self.__storage._get_saved_list()
+        save_list = self.__storage_manager._get_saved_list()
         for dictionary in save_list:
             if file_name in dictionary:
                 save_list.remove(dictionary)
         # Update the saved list 
-        self.__storage._update_saved_list(save_list)
+        self.__storage_manager._update_saved_list(save_list)
         # Physically remove the file   
         file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
         os.remove(file_path)
@@ -651,7 +663,7 @@ class UMLCoreManager:
         
     # Check if a saved file exist #
     def _check_saved_file_exist(self, file_name: str):
-        saved_list = self.__storage._get_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
         for element in saved_list:
             for name in element:
                 if file_name == name:
@@ -666,7 +678,7 @@ class UMLCoreManager:
     
     # Get active file #
     def _get_active_file(self) -> str:
-        saved_list = self.__storage._get_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
         for each_dictionary in saved_list:
             for key, val in each_dictionary.items():
                 if val == "on":
@@ -675,7 +687,7 @@ class UMLCoreManager:
     
     # Clear the current active file #
     def _clear_current_active_data(self):
-        saved_list = self.__storage._get_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
         if len(saved_list) == 0:
             print("\nNo file!")
             return
@@ -684,7 +696,7 @@ class UMLCoreManager:
             print("\nNo active file!")
             return
         self.__reset_storage()
-        self.__storage._save_data_to_json(current_active_file, self.__main_data)
+        self.__storage_manager._save_data_to_json(current_active_file, self.__main_data)
         print(f"\nSuccessfully clear data in file '{current_active_file}.json'")
         
     def _exit(self):
@@ -693,15 +705,15 @@ class UMLCoreManager:
     
     # Set all file status to off #
     def __set_all_file_off(self):
-        saved_list = self.__storage._get_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
         for each_dictionary in saved_list:
             for key in each_dictionary:
                 each_dictionary[key] = "off"
-        self.__storage._update_saved_list(saved_list)
+        self.__storage_manager._update_saved_list(saved_list)
     
     # Set file status #
     def __set_file_status(self, file_name: str, status: str):
-        saved_list = self.__storage._get_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
         for each_dictionary in saved_list:
             for key in each_dictionary:
                 if key == file_name:
@@ -709,19 +721,19 @@ class UMLCoreManager:
     
     # Check file name and set its status #               
     def __check_file_and_set_status(self, file_name: str) -> str:
-        saved_list = self.__storage._get_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
         for each_dictionary in saved_list:
             for key in each_dictionary:
                 if each_dictionary[key] == "on":
                     each_dictionary[key] = "off"
         self.__set_file_status(file_name, status="on")
         # Update the saved list 
-        self.__storage._update_saved_list(saved_list)
+        self.__storage_manager._update_saved_list(saved_list)
         
     # Reset all storage #
     def __reset_storage(self):
         self.__class_list: Dict[str, Class] = {}
-        self.__storage: Storage = Storage()
+        self.__storage_manager: Storage = Storage()
         self.__relationship_list: List = []
         self.__main_data: Dict = {}
     
@@ -792,6 +804,11 @@ class UMLCoreManager:
         for attribute in attribute_list:
             output.append(f"{attribute._get_name():^21}")
         output.append("|*******************|")
+        output.append(f"{"--  Method  --":^21}")
+        method_list = class_object._get_class_method_list()
+        for method in method_list:
+            output.append(f"{method._get_name():^21}")
+        output.append("|*******************|")
         relationship_list = self.__relationship_list
         output.append(f"{"-- Relationship  --":^21}")
         for element in relationship_list:
@@ -845,7 +862,7 @@ class UMLCoreManager:
         
     # Display saved file's names #
     def _display_saved_list(self):
-        saved_list = self.__storage._get_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
         if len(saved_list) == 0:
             print("\nNo saved file exists!")
             return
@@ -867,7 +884,7 @@ class UMLCoreManager:
         
     # Saved file check #
     def __saved_file_name_check(self, save_file_name: str) -> bool:
-        saved_list = self.__storage._get_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
         for each_pair in saved_list:
             for file_name in each_pair:
                 if file_name == save_file_name:

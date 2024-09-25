@@ -187,6 +187,8 @@ class UMLCommandLineInterface:
         self.__prompt_menu()
         while True:
             current_active_file: str = self.get_active_file()
+            if current_active_file != "No active file!":
+                current_active_file = current_active_file + ".json"
             print(f"\n(Current active file: {current_active_file})\n")
             print("\n==> ", end="")
             user_input: str = input()
