@@ -243,7 +243,7 @@ class UMLCoreManager:
         chosen_method._set_name(new_method_name)
         if not is_loading:
             print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
-        
+    
     ## RELATIONSHIP RELATED ##
     
     # Add relationship #
