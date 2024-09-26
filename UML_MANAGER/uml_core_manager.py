@@ -387,11 +387,11 @@ class UMLCoreManager:
         # When field name should exist but it does not
         is_field_name_exist = self.__field_or_method_exist(class_name, field_name, is_field=True)
         if should_exist and not is_field_name_exist:
-            print(f"\nfield '{field_name}' does not exist in class '{class_name}'!")
+            print(f"\nField '{field_name}' does not exist in class '{class_name}'!")
             return False
         # When field name should not exist but it does
         elif not should_exist and is_field_name_exist:
-            print(f"\nfield '{field_name}' has already existed in class '{class_name}'!")
+            print(f"\nField '{field_name}' has already existed in class '{class_name}'!")
             return False
         return True
     
@@ -410,6 +410,9 @@ class UMLCoreManager:
     
     # Check if we are able to rename field #
     def __check_field_or_method_rename(self, class_name: str, current_name: str, new_name: str, is_field: bool) -> bool:
+        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
+        if not is_class_exist:
+            return
         if is_field:
             # Check if current field name exists or not
             is_current_field_name_exist = self.__validate_field_existence(class_name, current_name, should_exist=True)

@@ -1,6 +1,11 @@
 {
     "classes": [
         {
+            "name": "Animal",
+            "fields": [],
+            "methods": []
+        },
+        {
             "name": "Human",
             "fields": [
                 {
@@ -26,16 +31,8 @@
             ]
         },
         {
-            "name": "Animal",
-            "fields": [],
-            "methods": []
-        },
-        {
-            "name": "ClassToDelete",
+            "name": "Test01",
             "fields": [
-                {
-                    "name": "field_test"
-                },
                 {
                     "name": "field_test2"
                 },
@@ -44,10 +41,6 @@
                 }
             ],
             "methods": [
-                {
-                    "name": "method_test",
-                    "params": []
-                },
                 {
                     "name": "method_test2",
                     "params": []
@@ -72,22 +65,22 @@
         },
         {
             "source": "Animal",
-            "destination": "ClassToDelete",
+            "destination": "Test01",
             "type": "aggregation"
         },
         {
-            "source": "ClassToDelete",
+            "source": "Test01",
             "destination": "Human",
             "type": "composition"
         },
         {
-            "source": "ClassToDelete",
+            "source": "Test01",
             "destination": "Animal",
             "type": "realization"
         },
         {
             "source": "Human",
-            "destination": "ClassToDelete",
+            "destination": "Test01",
             "type": "composition"
         }
     ]
