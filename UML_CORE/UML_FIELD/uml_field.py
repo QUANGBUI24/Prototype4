@@ -22,5 +22,5 @@ class UMLField:
 
     #################################################################
     # Method to convert attribute to json format
-    def _convert_to_json_attribute(self) -> dict[str, str]:
+    def _convert_to_json_field(self) -> dict[str, str]:
         return {"name": self.__field_name}

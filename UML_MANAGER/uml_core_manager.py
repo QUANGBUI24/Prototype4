@@ -27,6 +27,7 @@ class UMLCoreManager:
     #################################################################
     
     # UML Class Manager Constructor #
+    
     def __init__(self):
         # {class_name : Class} pair
         self.__class_list: Dict[str, Class] = {}
@@ -34,11 +35,19 @@ class UMLCoreManager:
         self.__relationship_list: List[Relationship] = []
         self.__main_data: Dict = {}
         
+    # Getters #
+        
     def _get_class_list(self) -> Dict[str, Class]:
         return self.__class_list
     
     def _get_main_data(self) -> Dict:
         return self.__main_data
+    
+    def _get_relationship_list(self) -> List[Relationship]:
+        return self.__relationship_list
+    
+    def _get_storage_manager(self) -> Storage:
+        return self.__storage_manager
         
     #################################################################
     ### STATIC FUNCTIONS ###

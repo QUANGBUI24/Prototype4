@@ -1,6 +1,7 @@
 
 ###################################################################################################
 
+from typing import List, Dict
 from enum import Enum
 from UML_MANAGER.uml_core_manager import UMLCoreManager as Manager
 
@@ -16,9 +17,9 @@ class InterfaceOptions(Enum):
     ADD_CLASS = "add_class"
     DELETE_CLASS = "delete_class"
     RENAME = "rename_class"
-    ADD_ATTR = "add_attr"
-    DELETE_ATTR = "delete_attr"
-    RENAME_ATTR = "rename_attr"
+    ADD_FIELD = "add_field"
+    DELETE_FIELD = "delete_field"
+    RENAME_FIELD = "rename_field"
     ADD_METHOD = "add_method"
     DELETE_METHOD = "delete_method"
     RENAME_METHOD = "rename_method"
@@ -47,6 +48,28 @@ class UMLCommandLineInterface:
     #################################################################
     ### INTERFACE FUNCTIONS THAT CONNECT WITH THE MANAGER ###
     
+    ## DATA RELATED FOR GUI ##
+
+    # Get main data #
+    def get_main_data(self) -> Dict:
+        return ProgramManager._get_main_data()
+    
+    # Get relationship list #
+    def get_relationship_list(self) -> List:
+        return ProgramManager._get_relationship_list()
+    
+    # Get storage manager #
+    def get_storage_manager(self):
+        return ProgramManager._get_storage_manager()
+    
+    # Extract and and a list of UML class data #
+    """class_data can be retrieved using get_main_data()
+       main_data =  get_main_data()
+       class_data = main_data["classes"]
+    """
+    def extract_class_data(self, class_data: List[Dict]) -> List: 
+        return ProgramManager._extract_class_data(class_data)
+    
     ## CLASS RELATED ##
     
     # Add class interface #
@@ -65,15 +88,15 @@ class UMLCommandLineInterface:
     
     # Add attribute interface #
     def add_attribute(self, class_name: str, attribute_name: str):
-        ProgramManager._add_attribute(class_name, attribute_name, is_loading=False)
+        ProgramManager._add_field(class_name, attribute_name, is_loading=False)
         
     # Delete attribute interface #
     def delete_attribute(self, class_name: str, attribute_name: str):
-        ProgramManager._delete_attribute(class_name, attribute_name, is_loading=False)
+        ProgramManager._delete_field(class_name, attribute_name, is_loading=False)
     
     # Rename attribute interface #
     def rename_attribute(self, class_name: str, current_attribute_name: str, new_attribute_name: str):
-        ProgramManager._rename_attribute(class_name, current_attribute_name, new_attribute_name, is_loading=False)
+        ProgramManager._rename_field(class_name, current_attribute_name, new_attribute_name, is_loading=False)
         
     ## METHOD RELATED ##
     
@@ -159,9 +182,9 @@ class UMLCommandLineInterface:
         print("Type 'delete_class <class_name>' to delete a class")
         print("Type 'rename_class <class_name> <new_name>' to rename a class\n")
         # Attribute
-        print("Type 'add_attr <class_name> <attr_name>' to add an attribute")
-        print("Type 'delete_attr <class_name> <attr_name>' to delete an attribute from the chosen class")
-        print("Type 'rename_attr <class_name> <current_attribute_name> <new_name>' to rename an attribute\n")
+        print("Type 'add_field <class_name> <attr_name>' to add a field")
+        print("Type 'delete_field <class_name> <field_name>' to delete a field from the chosen class")
+        print("Type 'rename_field <class_name> <current_field_name> <new_name>' to rename a field\n")
         # Method
         print("Type 'add_method <class_name> <attr_name>' to add a method")
         print("Type 'delete_method <class_name> <attr_name>' to delete a method from the chosen class")
@@ -223,21 +246,21 @@ class UMLCommandLineInterface:
 
             # Add attribute #
             elif (
-                command == InterfaceOptions.ADD_ATTR.value
+                command == InterfaceOptions.ADD_FIELD.value
                 and first_param
                 and second_param
             ):
                 self.add_attribute(first_param, second_param)
             # Delete attribute #
             elif (
-                command == InterfaceOptions.DELETE_ATTR.value
+                command == InterfaceOptions.DELETE_FIELD.value
                 and first_param
                 and second_param
             ):
                 self.delete_attribute(first_param, second_param)
             # Rename attribute #
             elif (
-                command == InterfaceOptions.RENAME_ATTR.value
+                command == InterfaceOptions.RENAME_FIELD.value
                 and first_param
                 and second_param
                 and third_param
