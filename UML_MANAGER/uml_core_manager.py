@@ -249,7 +249,7 @@ class UMLCoreManager:
     # Add relationship wrapper #
     def _add_relationship_wrapper(self, is_loading: bool):
         print("\nType '<source_class> <destination_class> <type>")
-        print("\nYou must choose one of the types below or type 'quit' to cancel:")
+        print("\nYou must choose one of the types below:")
         self.__display_type_enum()
         print("Below is class list:")
         self.__display_list_of_only_class_name()
@@ -342,13 +342,15 @@ class UMLCoreManager:
             # Check if new type is identical to current type:
             current_type = self.__get_chosen_relationship_type(source_class_name, destination_class_name)
             if current_type == new_type:
-                print(f"New type '{new_type}' is identical to the existing type!")
+                print(f"\nNew type '{new_type}' is identical to the existing type of the current relationship!")
                 return
             # Check if type already existed or not
             is_type_exist = self.__validate_type_existence(new_type, should_exist=True)
             if not is_type_exist:
                 return
             current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
+            if current_relationship is None:
+                return
             current_relationship._set_type(new_type)
             print(f"\nSuccessfully changed the type between class '{source_class_name}' and class '{destination_class_name}' to '{new_type}'!")
             
