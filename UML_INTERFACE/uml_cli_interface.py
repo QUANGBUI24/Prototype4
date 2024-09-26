@@ -186,9 +186,9 @@ class UMLCommandLineInterface:
         print("Type 'delete_field <class_name> <field_name>' to delete a field from the chosen class")
         print("Type 'rename_field <class_name> <current_field_name> <new_name>' to rename a field\n")
         # Method
-        print("Type 'add_method <class_name> <attr_name>' to add a method")
-        print("Type 'delete_method <class_name> <attr_name>' to delete a method from the chosen class")
-        print("Type 'rename_method <class_name> <current_attribute_name> <new_name>' to rename a method\n")
+        print("Type 'add_method <class_name> <method_name>' to add a method")
+        print("Type 'delete_method <class_name> <method_name>' to delete a method from the chosen class")
+        print("Type 'rename_method <class_name> <current_method_name> <new_name>' to rename a method\n")
         # Relationship
         print("Type 'add_rel <source_class> <destination_class_name> <relationship_level>' to add relationship and relationship level")
         print("Type 'delete_rel <chosen_class_name> <destination_class_name>' to delete a relationship\n")
@@ -214,7 +214,7 @@ class UMLCommandLineInterface:
             current_active_file: str = self.get_active_file()
             if current_active_file != "No active file!":
                 current_active_file = current_active_file + ".json"
-            print(f"\n(Current active file: {current_active_file})\n")
+            print(f"(Current active file: {current_active_file})")
             print("\n==> ", end="")
             user_input: str = input()
             # Split the input by space
