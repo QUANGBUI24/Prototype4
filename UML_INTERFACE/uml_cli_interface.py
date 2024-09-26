@@ -214,7 +214,7 @@ class UMLCommandLineInterface:
             current_active_file: str = self.get_active_file()
             if current_active_file != "No active file!":
                 current_active_file = current_active_file + ".json"
-            print(f"(Current active file: {current_active_file})")
+            print(f"\n(Current active file: {current_active_file})")
             print("\n==> ", end="")
             user_input: str = input()
             # Split the input by space
