@@ -24,7 +24,6 @@ class InterfaceOptions(Enum):
     RENAME_METHOD = "rename_method"
     ADD_REL = "add_rel"
     DELETE_REL = "delete_rel"
-    BACK = "back"
     LIST_CLASS = "list_class"
     CLASS_DETAIL = "class_detail"
     CLASS_REL = "class_rel"
