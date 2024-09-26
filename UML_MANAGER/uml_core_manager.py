@@ -116,11 +116,11 @@ class UMLCoreManager:
         # If not, stop
         if not is_able_to_rename:
             return
+        # Update the real class
+        class_object = self.__class_list[current_name]
+        class_object._set_class_name(new_name) 
         # Update the key
         self.__class_list[new_name] = self.__class_list.pop(current_name)
-        # Update the real class
-        class_object = self.__class_list[new_name]
-        class_object._set_class_name(new_name)   
         # Update name in relationship list
         self.__update_name_in_relationship(current_name, new_name)
         if not is_loading:
@@ -302,7 +302,7 @@ class UMLCoreManager:
     ### HELPER FUNCTIONS ###  
     
     ## CLASS RELATED ## 
-    
+
     # Validate if the class name exists in the class list #
     def __class_exists(self, class_name: str) -> bool:
         return class_name in self.__class_list
@@ -649,24 +649,32 @@ class UMLCoreManager:
     
     # Delete Saved File #
     def _delete_saved_file(self):
-        print("\nChoose a file you want to delete:")
+        print("\nPlease choose a file you want to delete.")
+        print("Type 'quit' to go back to main menu:")
         self._display_saved_list()
-        file_name = input()
-        is_file_exist = self._check_saved_file_exist(file_name)
+        user_input = input()
+        # Prevent user from loading NAME_LIST.json
+        if user_input == "NAME_LIST":
+            print(f"\nYou can't delete file '{user_input}.json'")
+            return 
+        if user_input == "quit":
+            print("\nCanceled loading!")
+            return
+        is_file_exist = self._check_saved_file_exist(user_input)
         if not is_file_exist:
-            print(f"File '{file_name}.json' does not exist!")
+            print(f"File '{user_input}.json' does not exist!")
             return
         # Get saved file's name list
         save_list = self.__storage_manager._get_saved_list()
         for dictionary in save_list:
-            if file_name in dictionary:
+            if user_input in dictionary:
                 save_list.remove(dictionary)
         # Update the saved list 
         self.__storage_manager._update_saved_list(save_list)
         # Physically remove the file   
-        file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
+        file_path = f"UML_UTILITY/SAVED_FILES/{user_input}.json"
         os.remove(file_path)
-        print(f"\nSuccessfully removed file '{file_name}.json'")
+        print(f"\nSuccessfully removed file '{user_input}.json'")
         
     # Check if a saved file exist #
     def _check_saved_file_exist(self, file_name: str):

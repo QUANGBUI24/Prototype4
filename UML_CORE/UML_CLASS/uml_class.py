@@ -28,11 +28,14 @@ class UMLClass:
 
     def _get_class_method_list(self) -> List[Method]:
         return self.__method_list
+    
+    def __str__(self):
+        return f"Class name: {self.__class_name}"
 
     #################################################################
     # Method to modify UML class's data members #
     def _set_class_name(self, new_class_name: str):
-        self.class_name = new_class_name
+        self.__class_name = new_class_name
 
     def _set_class_field_list(self, new_field_list: List[Field]):
         self.__field_list = new_field_list
