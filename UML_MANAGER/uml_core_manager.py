@@ -5,7 +5,7 @@ from itertools import zip_longest
 from enum import Enum
 from typing import Dict, List
 from UML_CORE.UML_CLASS.uml_class import UMLClass as Class
-from UML_CORE.UML_ATTRIBUTE.uml_attribute import UMLAttribute as Attribute
+from UML_CORE.UML_FIELD.uml_field import UMLField as Field
 from UML_CORE.UML_METHOD.uml_method import UMLMethod as Method
 from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relationship
 from UML_CORE.UML_PARAMETER.uml_parameter import UMLParameter as Parameter
@@ -48,10 +48,10 @@ class UMLCoreManager:
     def create_class(class_name: str) -> Class:
         return Class(class_name)
     
-    # Attribute creation method #
+    # Field creation method #
     @staticmethod
-    def create_attribute(attribute_name: str) -> Attribute:
-        return Attribute(attribute_name)
+    def create_field(field_name: str) -> Field:
+        return Field(field_name)
     
     # Method creation method #
     @staticmethod
@@ -117,64 +117,64 @@ class UMLCoreManager:
         if not is_loading:
             print(f"\nSuccessfully renamed from class '{current_name}' to class '{new_name}'!")
         
-    ## ATTRIBUTE RELATED ##
+    ## FIELD RELATED ##
     
-    # Add attribute #
-    def _add_attribute(self, class_name: str, attribute_name: str, is_loading: bool):
+    # Add field #
+    def _add_field(self, class_name: str, field_name: str, is_loading: bool):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
         if not is_class_exist:
             return
-        # Check if attribute exists or not
-        is_attribute_exist = self.__validate_attribute_existence(class_name, attribute_name, should_exist=False)
-        # If the attribute has already existed, stop
-        if not is_attribute_exist:
+        # Check if field exists or not
+        is_field_exist = self.__validate_field_existence(class_name, field_name, should_exist=False)
+        # If the field has already existed, stop
+        if not is_field_exist:
             return
         # Get class object
         class_object = self.__class_list[class_name]
-        # Get attribute list
-        attribute_list = class_object._get_class_attribute_list()
-        # Create new attribute
-        new_attribute = self.create_attribute(attribute_name)
-        # Add attribute
-        attribute_list.append(new_attribute)
+        # Get field list
+        field_list = class_object._get_class_field_list()
+        # Create new field
+        new_field = self.create_field(field_name)
+        # Add field
+        field_list.append(new_field)
         if not is_loading:
-            print(f"\nSuccessfully added attribute '{attribute_name}'!")
+            print(f"\nSuccessfully added field '{field_name}'!")
         
-    # Delete attribute #
-    def _delete_attribute(self, class_name: str, attribute_name: str, is_loading):
+    # Delete field #
+    def _delete_field(self, class_name: str, field_name: str, is_loading):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
         if not is_class_exist:
             return
-        # Check if attribute exists or not
-        is_attribute_exist = self.__validate_attribute_existence(class_name, attribute_name, should_exist=True)
-        # If the attribute does not exist, stop
-        if not is_attribute_exist:
+        # Check if field exists or not
+        is_field_exist = self.__validate_field_existence(class_name, field_name, should_exist=True)
+        # If the field does not exist, stop
+        if not is_field_exist:
             return
          # Get class object
         class_object = self.__class_list[class_name]
-        # Get attribute list
-        attribute_list = class_object._get_class_attribute_list()
-        # Get the attribute
-        chosen_attribute = self.__get_chosen_attribute_or_method(class_name, attribute_name, is_attribute=True)
-        # Remove the chosen attribute 
-        attribute_list.remove(chosen_attribute)
+        # Get field list
+        field_list = class_object._get_class_field_list()
+        # Get the field
+        chosen_field = self.__get_chosen_field_or_method(class_name, field_name, is_field=True)
+        # Remove the chosen field 
+        field_list.remove(chosen_field)
         if not is_loading:
-            print(f"\nSuccessfully removed attribute '{attribute_name}'!")
+            print(f"\nSuccessfully removed field '{field_name}'!")
         
-    # Rename attribute #
-    def _rename_attribute(self, class_name: str, current_attribute_name: str, new_attribute_name: str, is_loading: bool):
-        is_able_to_rename = self.__check_attribute_or_method_rename(class_name, current_attribute_name, new_attribute_name, is_attribute=True)
+    # Rename field #
+    def _rename_field(self, class_name: str, current_field_name: str, new_field_name: str, is_loading: bool):
+        is_able_to_rename = self.__check_field_or_method_rename(class_name, current_field_name, new_field_name, is_field=True)
         if not is_able_to_rename:
             return
-        # Get the attribute
-        chosen_attribute = self.__get_chosen_attribute_or_method(class_name, current_attribute_name, is_attribute=True)
-        chosen_attribute._set_name(new_attribute_name)
+        # Get the field
+        chosen_field = self.__get_chosen_field_or_method(class_name, current_field_name, is_field=True)
+        chosen_field._set_name(new_field_name)
         if not is_loading:
-            print(f"\nSuccessfully renamed from attribute '{current_attribute_name}' to attribute '{new_attribute_name}'!")
+            print(f"\nSuccessfully renamed from field '{current_field_name}' to field '{new_field_name}'!")
         
     ## METHOD RELATED ##
     
@@ -187,12 +187,12 @@ class UMLCoreManager:
             return
         # Check if method exists or not
         is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=False)
-        # If the attribute has already existed, stop
+        # If the field has already existed, stop
         if not is_method_exist:
             return
         # Get class object
         class_object = self.__class_list[class_name]
-        # Get attribute list
+        # Get field list
         method_list = class_object._get_class_method_list()
         # Create new method
         new_method = self.create_method(method_name)
@@ -218,19 +218,19 @@ class UMLCoreManager:
         # Get method list
         method_list = class_object._get_class_method_list()
         # Get the method
-        chosen_method = self.__get_chosen_attribute_or_method(class_name, method_name, is_attribute=False)
-        # Remove the chosen attribute 
+        chosen_method = self.__get_chosen_field_or_method(class_name, method_name, is_field=False)
+        # Remove the chosen field 
         method_list.remove(chosen_method)
         if not is_loading:
             print(f"\nSuccessfully removed method '{method_name}'!")
         
     # Rename method #
     def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str, is_loading: bool):
-        is_able_to_rename = self.__check_attribute_or_method_rename(class_name, current_method_name, new_method_name, is_attribute=False)
+        is_able_to_rename = self.__check_field_or_method_rename(class_name, current_method_name, new_method_name, is_field=False)
         if not is_able_to_rename:
             return
         # Get the method
-        chosen_method = self.__get_chosen_attribute_or_method(class_name, current_method_name, is_attribute=False)
+        chosen_method = self.__get_chosen_field_or_method(class_name, current_method_name, is_field=False)
         chosen_method._set_name(new_method_name)
         if not is_loading:
             print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
@@ -349,10 +349,10 @@ class UMLCoreManager:
             elif destination_name == current_name:
                 each_relationship._set_destination_class(new_name)
     
-    ## ATTRIBUTE AND METHOD RELATED ##
+    ## field AND METHOD RELATED ##
     
-    # Check attribute name exist or not #
-    def __attribute_or_method_exist(self, class_name: str, input_name: str, is_attribute: bool) -> bool:
+    # Check field name exist or not #
+    def __field_or_method_exist(self, class_name: str, input_name: str, is_field: bool) -> bool:
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
@@ -360,12 +360,12 @@ class UMLCoreManager:
             return
         # Get class object
         class_object = self.__class_list[class_name]
-        # Select the correct list based on is_attribute
-        if is_attribute:
-            general_list = class_object._get_class_attribute_list()
+        # Select the correct list based on is_field
+        if is_field:
+            general_list = class_object._get_class_field_list()
         else:
             general_list = class_object._get_class_method_list()
-        # Loop through the list to find the attribute name 
+        # Loop through the list to find the field name 
         for element in general_list:
             current_name = element._get_name()
             # If exists, return true
@@ -373,23 +373,23 @@ class UMLCoreManager:
                 return True
         return False
     
-    # Validate attribute name based on whether it should exist or not #
-    def __validate_attribute_existence(self, class_name: str,  attribute_name: str, should_exist: bool) -> bool:
-        # When attribute name should exist but it does not
-        is_attribute_name_exist = self.__attribute_or_method_exist(class_name, attribute_name, is_attribute=True)
-        if should_exist and not is_attribute_name_exist:
-            print(f"\nAttribute '{attribute_name}' does not exist in class '{class_name}'!")
+    # Validate field name based on whether it should exist or not #
+    def __validate_field_existence(self, class_name: str,  field_name: str, should_exist: bool) -> bool:
+        # When field name should exist but it does not
+        is_field_name_exist = self.__field_or_method_exist(class_name, field_name, is_field=True)
+        if should_exist and not is_field_name_exist:
+            print(f"\nfield '{field_name}' does not exist in class '{class_name}'!")
             return False
-        # When attribute name should not exist but it does
-        elif not should_exist and is_attribute_name_exist:
-            print(f"\nAttribute '{attribute_name}' has already existed in class '{class_name}'!")
+        # When field name should not exist but it does
+        elif not should_exist and is_field_name_exist:
+            print(f"\nfield '{field_name}' has already existed in class '{class_name}'!")
             return False
         return True
     
     # Validate method name based on whether it should exist or not #
     def __validate_method_existence(self, class_name: str,  method_name: str, should_exist: bool) -> bool:
         # When method name should exist but it does not
-        is_method_name_exist = self.__attribute_or_method_exist(class_name, method_name, is_attribute=False)
+        is_method_name_exist = self.__field_or_method_exist(class_name, method_name, is_field=False)
         if should_exist and not is_method_name_exist:
             print(f"\nMethod '{method_name}' does not exist in class '{class_name}'!")
             return False
@@ -399,17 +399,17 @@ class UMLCoreManager:
             return False
         return True
     
-    # Check if we are able to rename attribute #
-    def __check_attribute_or_method_rename(self, class_name: str, current_name: str, new_name: str, is_attribute: bool) -> bool:
-        if is_attribute:
-            # Check if current attribute name exists or not
-            is_current_attribute_name_exist = self.__validate_attribute_existence(class_name, current_name, should_exist=True)
-             # If the attribute does not exist, stop
-            if not is_current_attribute_name_exist:
+    # Check if we are able to rename field #
+    def __check_field_or_method_rename(self, class_name: str, current_name: str, new_name: str, is_field: bool) -> bool:
+        if is_field:
+            # Check if current field name exists or not
+            is_current_field_name_exist = self.__validate_field_existence(class_name, current_name, should_exist=True)
+             # If the field does not exist, stop
+            if not is_current_field_name_exist:
                 return False
-             # Check if new attribute name exists or not
-            is_new_name_exist = self.__validate_attribute_existence(class_name, new_name, should_exist=False)
-            # If the attribute has already existed, stop
+             # Check if new field name exists or not
+            is_new_name_exist = self.__validate_field_existence(class_name, new_name, should_exist=False)
+            # If the field has already existed, stop
             if not is_new_name_exist:
                 return False
         else:
@@ -425,20 +425,20 @@ class UMLCoreManager:
                 return False
         return True
     
-    # Get the chosen attribute #
-    def __get_chosen_attribute_or_method(self, class_name: str,  input_name: str, is_attribute: bool) -> Attribute | Method | None:
+    # Get the chosen field #
+    def __get_chosen_field_or_method(self, class_name: str,  input_name: str, is_field: bool) -> Field | Method | None:
         # Get class object
         class_object = self.__class_list[class_name]
-        # Select the correct list based on is_attribute
-        if is_attribute:
-            general_list = class_object._get_class_attribute_list()
+        # Select the correct list based on is_field
+        if is_field:
+            general_list = class_object._get_class_field_list()
         else:
             general_list = class_object._get_class_method_list()
         # Find the chosen object
         # Loop through the list to find the object name 
         for element in general_list:
             current_name = element._get_name()
-            # If exists, return the attribute
+            # If exists, return the field
             if current_name == input_name:
                 return element
         return None
@@ -484,20 +484,20 @@ class UMLCoreManager:
     #################################################################
     ### JSON FORMAT ###
     
-    # Get attribute format list #
-    def _get_attribute_format_list(self, class_object: Class) -> List[Dict]:
-        # Get attribute list
-        attribute_list = class_object._get_class_attribute_list()
+    # Get field format list #
+    def _get_field_format_list(self, class_object: Class) -> List[Dict]:
+        # Get field list
+        field_list = class_object._get_class_field_list()
          # Field format list
         field_list_format: List[Dict] = []
-        for each_attribute in attribute_list:
-            attr_json_format = each_attribute._convert_to_json_attribute()
+        for each_field in field_list:
+            attr_json_format = each_field._convert_to_json_field()
             field_list_format.append(attr_json_format)
         return field_list_format
     
     # Get method format list #
     def _get_method_format_list(self, class_object: Class) -> List[Dict]:
-        # Get attribute list
+        # Get field list
         method_list = class_object._get_class_method_list()
          # Field format list
         method_list_format: List[Dict] = []
@@ -531,7 +531,7 @@ class UMLCoreManager:
         # Assign class name
         class_format["name"] = class_object._get_class_name()
         # Field list format
-        field_list_format: List[Dict] = self._get_attribute_format_list(class_object)       
+        field_list_format: List[Dict] = self._get_field_format_list(class_object)       
         # Assign field list format
         class_format["fields"] = field_list_format
         # Method list format
@@ -610,17 +610,17 @@ class UMLCoreManager:
         class_data = main_data["classes"]
         relationship_data = main_data["relationships"]
         self.__reset_storage()
-        # Re-create class, attribute, object, and method
+        # Re-create class, field, object, and method
         extracted_class_data = self._extract_class_data(class_data)
         for each_pair in extracted_class_data:
             for class_name, data in each_pair.items(): 
-                attribute_list = data['attributes']
+                field_list = data['fields']
                 method_list = data['methods']
                 # Add the class
                 self._add_class(class_name, is_loading=True)
-                # Add the attributes for the class
-                for each_attribute in attribute_list:
-                    self._add_attribute(class_name, each_attribute, is_loading=True)
+                # Add the fields for the class
+                for each_field in field_list:
+                    self._add_field(class_name, each_field, is_loading=True)
                 # Add the methods for the class
                 for each_method in method_list:
                     self._add_method(class_name, each_method, is_loading=True)
@@ -628,14 +628,14 @@ class UMLCoreManager:
         for each_dictionary in relationship_data:
             self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
         
-    # This function help extracting class, attribute and method from json file and put into a list #
+    # This function help extracting class, field and method from json file and put into a list #
     def _extract_class_data(self, class_data: List[Dict]) -> List:
         class_info_list = []
         for ele in class_data:
             class_name = ele["name"]
-            attributes = [field['name'] for field in ele['fields']]
+            fields = [field['name'] for field in ele['fields']]
             methods = [method['name'] for method in ele['methods']]
-            class_info_list.append({class_name: {'attributes': attributes,'methods': methods}})
+            class_info_list.append({class_name: {'fields': fields,'methods': methods}})
         return class_info_list
     
     # Delete Saved File #
@@ -825,10 +825,10 @@ class UMLCoreManager:
         output.append(f"{"--     Name     --":^21}")
         output.append(f"{class_name:^20}")
         output.append("|*******************|")
-        output.append(f"{"--  Attribute  --":^21}")
-        attribute_list = class_object._get_class_attribute_list()
-        for attribute in attribute_list:
-            output.append(f"{attribute._get_name():^21}")
+        output.append(f"{"--  Field  --":^21}")
+        field_list = class_object._get_class_field_list()
+        for field in field_list:
+            output.append(f"{field._get_name():^21}")
         output.append("|*******************|")
         output.append(f"{"--  Method  --":^21}")
         method_list = class_object._get_class_method_list()

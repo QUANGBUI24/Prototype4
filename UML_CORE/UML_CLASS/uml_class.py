@@ -1,6 +1,6 @@
 from typing import List
 
-from UML_CORE.UML_ATTRIBUTE.uml_attribute import UMLAttribute as Attribute
+from UML_CORE.UML_FIELD.uml_field import UMLField as Field
 from UML_CORE.UML_METHOD.uml_method import UMLMethod as Method
 
 class UMLClass:
@@ -9,9 +9,9 @@ class UMLClass:
     # Create UML class with a name including:
     def __init__(self, class_name: str):
         self.__class_name = class_name
-        # Store attribute name and the related attribute object
+        # Store field name and the related field object
         # so we can easily access to the its details
-        self.__attribute_list: List[Attribute] = []
+        self.__field_list: List[Field] = []
         # Store method name and the related method object
         # so we can easily access to the its details
         self.__method_list: List[Method] = []
@@ -23,8 +23,8 @@ class UMLClass:
     def _get_class_name(self) -> str:
         return self.__class_name
 
-    def _get_class_attribute_list(self) -> List[Attribute]:
-        return self.__attribute_list
+    def _get_class_field_list(self) -> List[Field]:
+        return self.__field_list
 
     def _get_class_method_list(self) -> List[Method]:
         return self.__method_list
@@ -34,8 +34,8 @@ class UMLClass:
     def _set_class_name(self, new_class_name: str):
         self.class_name = new_class_name
 
-    def _set_class_attribute_list(self, new_attribute_list: List[Attribute]):
-        self.__attribute_list = new_attribute_list
+    def _set_class_field_list(self, new_field_list: List[Field]):
+        self.__field_list = new_field_list
 
     def _set_class_method_list(self, new_method_list: List[Method]):
         self.__method_list = new_method_list
