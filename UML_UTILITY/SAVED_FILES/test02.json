@@ -43,7 +43,20 @@
             "methods": [
                 {
                     "name": "method_test2",
-                    "params": []
+                    "params": [
+                        {
+                            "name": "param_test2"
+                        },
+                        {
+                            "name": "param_test3"
+                        },
+                        {
+                            "name": "param_test4"
+                        },
+                        {
+                            "name": "param_test007"
+                        }
+                    ]
                 },
                 {
                     "name": "method_test3",
