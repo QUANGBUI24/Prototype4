@@ -115,7 +115,7 @@ class UMLCommandLineInterface:
     def rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
         ProgramManager._rename_method(class_name, current_method_name, new_method_name, is_loading=False)
         
-    ## PARAMETER REALATED ##
+    ## PARAMETER RELATED ##
     
     # Add parameter #
     def add_parameter(self, class_name: str, method_name: str, parameter_name: str):
@@ -128,7 +128,6 @@ class UMLCommandLineInterface:
     # Rename parameter #
     def rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
         ProgramManager._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
-        
         
     ## RELATIONSHIP RELATED ##
     
