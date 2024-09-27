@@ -23,6 +23,9 @@ class InterfaceOptions(Enum):
     ADD_METHOD = "add_method"
     DELETE_METHOD = "delete_method"
     RENAME_METHOD = "rename_method"
+    ADD_PARAM = "add_param"
+    DELETE_PARAM = "delete_param"
+    RENAME_PARAM = "rename_param"
     ADD_REL = "add_rel"
     DELETE_REL = "delete_rel"
     LIST_CLASS = "list_class"
@@ -111,6 +114,21 @@ class UMLCommandLineInterface:
     # Rename method interface #
     def rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
         ProgramManager._rename_method(class_name, current_method_name, new_method_name, is_loading=False)
+        
+    ## PARAMETER REALATED ##
+    
+    # Add parameter #
+    def add_parameter(self, class_name: str, method_name: str, parameter_name: str):
+        ProgramManager._add_parameter(class_name, method_name, parameter_name, is_loading=False)
+        
+    # Delete parameter #
+    def delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
+        ProgramManager._delete_parameter(class_name, method_name, parameter_name)
+        
+    # Rename parameter #
+    def rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
+        ProgramManager._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
+        
         
     ## RELATIONSHIP RELATED ##
     
@@ -212,6 +230,7 @@ class UMLCommandLineInterface:
             first_param = user_input_component[1] if len(user_input_component) > 1 else None
             second_param = (user_input_component[2] if len(user_input_component) > 2 else None)
             third_param = user_input_component[3] if len(user_input_component) > 3 else None
+            fourth_param = user_input_component[4] if len(user_input_component) > 4 else None
             # Start the logic
             #######################################################
             
@@ -278,6 +297,34 @@ class UMLCommandLineInterface:
                 and third_param
             ):
                 self.rename_method(first_param, second_param, third_param)
+            
+            #######################################################
+            
+            # Add parameter #
+            elif (
+                command == InterfaceOptions.ADD_PARAM.value
+                and first_param
+                and second_param
+                and third_param
+            ):
+                self.add_parameter(first_param, second_param, third_param)
+            # Delete parameter #
+            elif (
+                command == InterfaceOptions.DELETE_PARAM.value
+                and first_param
+                and second_param
+                and third_param
+            ):
+                self.delete_parameter(first_param, second_param, third_param)
+            # Rename parameter #
+            elif (
+                command == InterfaceOptions.RENAME_PARAM.value
+                and first_param
+                and second_param
+                and third_param
+                and fourth_param
+            ):
+                self.rename_parameter(first_param, second_param, third_param, fourth_param)
             
             #######################################################
 
