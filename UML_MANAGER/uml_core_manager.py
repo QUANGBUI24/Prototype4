@@ -328,6 +328,45 @@ class UMLCoreManager:
         chosen_parameter._set_parameter_name(new_parameter_name)
         print(f"\nSuccessfully renamed from parameter '{current_parameter_name}' to parameter '{new_parameter_name}'!")
         
+    # Replace parameter list, fail if class or method does not exist
+    def _replace_param_list(self, class_name: str, method_name: str):
+        # Check if class exists or not
+        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
+        # If the class does not exist, stop
+        if not is_class_exist:
+            return
+        # Check if method exists or not
+        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
+        # If the method does not exist, stop
+        if not is_method_exist:
+            return
+        # Get new parameter names from the user
+        user_input = input("\nEnter the names for the new parameter list, each name must be separated by spaces:\n\n==> ")
+        new_param_name_list = user_input.split()
+        # Check for duplicates in the parameter list
+        unique_param_names = list(set(new_param_name_list))
+        if len(unique_param_names) != len(new_param_name_list):
+            print("\nDuplicate parameters detected:")
+            duplicates = [param for param in new_param_name_list if new_param_name_list.count(param) > 1]
+            print(f"\nDuplicates: {set(duplicates)}")
+            user_choice = self._ask_user_choices("automatically remove duplicates?")
+            if not user_choice:
+                print("\nPlease modify the parameter list manually to ensure uniqueness.")
+                return
+            new_param_name_list = unique_param_names
+            print("\nDuplicates removed. Continuing with unique parameters...")
+        # Create parameter objects for the specific method
+        new_param_list: List[Parameter] = []
+        for param_name in new_param_name_list:
+            new_param = self.create_parameter(param_name)
+            new_param_list.append(new_param)
+        # Replace the parameter list in the specified method
+        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list[method_name] = new_param_list
+        print(f"\nSuccessfully replaced parameter list for method '{method_name}'!")
+
+    
+ 
     ## RELATIONSHIP RELATED ##
     
     # Add relationship wrapper #
