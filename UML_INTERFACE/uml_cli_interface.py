@@ -1,9 +1,9 @@
-
 ###################################################################################################
 
 from typing import List, Dict
 from enum import Enum
 from UML_MANAGER.uml_core_manager import UMLCoreManager as Manager
+from .help_text import show_manual
 
 ###################################################################################################
 
@@ -25,7 +25,6 @@ class InterfaceOptions(Enum):
     RENAME_METHOD = "rename_method"
     ADD_REL = "add_rel"
     DELETE_REL = "delete_rel"
-    TYPE_MOD = "type_mod"
     LIST_CLASS = "list_class"
     CLASS_DETAIL = "class_detail"
     CLASS_REL = "class_rel"
@@ -116,22 +115,12 @@ class UMLCommandLineInterface:
     ## RELATIONSHIP RELATED ##
     
     # Add relationship interface #
-    def add_relationship_wrapper(self):
-        """We use this one for our program, which has user input"""
-        ProgramManager._add_relationship_wrapper(is_loading=False)
-        
-    # Add relationship interface #
-    """We use this one for Unit Test to avoid the user input mock"""
     def add_relationship(self, source_class_name: str, destination_class_name: str, type: str):
         ProgramManager._add_relationship(source_class_name, destination_class_name, type, is_loading=False)
     
     # Delete relationship interface #
     def delete_relationship(self, source_class_name: str, destination_class_name: str):
         ProgramManager._delete_relationship(source_class_name, destination_class_name, is_loading=False)
-    
-    # Change relationship type #
-    def change_type(self, source_class_name: str, destination_class_name: str, type: str):
-        ProgramManager._change_type(source_class_name, destination_class_name, type)
     
     ## DISPLAY RELATED ##
     
@@ -190,42 +179,24 @@ class UMLCommandLineInterface:
         ProgramManager._exit()
 
     #################################################################   
+    def __display_banner(self):
+        banner = r"""
+        ▗▖ ▗▖▗▖  ▗▖▗▖       ▗▄▄▄▖▗▄▄▄ ▗▄▄▄▖▗▄▄▄▖▗▄▖ ▗▄▄▖ 
+        ▐▌ ▐▌▐▛▚▞▜▌▐▌       ▐▌   ▐▌  █  █    █ ▐▌ ▐▌▐▌ ▐▌
+        ▐▌ ▐▌▐▌  ▐▌▐▌       ▐▛▀▀▘▐▌  █  █    █ ▐▌ ▐▌▐▛▀▚▖
+        ▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖    ▐▙▄▄▖▐▙▄▄▀▗▄█▄▖  █ ▝▚▄▞▘▐▌ ▐▌
+                                             
+        
+            Welcome to the UML Management Interface!
+    For more information on commands, type "help" for the manual.
+        """
+        print(banner)
+
     def __prompt_menu(self):
-        print("Welcome To Our UML Program!\n")
-        # Class
-        print("Type 'add_class <class_name>' to add a class")
-        print("Type 'delete_class <class_name>' to delete a class")
-        print("Type 'rename_class <class_name> <new_name>' to rename a class\n")
-        # Attribute
-        print("Type 'add_field <class_name> <attr_name>' to add a field")
-        print("Type 'delete_field <class_name> <field_name>' to delete a field from the chosen class")
-        print("Type 'rename_field <class_name> <current_field_name> <new_name>' to rename a field\n")
-        # Method
-        print("Type 'add_method <class_name> <method_name>' to add a method")
-        print("Type 'delete_method <class_name> <method_name>' to delete a method from the chosen class")
-        print("Type 'rename_method <class_name> <current_method_name> <new_name>' to rename a method\n")
-        # Relationship
-        print("Type 'add_rel to add relationship and relationship level")
-        print("Type 'delete_rel <chosen_class_name> <destination_class_name>' to delete a relationship")
-        print("Type 'type_mod <source_class_name> <destination_class_name> <type>' to change the type of a relationship\n")
-        # Class related commands
-        print("Type 'list_class' to see the list of all created class(es)")
-        print("Type 'class_detail <class_name>' to see the detail of the chosen class")
-        print("Type 'class_rel' to see the relationships between class(es)\n")
-        # Save/Load related commands
-        print("Type 'saved_list' to see the list of saved files")
-        print("Type 'save' to save data")
-        print("Type 'load' to load data from saved files")
-        print("Type 'delete_saved' to delete saved file")
-        print("Type 'clear_data' to delete all the data in the current storage")
-        print("Type 'default' to go back to blank program\n")
-        # Other tasks
-        print("Type 'sort' to sort the class list in alphabetical order")
-        print("Type 'help' to see the instructions")
-        print("Type 'exit' to quit program")
+       show_manual()
 
     def main_program_loop(self):
-        self.__prompt_menu()
+        self.__display_banner()
         while True:
             current_active_file: str = self.get_active_file()
             if current_active_file != "No active file!":
@@ -310,9 +281,14 @@ class UMLCommandLineInterface:
             
             #######################################################
 
-            # Add relationship #
-            elif command == InterfaceOptions.ADD_REL.value:
-                self.add_relationship_wrapper()
+            # Add relationship
+            elif (
+                command == InterfaceOptions.ADD_REL.value
+                and first_param
+                and second_param
+                and third_param
+            ):
+                self.add_relationship(first_param, second_param, third_param)
             # Delete relationship #
             elif (
                 command == InterfaceOptions.DELETE_REL.value
@@ -320,14 +296,7 @@ class UMLCommandLineInterface:
                 and second_param
             ):
                 self.delete_relationship(first_param, second_param)
-            # Chang relationship type #
-            elif (
-                command == InterfaceOptions.TYPE_MOD.value 
-                and first_param
-                and second_param
-                and third_param
-            ):
-                self.change_type(first_param, second_param, third_param)
+                
             #######################################################
                 
             # List all the created class names or all class detail #

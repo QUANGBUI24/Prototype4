@@ -207,11 +207,15 @@ class UMLCoreManager:
         new_method = self.create_method(method_name)
         # Add method
         method_list.append(new_method)
+        # Get method and parameter list
+        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        # Add method with empty list of parameter
+        method_and_parameter_list[method_name] = []
         if not is_loading:
             print(f"\nSuccessfully added method '{method_name}'!")
         
     # Delete method #
-    def _delete_method(self, class_name: str, method_name: str, is_loading):
+    def _delete_method(self, class_name: str, method_name: str, is_loading: bool):
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
@@ -244,6 +248,86 @@ class UMLCoreManager:
         if not is_loading:
             print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
     
+    ## PARAMETER RELATED ##
+    
+    # Add parameter #
+    def _add_parameter(self, class_name: str, method_name: str, parameter_name: str, is_loading: bool):
+        # Check if class exists or not
+        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
+        # If the class does not exist, stop
+        if not is_class_exist:
+            return
+        # Check if method exists or not
+        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
+        # If the method does not exist, stop
+        if not is_method_exist:
+            return
+        # Check if parameter exists or not
+        is_parameter_exist = self.__validate_parameter_existence(class_name, method_name, parameter_name, should_exist=False)
+        # If parameter exist, stop
+        if not is_parameter_exist:
+            return
+        # Get method and parameter list
+        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        # Create parameter
+        new_parameter = self.create_parameter(parameter_name)
+        # Add new parameter
+        method_and_parameter_list[method_name].append(new_parameter)
+        if not is_loading:
+            print(f"\nSuccessfully added parameter '{parameter_name}' to method '{method_name}'!")
+            
+    # Delete parameter #
+    def _delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
+        # Check if class exists or not
+        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
+        # If the class does not exist, stop
+        if not is_class_exist:
+            return
+        # Check if method exists or not
+        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
+        # If the method does not exist, stop
+        if not is_method_exist:
+            return
+        # Check if parameter exists or not
+        is_parameter_exist = self.__validate_parameter_existence(class_name, method_name, parameter_name, should_exist=True)
+        # If parameter does not exist, stop
+        if not is_parameter_exist:
+            return
+        # Get method and parameter list
+        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        # Get chosen parameter
+        chosen_parameter = self.__get_chosen_parameter(class_name, method_name, parameter_name)
+        # Remove the chosen parameter
+        method_and_parameter_list[method_name].remove(chosen_parameter)
+        print(f"\nSuccessfully removed parameter '{parameter_name}' from method '{method_name}'!")
+        
+    # Rename parameter #
+    def _rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
+        # Check if class exists or not
+        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
+        # If the class does not exist, stop
+        if not is_class_exist:
+            return
+        # Check if method exists or not
+        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
+        # If the method does not exist, stop
+        if not is_method_exist:
+            return
+        # Check if current parameter exists or not
+        is_current_parameter_exist = self.__validate_parameter_existence(class_name, method_name, current_parameter_name, should_exist=True)
+        # If current parameter does not exist, stop
+        if not is_current_parameter_exist:
+            return
+        # Check if new parameter exists or not
+        is_new_parameter_exist = self.__validate_parameter_existence(class_name, method_name, new_parameter_name, should_exist=False)
+        # If new parameter exist, stop
+        if not is_new_parameter_exist:
+            return
+        # Get chosen parameter
+        chosen_parameter = self.__get_chosen_parameter(class_name, method_name, current_parameter_name)
+        chosen_parameter._set_parameter_name(new_parameter_name)
+        print(f"\nSuccessfully renamed from parameter '{current_parameter_name}' to parameter '{new_parameter_name}'!")
+        
     ## RELATIONSHIP RELATED ##
     
     # Add relationship wrapper #
@@ -413,8 +497,15 @@ class UMLCoreManager:
                 each_relationship._set_source_class(new_name)
             elif destination_name == current_name:
                 each_relationship._set_destination_class(new_name)
+                
+    # Get method and parameter list of a chosen class #
+    def _get_method_and_parameter_list(self, class_name: str) -> Dict[str, List[Parameter]] | None:
+        is_class_name_exist = self.__validate_class_existence(class_name, should_exist=True)
+        if not is_class_name_exist:
+            return None
+        return self.__class_list[class_name]._get_method_and_parameters_list()
     
-    ## field AND METHOD RELATED ##
+    ## FIELD AND METHOD RELATED ##
     
     # Check field name exist or not #
     def __field_or_method_exist(self, class_name: str, input_name: str, is_field: bool) -> bool:
@@ -510,7 +601,45 @@ class UMLCoreManager:
             if current_name == input_name:
                 return element
         return None
-            
+    
+    ## PARAMETER RELATED ##
+    
+    # Parameter check #
+    def __parameter_exist(self,class_name:str, method_name: str, parameter_name: str) -> bool:
+        # Get method and parameter list
+        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        if method_name not in method_and_parameter_list:
+           print(f"\nMethod '{method_name}' does not exist!")
+           return False
+        parameter_list = method_and_parameter_list[method_name]
+        for parameter in parameter_list:
+            if parameter_name == parameter._get_parameter_name():
+                return True
+            return False
+    
+    # Validate parameter existence #
+    def __validate_parameter_existence(self, class_name: str, method_name: str, parameter_name: str, should_exist: bool) -> bool:
+        is_parameter_exist = self.__parameter_exist(class_name, method_name, parameter_name)
+        # If should exist but not exist, return false
+        if should_exist and not is_parameter_exist:
+            print(f"\nParameter '{parameter_name}' does not exist!")
+            return False
+        # If should not exist but exists, return false
+        elif not should_exist and is_parameter_exist:
+            print(f"\nParameter '{parameter_name}' has already existed!")
+            return False
+        return True
+    
+    # Get chosen parameter #
+    def __get_chosen_parameter(self, class_name: str, method_name: str, parameter_name: str) -> Parameter:
+        # Get method and parameter list
+        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        parameter_list = method_and_parameter_list[method_name]
+        for each_parameter in parameter_list:
+            if each_parameter._get_parameter_name() == parameter_name:
+                return each_parameter
+        return None
+           
     ## RELATIONSHIP RELATED ##
     
     # Relationship type check #
@@ -904,55 +1033,60 @@ class UMLCoreManager:
         if not is_class_exist:
             return
         class_object = self.__class_list[class_name]
-        output = []
-        output.append("|===================|")
-        output.append(f"{"--     Name     --":^21}")
-        output.append(f"{class_name:^20}")
-        output.append("|*******************|")
-        output.append(f"{"--  Field  --":^21}")
+        # Get max length for formatting
         field_list = class_object._get_class_field_list()
-        for field in field_list:
-            output.append(f"{field._get_name():^21}")
-        output.append("|*******************|")
-        output.append(f"{"--  Method  --":^21}")
-        method_list = class_object._get_class_method_list()
-        for method in method_list:
-            output.append(f"{method._get_name():^21}")
-        output.append("|*******************|")
+        method_and_attribute_list = class_object._get_method_and_parameters_list()
         relationship_list = self.__relationship_list
-        output.append(f"{"-- Relationship  --":^21}")
+    
+        # Find the maximum length for dynamic padding
+        max_length = len(class_name)
+        # Check the length of each field, method, and relationship to find the longest one
+        for field in field_list:
+            max_length = max(max_length, len(field._get_name()))
+        for method_name, attribute_list in method_and_attribute_list.items():
+            max_length = max(max_length, len(method_name))
+            for attribute in attribute_list:
+                max_length = max(max_length, len(attribute._get_parameter_name()))
+        for element in relationship_list:
+            max_length = max(max_length, len(element._get_source_class()), len(element._get_destination_class()), len(element._get_type()))
+        # Add padding for better readability
+        padding = 5
+        column_width = max_length + padding
+        # Create the formatted output
+        output = []
+        border_line = f"|{'=' * column_width}|"
+        output.append(border_line)
+        # Print class name
+        output.append(f"{'--     Name     --':^{column_width}}")
+        output.append(f"{class_name:^{column_width}}")
+        output.append(f"|{'*' * column_width}|")
+        # Print fields
+        output.append(f"{'--     Field     --':^{column_width}}")
+        for field in field_list:
+            output.append(f"{field._get_name():^{column_width}}")
+    
+        output.append(f"|{'*' * column_width}|")
+        # Print methods and parameters
+        for method_name, attribute_list in method_and_attribute_list.items():
+            output.append("-" * column_width)
+            output.append(f"{'--     Methods    --':^{column_width}}")
+            output.append(f"{method_name:^{column_width}}")
+            output.append(f"{'--   Parameters   --':^{column_width}}")
+            for attribute in attribute_list:
+                output.append(f"{attribute._get_parameter_name():^{column_width}}")
+            output.append("-" * column_width)
+        output.append(f"|{'*' * column_width}|")
+        # Print relationships
+        output.append(f"{'-- Relationship  --':^{column_width}}")
         for element in relationship_list:
             if element._get_source_class() == class_name:
-                output.append(f"{"--------------":^20}")
-                output.append(f"  Source: {class_name}")
-                output.append(f"  Destination: {element._get_destination_class()}")
-                output.append(f"  Type: {element._get_type()}")
-        output.append("|===================|")
+                output.append("-" * column_width)
+                output.append(f"Source: {element._get_source_class()}")
+                output.append(f"Destination: {element._get_destination_class()}")
+                output.append(f"Type: {element._get_type()}")
+        output.append(border_line)
         return "\n".join(output)
-    
-    # Get Class Relationships #
-    def __get_relationship_detail(self, class_name: str) -> str:
-        class_object = self.__class_list[class_name]
-        if class_object is None:
-            print(f"\nClass '{class_name}' does not exist!")
-            return
-        output = []
-        output.append("|===================|")
-        output.append(f"{"--     Name     --":^21}")
-        output.append(f"{class_name:^20}")
-        output.append("|*******************|")
-        rel_list = self.__relationship_list
-        output.append("|===================|")
-        output.append(f"{"-- Relationship  --":^21}")
-        for element in rel_list:
-            if element._get_source_class() == class_name:
-                output.append(f"{"|-----------|":^20}")
-                output.append(f"{ element._get_source_class():^20}")
-                output.append(f"{ element._get_destination_class():^20}")
-                output.append(f"{ element._get_type():^20}")
-                output.append(f"{"|-----------|":^20}")
-        output.append("|===================|")
-        return "\n".join(output)
+
     
     # Sorting Class List #
     def _sort_class_list(self):
@@ -996,5 +1130,5 @@ class UMLCoreManager:
                 return False
             else:
                 print("Invalid input. Please enter 'Yes' or 'No'.")
-                
+                              
 ###################################################################################################
