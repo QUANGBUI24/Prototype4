@@ -704,11 +704,25 @@ class UMLCoreManager:
     def _get_method_format_list(self, class_object: Class) -> List[Dict]:
         # Get field list
         method_list = class_object._get_class_method_list()
-         # Field format list
+        # Field format list
         method_list_format: List[Dict] = []
+        # Get method and parameter list
+        method_and_parameter_list = self._get_method_and_parameter_list(class_object._get_class_name())
         for each_method in method_list:
             method_json_format = each_method._convert_to_json_method()
+            # Get current parameter list of current method
+            parameter_list = method_and_parameter_list[each_method._get_name()]
+            # Convert parameters to json format and save to a list
+            parameter_format_list: List[Dict] = []
+            for each_parameter in parameter_list:
+                parameter_format_list.append(each_parameter._convert_to_json_parameter())
+            # Add method format to the format list
             method_list_format.append(method_json_format)
+            # Add parameter list to parameter format list
+            for each_method_format in method_list_format:
+                if each_method_format["name"] == each_method._get_name():
+                    for each_param_format in parameter_format_list:    
+                        each_method_format["params"].append(each_param_format)
         return method_list_format
     
     # Get relationship format list #
@@ -815,32 +829,45 @@ class UMLCoreManager:
         class_data = main_data["classes"]
         relationship_data = main_data["relationships"]
         self.__reset_storage()
-        # Re-create class, field, object, and method
+        # Re-create class, field, method and parameter
         extracted_class_data = self._extract_class_data(class_data)
         for each_pair in extracted_class_data:
             for class_name, data in each_pair.items(): 
                 field_list = data['fields']
-                method_list = data['methods']
+                method_param_list = data['methods_params']
                 # Add the class
                 self._add_class(class_name, is_loading=True)
                 # Add the fields for the class
                 for each_field in field_list:
                     self._add_field(class_name, each_field, is_loading=True)
-                # Add the methods for the class
-                for each_method in method_list:
-                    self._add_method(class_name, each_method, is_loading=True)
+                # Add the methods and its parameters for the class
+                for method_name, param_list in method_param_list.items():
+                    self._add_method(class_name, method_name, is_loading=True)
+                    for param_name in param_list:
+                        self._add_parameter(class_name, method_name, param_name, is_loading=True)
         # Re-create relationship 
         for each_dictionary in relationship_data:
             self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
         
     # This function help extracting class, field and method from json file and put into a list #
-    def _extract_class_data(self, class_data: List[Dict]) -> List:
-        class_info_list = []
-        for ele in class_data:
-            class_name = ele["name"]
-            fields = [field['name'] for field in ele['fields']]
-            methods = [method['name'] for method in ele['methods']]
-            class_info_list.append({class_name: {'fields': fields,'methods': methods}})
+    def _extract_class_data(self, class_data: List[Dict]) -> List[Dict[str, Dict[str, List | Dict]]]:
+        # Create a dictionary of type List[Dict[str, Dict[str, List | Dict]]] (*NOTE* THIS TYPE CAUSED ME SEVERE HEADACHE T_T)
+        class_info_list: List[Dict[str, Dict[str, List | Dict]]] = []
+        # Loop through each class element
+        for class_element in class_data:
+            # Create a dictionary to store method name and its litst of parameters
+            method_and_param_list = {}
+            # Get class name
+            class_name = class_element["name"]
+            # Get list of field names
+            fields = [field["name"] for field in class_element["fields"]]
+            # Extract method and its parameters into 'method_and_param_list'
+            for method_element in class_element["methods"]:
+                temp_param_list: List[str] = []
+                for param_element in method_element["params"]:
+                    temp_param_list.append(param_element["name"])
+                method_and_param_list[method_element["name"]] = temp_param_list
+            class_info_list.append({class_name: {'fields': fields, 'methods_params': method_and_param_list}})
         return class_info_list
     
     # Delete Saved File #
@@ -1026,7 +1053,6 @@ class UMLCoreManager:
                 print(f"{key:^20}")
         print("|===================|\n")
         
-    
     # Get class detail #
     def __get_class_detail(self, class_name: str) -> str:
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
@@ -1037,7 +1063,6 @@ class UMLCoreManager:
         field_list = class_object._get_class_field_list()
         method_and_attribute_list = class_object._get_method_and_parameters_list()
         relationship_list = self.__relationship_list
-    
         # Find the maximum length for dynamic padding
         max_length = len(class_name)
         # Check the length of each field, method, and relationship to find the longest one
@@ -1064,7 +1089,6 @@ class UMLCoreManager:
         output.append(f"{'--     Field     --':^{column_width}}")
         for field in field_list:
             output.append(f"{field._get_name():^{column_width}}")
-    
         output.append(f"|{'*' * column_width}|")
         # Print methods and parameters
         for method_name, attribute_list in method_and_attribute_list.items():
@@ -1087,7 +1111,6 @@ class UMLCoreManager:
         output.append(border_line)
         return "\n".join(output)
 
-    
     # Sorting Class List #
     def _sort_class_list(self):
         class_list = self.__class_list
@@ -1098,7 +1121,6 @@ class UMLCoreManager:
         self.__class_list = sorted_class_list
         self._display_class_list_detail()
         
-         
     #################################################################
     ### UTILITY FUNCTIONS ###  
     
