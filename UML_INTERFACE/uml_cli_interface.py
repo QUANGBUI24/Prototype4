@@ -26,6 +26,7 @@ class InterfaceOptions(Enum):
     ADD_PARAM = "add_param"
     DELETE_PARAM = "delete_param"
     RENAME_PARAM = "rename_param"
+    REPLACE_PARAM = "replace_param"
     ADD_REL = "add_rel"
     DELETE_REL = "delete_rel"
     LIST_CLASS = "list_class"
@@ -50,6 +51,28 @@ class UMLCommandLineInterface:
         pass
     #################################################################
     ### INTERFACE FUNCTIONS THAT CONNECT WITH THE MANAGER ###
+    
+    ## OBJECT CREATION ##
+    
+    # Class creation method #
+    def create_class(class_name: str):
+        return ProgramManager.create_class(class_name)
+    
+    # Field creation method #
+    def create_field(field_name: str):
+        return ProgramManager.create_field(field_name)
+    
+    # Method creation method #
+    def create_method(method_name: str):
+        return ProgramManager.create_method(method_name)
+    
+    # Parameter creation method #
+    def create_parameter(parameter_name: str):
+        return ProgramManager.create_parameter(parameter_name)
+    
+    # Relationship creation method #
+    def create_relationship(source_class: str, destination_class: str, rel_type: str):
+        return ProgramManager.create_relationship(source_class, destination_class, rel_type)
     
     ## DATA RELATED FOR GUI ##
 
@@ -128,6 +151,10 @@ class UMLCommandLineInterface:
     # Rename parameter #
     def rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
         ProgramManager._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
+        
+    # Replace parameter list #
+    def replace_param_list(self, class_name: str, method_name: str):
+        ProgramManager._replace_param_list(class_name, method_name)
         
     ## RELATIONSHIP RELATED ##
     
@@ -209,11 +236,51 @@ class UMLCommandLineInterface:
         """
         print(banner)
 
+    # def __prompt_menu(self):
+    #    show_manual()
+    
+    # Temporary menu to wait for Israel to update his menu interface
     def __prompt_menu(self):
-       show_manual()
+        print("Welcome To Our UML Program!\n")
+        # Class
+        print("Type 'add_class <class_name>' to add a class")
+        print("Type 'delete_class <class_name>' to delete a class")
+        print("Type 'rename_class <class_name> <new_name>' to rename a class\n")
+        # Field
+        print("Type 'add_field <class_name> <attr_name>' to add a field")
+        print("Type 'delete_field <class_name> <field_name>' to delete a field from the chosen class")
+        print("Type 'rename_field <class_name> <current_field_name> <new_name>' to rename a field\n")
+        # Method
+        print("Type 'add_method <class_name> <method_name>' to add a method")
+        print("Type 'delete_method <class_name> <method_name>' to delete a method from the chosen class")
+        print("Type 'rename_method <class_name> <current_method_name> <new_name>' to rename a method\n")
+        # Parameter
+        print("Type 'add_param <class_name> <method_name> <param_name>' to add a parameter")
+        print("Type 'delete_param <class_name> <method_name> <param_name>' to delete a parameter from the chosen class")
+        print("Type 'rename_param <class_name> <method_name> <current_param_name> <new_name>' to rename a parameter")
+        print("Type 'replace_param <class_name> <method_name>' to replace a method's parameter list\n")
+        # Relationship
+        print("Type 'add_rel <source_class> <destination_class_name> <relationship_level>' to add relationship and relationship level")
+        print("Type 'delete_rel <chosen_class_name> <destination_class_name>' to delete a relationship\n")
+        # Class related commands
+        print("Type 'list_class' to see the list of all created class(es)")
+        print("Type 'class_detail <class_name>' to see the detail of the chosen class")
+        print("Type 'class_rel' to see the relationships between class(es)\n")
+        # Save/Load related commands
+        print("Type 'saved_list' to see the list of saved files")
+        print("Type 'save' to save data")
+        print("Type 'load' to load data from saved files")
+        print("Type 'delete_saved' to delete saved file")
+        print("Type 'clear_data' to delete all the data in the current storage")
+        print("Type 'default' to go back to blank program\n")
+        # Other tasks
+        print("Type 'sort' to sort the class list in alphabetical order")
+        print("Type 'help' to see the instructions")
+        print("Type 'exit' to quit program")
 
     def main_program_loop(self):
         self.__display_banner()
+        self.__prompt_menu()
         while True:
             current_active_file: str = self.get_active_file()
             if current_active_file != "No active file!":
@@ -221,7 +288,6 @@ class UMLCommandLineInterface:
             print(f"\n(Current active file: {current_active_file})")
             print("\n==> ", end="")
             user_input: str = input()
-            # Split the input by space
             # Split the input by space
             user_input_component = user_input.split()
             # Get separate command and class name part
@@ -324,6 +390,9 @@ class UMLCommandLineInterface:
                 and fourth_param
             ):
                 self.rename_parameter(first_param, second_param, third_param, fourth_param)
+            # Replace parameter list #
+            elif command == InterfaceOptions.REPLACE_PARAM.value and first_param and second_param:
+                self.replace_param_list(first_param, second_param)
             
             #######################################################
 
