@@ -386,10 +386,6 @@ class UMLCoreManager:
         type = user_input_component[2] if len(user_input_component) > 2 else None
         # Check if user type the correct format
         if source_class_name and destination_class_name and type:
-            # Check if class names are identical or not
-            if source_class_name == destination_class_name:
-                print("\nYou can't create relationship to the class itself!")
-                return
             # Check if source class exists or not
             is_source_class_exist = self.__validate_class_existence(source_class_name, should_exist=True)
             # If the class does not exist, stop
