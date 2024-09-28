@@ -860,6 +860,8 @@ class UMLCoreManager:
         class_data = main_data["classes"]
         relationship_data = main_data["relationships"]
         self.__reset_storage()
+        # Set main data again
+        self.__main_data = main_data
         # Re-create class, field, method and parameter
         extracted_class_data = self._extract_class_data(class_data)
         for each_pair in extracted_class_data:
@@ -1141,6 +1143,10 @@ class UMLCoreManager:
                 output.append(f"Type: {element._get_type()}")
         output.append(border_line)
         return "\n".join(output)
+    
+    # Get class detail #
+    def __get_class_detail_new_demo(self, class_name: str) -> str:
+        pass
 
     # Sorting Class List #
     def _sort_class_list(self):
