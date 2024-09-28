@@ -349,12 +349,8 @@ class UMLCoreManager:
             print("\nDuplicate parameters detected:")
             duplicates = [param for param in new_param_name_list if new_param_name_list.count(param) > 1]
             print(f"\nDuplicates: {set(duplicates)}")
-            user_choice = self._ask_user_choices("automatically remove duplicates?")
-            if not user_choice:
-                print("\nPlease modify the parameter list manually to ensure uniqueness.")
-                return
-            new_param_name_list = unique_param_names
-            print("\nDuplicates removed. Continuing with unique parameters...")
+            print("\nPlease modify the parameter list manually to ensure uniqueness.")
+            return
         # Create parameter objects for the specific method
         new_param_list: List[Parameter] = []
         for param_name in new_param_name_list:
