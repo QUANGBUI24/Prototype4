@@ -442,32 +442,32 @@ class UMLCoreManager:
     
     # Change type #
     def _change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
-            # Check if class names are identical or not
-            if source_class_name == destination_class_name:
-                print("\nNo relationship from a class to itself!")
-                return
-            # Check source class existence
-            is_source_class_name_exist = self.__validate_class_existence(source_class_name, should_exist=True)
-            if not is_source_class_name_exist:
-                return
-            # Check destination class existence
-            is_destination_class_name_exist = self.__validate_class_existence(destination_class_name, should_exist=True)
-            if not is_destination_class_name_exist:
-                return
-            # Check if new type is identical to current type:
-            current_type = self.__get_chosen_relationship_type(source_class_name, destination_class_name)
-            if current_type == new_type:
-                print(f"\nNew type '{new_type}' is identical to the existing type of the current relationship!")
-                return
-            # Check if type already existed or not
-            is_type_exist = self.__validate_type_existence(new_type, should_exist=True)
-            if not is_type_exist:
-                return
-            current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
-            if current_relationship is None:
-                return
-            current_relationship._set_type(new_type)
-            print(f"\nSuccessfully changed the type between class '{source_class_name}' and class '{destination_class_name}' to '{new_type}'!")
+        # Check if class names are identical or not
+        if source_class_name == destination_class_name:
+            print("\nNo relationship from a class to itself!")
+            return
+        # Check source class existence
+        is_source_class_name_exist = self.__validate_class_existence(source_class_name, should_exist=True)
+        if not is_source_class_name_exist:
+            return
+        # Check destination class existence
+        is_destination_class_name_exist = self.__validate_class_existence(destination_class_name, should_exist=True)
+        if not is_destination_class_name_exist:
+            return
+        # Check if new type is identical to current type:
+        current_type = self.__get_chosen_relationship_type(source_class_name, destination_class_name)
+        if current_type == new_type:
+            print(f"\nNew type '{new_type}' is identical to the existing type of the current relationship!")
+            return
+        # Check if type already existed or not
+        is_type_exist = self.__validate_type_existence(new_type, should_exist=True)
+        if not is_type_exist:
+            return
+        current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
+        if current_relationship is None:
+            return
+        current_relationship._set_type(new_type)
+        print(f"\nSuccessfully changed the type between class '{source_class_name}' and class '{destination_class_name}' to '{new_type}'!")
             
     #################################################################
     ### HELPER FUNCTIONS ###  
