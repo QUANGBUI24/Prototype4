@@ -29,6 +29,7 @@ class InterfaceOptions(Enum):
     REPLACE_PARAM = "replace_param"
     ADD_REL = "add_rel"
     DELETE_REL = "delete_rel"
+    TYPE_MOD = "type_mod"
     LIST_CLASS = "list_class"
     CLASS_DETAIL = "class_detail"
     CLASS_REL = "class_rel"
@@ -54,41 +55,41 @@ class UMLCommandLineInterface:
     
     ## OBJECT CREATION ##
     
-    # Class creation method #
+    # Class creation method interface #
     def create_class(class_name: str):
         return ProgramManager.create_class(class_name)
     
-    # Field creation method #
+    # Field creation method interface #
     def create_field(field_name: str):
         return ProgramManager.create_field(field_name)
     
-    # Method creation method #
+    # Method creation method interface #
     def create_method(method_name: str):
         return ProgramManager.create_method(method_name)
     
-    # Parameter creation method #
+    # Parameter creation method interface #
     def create_parameter(parameter_name: str):
         return ProgramManager.create_parameter(parameter_name)
     
-    # Relationship creation method #
+    # Relationship creation method interface #
     def create_relationship(source_class: str, destination_class: str, rel_type: str):
         return ProgramManager.create_relationship(source_class, destination_class, rel_type)
     
     ## DATA RELATED FOR GUI ##
 
-    # Get main data #
+    # Get main data interface #
     def get_main_data(self) -> Dict:
         return ProgramManager._get_main_data()
     
-    # Get relationship list #
+    # Get relationship list interface #
     def get_relationship_list(self) -> List:
         return ProgramManager._get_relationship_list()
     
-    # Get storage manager #
+    # Get storage manager interface #
     def get_storage_manager(self):
         return ProgramManager._get_storage_manager()
     
-    # Extract and and a list of UML class data #
+    # Extract and and a list of UML class data interface #
     """class_data can be retrieved using get_main_data()
        main_data =  get_main_data()
        class_data = main_data["classes"]
@@ -140,19 +141,19 @@ class UMLCommandLineInterface:
         
     ## PARAMETER RELATED ##
     
-    # Add parameter #
+    # Add parameter interface #
     def add_parameter(self, class_name: str, method_name: str, parameter_name: str):
         ProgramManager._add_parameter(class_name, method_name, parameter_name, is_loading=False)
         
-    # Delete parameter #
+    # Delete parameter interface #
     def delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
         ProgramManager._delete_parameter(class_name, method_name, parameter_name)
         
-    # Rename parameter #
+    # Rename parameter interface #
     def rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
         ProgramManager._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
         
-    # Replace parameter list #
+    # Replace parameter list interface #
     def replace_param_list(self, class_name: str, method_name: str):
         ProgramManager._replace_param_list(class_name, method_name)
         
@@ -165,6 +166,10 @@ class UMLCommandLineInterface:
     # Delete relationship interface #
     def delete_relationship(self, source_class_name: str, destination_class_name: str):
         ProgramManager._delete_relationship(source_class_name, destination_class_name, is_loading=False)
+        
+    # Change relationship type interface #
+    def change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
+        ProgramManager._change_type(source_class_name, destination_class_name, new_type)
     
     ## DISPLAY RELATED ##
     
@@ -262,6 +267,7 @@ class UMLCommandLineInterface:
         # Relationship
         print("Type 'add_rel <source_class> <destination_class_name> <relationship_level>' to add relationship and relationship level")
         print("Type 'delete_rel <chosen_class_name> <destination_class_name>' to delete a relationship\n")
+        print("Type 'type_mod <source_class_name> <destination_class_name> <type>' to change the type of a relationship\n")
         # Class related commands
         print("Type 'list_class' to see the list of all created class(es)")
         print("Type 'class_detail <class_name>' to see the detail of the chosen class")
@@ -411,6 +417,14 @@ class UMLCommandLineInterface:
                 and second_param
             ):
                 self.delete_relationship(first_param, second_param)
+            # Chang relationship type #
+            elif (
+                command == InterfaceOptions.TYPE_MOD.value 
+                and first_param
+                and second_param
+                and third_param
+            ):
+                self.change_type(first_param, second_param, third_param)
                 
             #######################################################
                 

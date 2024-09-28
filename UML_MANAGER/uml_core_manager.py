@@ -367,7 +367,7 @@ class UMLCoreManager:
     
     # Add relationship wrapper #
     def _add_relationship_wrapper(self, is_loading: bool):
-        print("\nType '<source_class> <destination_class> <type>")
+        print("\nType '<source_class> <destination_class> <type>'")
         print("\nYou must choose one of the types below:")
         self.__display_type_enum()
         print("Below is class list:")
