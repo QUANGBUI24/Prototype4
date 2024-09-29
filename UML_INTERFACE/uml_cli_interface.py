@@ -105,11 +105,11 @@ class UMLCommandLineInterface:
         
     # Delete class interface #
     def delete_class(self, class_name: str):
-        ProgramManager._delete_class(class_name, is_loading=False)
+        ProgramManager._delete_class(class_name)
         
     # Rename class interface #
     def rename_class(self, current_name: str, new_name: str):
-        ProgramManager._rename_class(current_name, new_name, is_loading=False)
+        ProgramManager._rename_class(current_name, new_name)
         
     ## ATTRIBUTE RELATED ##
     
@@ -119,11 +119,11 @@ class UMLCommandLineInterface:
         
     # Delete attribute interface #
     def delete_attribute(self, class_name: str, attribute_name: str):
-        ProgramManager._delete_field(class_name, attribute_name, is_loading=False)
+        ProgramManager._delete_field(class_name, attribute_name)
     
     # Rename attribute interface #
     def rename_attribute(self, class_name: str, current_attribute_name: str, new_attribute_name: str):
-        ProgramManager._rename_field(class_name, current_attribute_name, new_attribute_name, is_loading=False)
+        ProgramManager._rename_field(class_name, current_attribute_name, new_attribute_name)
         
     ## METHOD RELATED ##
     
@@ -133,11 +133,11 @@ class UMLCommandLineInterface:
     
     # Delete method interface #
     def delete_method(self, class_name: str, method_name: str):
-        ProgramManager._delete_method(class_name, method_name, is_loading=False)
+        ProgramManager._delete_method(class_name, method_name)
         
     # Rename method interface #
     def rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
-        ProgramManager._rename_method(class_name, current_method_name, new_method_name, is_loading=False)
+        ProgramManager._rename_method(class_name, current_method_name, new_method_name)
         
     ## PARAMETER RELATED ##
     
@@ -165,7 +165,7 @@ class UMLCommandLineInterface:
     
     # Delete relationship interface #
     def delete_relationship(self, source_class_name: str, destination_class_name: str):
-        ProgramManager._delete_relationship(source_class_name, destination_class_name, is_loading=False)
+        ProgramManager._delete_relationship(source_class_name, destination_class_name)
         
     # Change relationship type interface #
     def change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
