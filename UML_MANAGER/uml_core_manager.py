@@ -335,7 +335,7 @@ class UMLCoreManager:
         print("\nYou must choose one of the types below:")
         self.__user_view._display_type_enum()
         print("Below is class list:")
-        self.__user_view._display_class_names(self.__main_data)
+        self.__user_view._display_relationships(self.__main_data)
         print("\n==> ", end="")
         user_input: str = input()
         # Split the input by space
@@ -638,6 +638,7 @@ class UMLCoreManager:
     
     # Relationship type check #
     def __type_exist(self, type_name: str) -> bool:
+        RelationshipType = self.__user_view._get_enum_list()
         if type_name in RelationshipType._value2member_map_:
             return True
         return False

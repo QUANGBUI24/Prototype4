@@ -22,6 +22,9 @@ class UMLView:
     def __init__(self):
         self.console = Console()
         
+    def _get_enum_list(self):
+        return RelationshipType
+        
     # Display the menu
     def _prompt_menu(self):
         banner = r"""
@@ -149,7 +152,7 @@ class UMLView:
         self.console.print(table)
     
     # Display relationship
-    def _display_relationships(self, data):
+    def _display_relationships(self, main_data):
         # Create a table to display all relationships
         table = Table(title="\nRelationships", show_header=True, header_style="bold yellow")
         table.add_column("Source Class", style="bold blue")
@@ -157,7 +160,7 @@ class UMLView:
         table.add_column("Destination Class", style="bold blue")
 
         # Iterate through all relationships and add them to the table
-        for relation in data["relationships"]:
+        for relation in main_data["relationships"]:
             table.add_row(
                 relation["source"],
                 relation["type"],
