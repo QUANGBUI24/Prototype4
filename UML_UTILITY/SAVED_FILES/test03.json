@@ -1,9 +1,21 @@
 {
     "classes": [
         {
-            "name": "Test02",
+            "name": "Human",
             "fields": [],
-            "methods": []
+            "methods": [
+                {
+                    "name": "Attack",
+                    "params": [
+                        {
+                            "name": "Damage"
+                        },
+                        {
+                            "name": "Critical"
+                        }
+                    ]
+                }
+            ]
         }
     ],
     "relationships": []

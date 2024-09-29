@@ -229,47 +229,25 @@ class UMLCoreManager:
     ## PARAMETER RELATED ##
     
     # Add parameter #
-    # def _add_parameter(self, class_name: str, method_name: str, parameter_name: str, is_loading: bool):
-    #     # Check if class exists or not
-    #     is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-    #     # If the class does not exist, stop
-    #     if not is_class_exist:
-    #         return
-    #     # Check if method exists or not
-    #     is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-    #     # If the method does not exist, stop
-    #     if not is_method_exist:
-    #         return
-    #     # Check if parameter exists or not
-    #     is_parameter_exist = self.__validate_parameter_existence(class_name, method_name, parameter_name, should_exist=False)
-    #     # If parameter exist, stop
-    #     if not is_parameter_exist:
-    #         return
-    #     # Get method and parameter list
-    #     method_and_parameter_list = self._get_method_and_parameter_list(class_name)
-    #     # Create parameter
-    #     new_parameter = self.create_parameter(parameter_name)
-    #     # Add new parameter
-    #     method_and_parameter_list[method_name].append(new_parameter)
-    #     if not is_loading:
-    #         print(f"\nSuccessfully added parameter '{parameter_name}' to method '{method_name}'!")
+    def _add_parameter(self, class_name: str, method_name: str, parameter_name: str, is_loading: bool):
+        # Check if class, method and its parameter exist or not
+        is_class_and_method_and_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name,parameter_name=parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=False )
+        if not is_class_and_method_and_parameter_exist:
+            return
+        # Get method and parameter list
+        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        # Create parameter
+        new_parameter = self.create_parameter(parameter_name)
+        # Add new parameter
+        method_and_parameter_list[method_name].append(new_parameter)
+        if not is_loading:
+            print(f"\nSuccessfully added parameter '{parameter_name}' to method '{method_name}'!")
             
     # Delete parameter #
     def _delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-        # If the method does not exist, stop
-        if not is_method_exist:
-            return
-        # Check if parameter exists or not
-        is_parameter_exist = self.__validate_parameter_existence(class_name, method_name, parameter_name, should_exist=True)
-        # If parameter does not exist, stop
-        if not is_parameter_exist:
+        # Check if class, method and its parameter exist or not
+        is_class_and_method_and_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name,parameter_name=parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=True )
+        if not is_class_and_method_and_parameter_exist:
             return
         # Get method and parameter list
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
@@ -281,23 +259,12 @@ class UMLCoreManager:
         
     # Rename parameter #
     def _rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-        # If the method does not exist, stop
-        if not is_method_exist:
-            return
-        # Check if current parameter exists or not
-        is_current_parameter_exist = self.__validate_parameter_existence(class_name, method_name, current_parameter_name, should_exist=True)
-        # If current parameter does not exist, stop
-        if not is_current_parameter_exist:
+        # Check if class, method and its parameter exist or not
+        is_class_and_method_and_current_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name,parameter_name=current_parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=True )
+        if not is_class_and_method_and_current_parameter_exist:
             return
         # Check if new parameter exists or not
-        is_new_parameter_exist = self.__validate_parameter_existence(class_name, method_name, new_parameter_name, should_exist=False)
+        is_new_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name,parameter_name=new_parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=False )
         # If new parameter exist, stop
         if not is_new_parameter_exist:
             return
@@ -308,15 +275,9 @@ class UMLCoreManager:
         
     # Replace parameter list, fail if class or method does not exist
     def _replace_param_list(self, class_name: str, method_name: str):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-        # If the method does not exist, stop
-        if not is_method_exist:
+        # Check if class and method exist or not
+        is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=True)
+        if not is_class_and_method_exist:
             return
         # Get new parameter names from the user
         user_input = input("\nEnter the names for the new parameter list, each name must be separated by spaces:\n\n==> ")
@@ -339,8 +300,6 @@ class UMLCoreManager:
         method_and_parameter_list[method_name] = new_param_list
         print(f"\nSuccessfully replaced parameter list for method '{method_name}'!")
 
-    
- 
     ## RELATIONSHIP RELATED ##
     
     # Add relationship wrapper #
@@ -517,7 +476,6 @@ class UMLCoreManager:
     
     # Check field/method name exist or not #
     def __field_or_method_exist(self, class_name: str, input_name: str, is_field: bool) -> bool:
-        print(f"====== INPUT NAME: {input_name} ======")
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         # If the class does not exist, stop
@@ -624,7 +582,7 @@ class UMLCoreManager:
         for parameter in parameter_list:
             if parameter_name == parameter._get_parameter_name():
                 return True
-            return False
+        return False
     
     # Validate parameter existence #
     def __validate_parameter_existence(self, class_name: str, method_name: str, parameter_name: str, should_exist: bool) -> bool:
@@ -1167,7 +1125,8 @@ class UMLCoreManager:
                 return False
             else:
                 print("Invalid input. Please enter 'Yes' or 'No'.")
-                
+    
+    # Validate entities (Class, Method, Field, Parameter)          
     def _validate_entities(
         self, 
         class_name: str = None, 
