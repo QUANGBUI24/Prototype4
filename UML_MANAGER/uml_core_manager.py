@@ -944,141 +944,141 @@ class UMLCoreManager:
         self.__main_data: Dict = {}
     
     #################################################################
-    ### DISPLAY CLASS ###
+    ### INTERFACE / DISPLAY ###
     
-    # Display wrapper #
-    def _display_wrapper(self):
-        if len(self.__class_list) == 0:
-            print("\nNo class to display!")
-            return
-        is_detail = self._ask_user_choices("print all class detail")
-        if is_detail:
-            self._display_class_list_detail()
-        else:
-            self.__display_list_of_only_class_name()
+    # # Display wrapper #
+    # def _display_wrapper(self):
+    #     if len(self.__class_list) == 0:
+    #         print("\nNo class to display!")
+    #         return
+    #     is_detail = self._ask_user_choices("print all class detail")
+    #     if is_detail:
+    #         self._display_class_list_detail()
+    #     else:
+    #         self.__display_list_of_only_class_name()
     
-    # Display class list #
-    def _display_class_list_detail(self, classes_per_row=3):
-        # Generate class details split into lines
-        class_details_list = [
-            self.__get_class_detail(class_name).split("\n")
-            for class_name in self.__class_list
-        ]
-        print("\n-------------------------------------------------------------------------------------------------\n")
-        # Chunk the class details into groups of `classes_per_row`
-        for i in range(0, len(class_details_list), classes_per_row):
-            chunk = class_details_list[i : i + classes_per_row]
+    # # Display class list #
+    # def _display_class_list_detail(self, classes_per_row=3):
+    #     # Generate class details split into lines
+    #     class_details_list = [
+    #         self.__get_class_detail(class_name).split("\n")
+    #         for class_name in self.__class_list
+    #     ]
+    #     print("\n-------------------------------------------------------------------------------------------------\n")
+    #     # Chunk the class details into groups of `classes_per_row`
+    #     for i in range(0, len(class_details_list), classes_per_row):
+    #         chunk = class_details_list[i : i + classes_per_row]
 
-            # Use zip_longest to align and print side by side
-            for lines in zip_longest(*chunk, fillvalue=" " * 20):
-                print("   ".join(line.ljust(30) for line in lines))
-            print("\n-------------------------------------------------------------------------------------------------\n")
+    #         # Use zip_longest to align and print side by side
+    #         for lines in zip_longest(*chunk, fillvalue=" " * 20):
+    #             print("   ".join(line.ljust(30) for line in lines))
+    #         print("\n-------------------------------------------------------------------------------------------------\n")
             
-    # Display Relationship List #
-    def _display_relationship_list(self, classes_per_row=3):
-        if len(self.__relationship_list) == 0:
-            print("\nNo relationship to display!")
-            return
-        # Generate class details split into lines
-        class_relationship_detail_list = [
-            self.__get_relationship_detail(class_name).split("\n")
-            for class_name in self.__class_list
-        ]
-        print("\n-------------------------------------------------------------------------------------------------\n")
-        # Chunk the class relationship details into groups of `classes_per_row`
-        for i in range(0, len(class_relationship_detail_list), classes_per_row):
-            chunk = class_relationship_detail_list[i : i + classes_per_row]
+    # # Display Relationship List #
+    # def _display_relationship_list(self, classes_per_row=3):
+    #     if len(self.__relationship_list) == 0:
+    #         print("\nNo relationship to display!")
+    #         return
+    #     # Generate class details split into lines
+    #     class_relationship_detail_list = [
+    #         self.__get_relationship_detail(class_name).split("\n")
+    #         for class_name in self.__class_list
+    #     ]
+    #     print("\n-------------------------------------------------------------------------------------------------\n")
+    #     # Chunk the class relationship details into groups of `classes_per_row`
+    #     for i in range(0, len(class_relationship_detail_list), classes_per_row):
+    #         chunk = class_relationship_detail_list[i : i + classes_per_row]
 
-            # Use zip_longest to align and print side by side
-            for lines in zip_longest(*chunk, fillvalue=" " * 20):
-                print("   ".join(line.ljust(30) for line in lines))
-            print("\n-------------------------------------------------------------------------------------------------\n")
+    #         # Use zip_longest to align and print side by side
+    #         for lines in zip_longest(*chunk, fillvalue=" " * 20):
+    #             print("   ".join(line.ljust(30) for line in lines))
+    #         print("\n-------------------------------------------------------------------------------------------------\n")
     
-    # Display only list of class names #
-    def __display_list_of_only_class_name(self):
-        print("\n|===================|")
-        print(f"{"--     Name     --":^20}")
-        print("|*******************|")
-        class_list = self.__class_list
-        for class_name in class_list:
-            print(f"{class_name:^20}")
-        print("|===================|\n")
+    # # Display only list of class names #
+    # def __display_list_of_only_class_name(self):
+    #     print("\n|===================|")
+    #     print(f"{"--     Name     --":^20}")
+    #     print("|*******************|")
+    #     class_list = self.__class_list
+    #     for class_name in class_list:
+    #         print(f"{class_name:^20}")
+    #     print("|===================|\n")
         
-    # Display Class Details #
-    def _display_single_class_detail(self, class_name: str):
-        classes_detail_list = self.__get_class_detail(class_name)
-        if classes_detail_list is not None:
-            print(f"\n{classes_detail_list}")
+    # # Display Class Details #
+    # def _display_single_class_detail(self, class_name: str):
+    #     classes_detail_list = self.__get_class_detail(class_name)
+    #     if classes_detail_list is not None:
+    #         print(f"\n{classes_detail_list}")
         
-    # Display saved file's names #
-    def _display_saved_list(self):
-        saved_list = self.__storage_manager._get_saved_list()
-        if len(saved_list) == 0:
-            print("\nNo saved file exists!")
-            return
-        print("\n|===================|")
-        for dictionary in saved_list:
-            for key in dictionary:
-                print(f"{key:^20}")
-        print("|===================|\n")
+    # # Display saved file's names #
+    # def _display_saved_list(self):
+    #     saved_list = self.__storage_manager._get_saved_list()
+    #     if len(saved_list) == 0:
+    #         print("\nNo saved file exists!")
+    #         return
+    #     print("\n|===================|")
+    #     for dictionary in saved_list:
+    #         for key in dictionary:
+    #             print(f"{key:^20}")
+    #     print("|===================|\n")
         
-    # Get class detail #
-    def __get_class_detail(self, class_name: str) -> str:
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        if not is_class_exist:
-            return
-        class_object = self.__class_list[class_name]
-        # Get max length for formatting
-        field_list = class_object._get_class_field_list()
-        method_and_attribute_list = class_object._get_method_and_parameters_list()
-        relationship_list = self.__relationship_list
-        # Find the maximum length for dynamic padding
-        max_length = len(class_name)
-        # Check the length of each field, method, and relationship to find the longest one
-        for field in field_list:
-            max_length = max(max_length, len(field._get_name()))
-        for method_name, attribute_list in method_and_attribute_list.items():
-            max_length = max(max_length, len(method_name))
-            for attribute in attribute_list:
-                max_length = max(max_length, len(attribute._get_parameter_name()))
-        for element in relationship_list:
-            max_length = max(max_length, len(element._get_source_class()), len(element._get_destination_class()), len(element._get_type()))
-        # Add padding for better readability
-        padding = 5
-        column_width = max_length + padding
-        # Create the formatted output
-        output = []
-        border_line = f"|{'=' * column_width}|"
-        output.append(border_line)
-        # Print class name
-        output.append(f"{'--     Name     --':^{column_width}}")
-        output.append(f"{class_name:^{column_width}}")
-        output.append(f"|{'*' * column_width}|")
-        # Print fields
-        output.append(f"{'--     Field     --':^{column_width}}")
-        for field in field_list:
-            output.append(f"{field._get_name():^{column_width}}")
-        output.append(f"|{'*' * column_width}|")
-        # Print methods and parameters
-        for method_name, attribute_list in method_and_attribute_list.items():
-            output.append("-" * column_width)
-            output.append(f"{'--     Methods    --':^{column_width}}")
-            output.append(f"{method_name:^{column_width}}")
-            output.append(f"{'--   Parameters   --':^{column_width}}")
-            for attribute in attribute_list:
-                output.append(f"{attribute._get_parameter_name():^{column_width}}")
-            output.append("-" * column_width)
-        output.append(f"|{'*' * column_width}|")
-        # Print relationships
-        output.append(f"{'-- Relationship  --':^{column_width}}")
-        for element in relationship_list:
-            if element._get_source_class() == class_name:
-                output.append("-" * column_width)
-                output.append(f"Source: {element._get_source_class()}")
-                output.append(f"Destination: {element._get_destination_class()}")
-                output.append(f"Type: {element._get_type()}")
-        output.append(border_line)
-        return "\n".join(output)
+    # # Get class detail #
+    # def __get_class_detail(self, class_name: str) -> str:
+    #     is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
+    #     if not is_class_exist:
+    #         return
+    #     class_object = self.__class_list[class_name]
+    #     # Get max length for formatting
+    #     field_list = class_object._get_class_field_list()
+    #     method_and_attribute_list = class_object._get_method_and_parameters_list()
+    #     relationship_list = self.__relationship_list
+    #     # Find the maximum length for dynamic padding
+    #     max_length = len(class_name)
+    #     # Check the length of each field, method, and relationship to find the longest one
+    #     for field in field_list:
+    #         max_length = max(max_length, len(field._get_name()))
+    #     for method_name, attribute_list in method_and_attribute_list.items():
+    #         max_length = max(max_length, len(method_name))
+    #         for attribute in attribute_list:
+    #             max_length = max(max_length, len(attribute._get_parameter_name()))
+    #     for element in relationship_list:
+    #         max_length = max(max_length, len(element._get_source_class()), len(element._get_destination_class()), len(element._get_type()))
+    #     # Add padding for better readability
+    #     padding = 5
+    #     column_width = max_length + padding
+    #     # Create the formatted output
+    #     output = []
+    #     border_line = f"|{'=' * column_width}|"
+    #     output.append(border_line)
+    #     # Print class name
+    #     output.append(f"{'--     Name     --':^{column_width}}")
+    #     output.append(f"{class_name:^{column_width}}")
+    #     output.append(f"|{'*' * column_width}|")
+    #     # Print fields
+    #     output.append(f"{'--     Field     --':^{column_width}}")
+    #     for field in field_list:
+    #         output.append(f"{field._get_name():^{column_width}}")
+    #     output.append(f"|{'*' * column_width}|")
+    #     # Print methods and parameters
+    #     for method_name, attribute_list in method_and_attribute_list.items():
+    #         output.append("-" * column_width)
+    #         output.append(f"{'--     Methods    --':^{column_width}}")
+    #         output.append(f"{method_name:^{column_width}}")
+    #         output.append(f"{'--   Parameters   --':^{column_width}}")
+    #         for attribute in attribute_list:
+    #             output.append(f"{attribute._get_parameter_name():^{column_width}}")
+    #         output.append("-" * column_width)
+    #     output.append(f"|{'*' * column_width}|")
+    #     # Print relationships
+    #     output.append(f"{'-- Relationship  --':^{column_width}}")
+    #     for element in relationship_list:
+    #         if element._get_source_class() == class_name:
+    #             output.append("-" * column_width)
+    #             output.append(f"Source: {element._get_source_class()}")
+    #             output.append(f"Destination: {element._get_destination_class()}")
+    #             output.append(f"Type: {element._get_type()}")
+    #     output.append(border_line)
+    #     return "\n".join(output)
     
     # Get class detail #
     def __get_class_detail_new_demo(self, class_name: str) -> str:
