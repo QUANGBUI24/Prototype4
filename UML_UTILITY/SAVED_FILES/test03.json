@@ -1,7 +1,32 @@
 {
     "classes": [
         {
-            "name": "Human",
+            "name": "Animal",
+            "fields": [
+                {
+                    "name": "Tails"
+                },
+                {
+                    "name": "Paws"
+                }
+            ],
+            "methods": [
+                {
+                    "name": "Run",
+                    "params": [
+                        {
+                            "name": "SpeedUnit"
+                        }
+                    ]
+                },
+                {
+                    "name": "Lick",
+                    "params": []
+                }
+            ]
+        },
+        {
+            "name": "Person",
             "fields": [],
             "methods": [
                 {
@@ -18,5 +43,11 @@
             ]
         }
     ],
-    "relationships": []
+    "relationships": [
+        {
+            "source": "Person",
+            "destination": "Animal",
+            "type": "aggregation"
+        }
+    ]
 }
