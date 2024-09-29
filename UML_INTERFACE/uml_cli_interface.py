@@ -75,7 +75,7 @@ class UMLCommandLineInterface:
     def create_relationship(source_class: str, destination_class: str, rel_type: str):
         return ProgramManager.create_relationship(source_class, destination_class, rel_type)
     
-    ## DATA RELATED FOR GUI ##
+    ## DATA RELATED FOR GUI AND TESTING ##
 
     # Get main data interface #
     def get_main_data(self) -> Dict:
@@ -96,6 +96,26 @@ class UMLCommandLineInterface:
     """
     def extract_class_data(self, class_data: List[Dict]) -> List: 
         return ProgramManager._extract_class_data(class_data)
+    
+    # This one is for Testing, you can check whether 
+    # Class, Field, Method, or Parameter exist or not
+    # Check uml_core_manager.py to see how to use this function
+    # You can find it in _add_class, _add_method, _add_parameters, etc.
+    def validate_entities(
+        self,
+        class_name: str = None, 
+        field_name: str = None, 
+        method_name: str = None, 
+        parameter_name: str = None, 
+        class_should_exist: bool = None, 
+        field_should_exist: bool = None,
+        method_should_exist: bool = None, 
+        parameter_should_exist: bool = None
+    ) -> bool:
+        return ProgramManager._validate_entities(
+            class_name, field_name, method_name, parameter_name, 
+            class_should_exist, field_should_exist, 
+            method_should_exist, parameter_should_exist)
     
     ## CLASS RELATED ##
     
