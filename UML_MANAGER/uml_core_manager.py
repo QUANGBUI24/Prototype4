@@ -85,7 +85,7 @@ class UMLCoreManager:
     # Add class #
     def _add_class(self, class_name: str, is_loading: bool):
         # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=False)
+        is_class_exist = self._validate_entities(class_name=class_name, class_should_exist=False)
         # If the class has already existed, stop
         if not is_class_exist:
             return
@@ -96,9 +96,9 @@ class UMLCoreManager:
             print(f"\nSuccessfully added class '{class_name}'!")
         
     # Delete class #
-    def _delete_class(self, class_name: str, is_loading: bool):
+    def _delete_class(self, class_name: str):
         # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
+        is_class_exist = self._validate_entities(class_name=class_name, class_should_exist=True)
         # If the class does not exist, stop
         if not is_class_exist:
             return
@@ -106,11 +106,10 @@ class UMLCoreManager:
         self.__class_list.pop(class_name)
         # Clean up connected relationship
         self.__clean_up_relationship(class_name)
-        if not is_loading:
-            print(f"\nSuccessfully removed class '{class_name}'!")
+        print(f"\nSuccessfully removed class '{class_name}'!")
         
     # Rename class #
-    def _rename_class(self, current_name: str, new_name: str, is_loading: bool):
+    def _rename_class(self, current_name: str, new_name: str):
         # Check if we are able to rename
         is_able_to_rename = self.__check_class_rename(current_name, new_name)
         # If not, stop
@@ -123,22 +122,15 @@ class UMLCoreManager:
         self.__class_list[new_name] = self.__class_list.pop(current_name)
         # Update name in relationship list
         self.__update_name_in_relationship(current_name, new_name)
-        if not is_loading:
-            print(f"\nSuccessfully renamed from class '{current_name}' to class '{new_name}'!")
+        print(f"\nSuccessfully renamed from class '{current_name}' to class '{new_name}'!")
         
     ## FIELD RELATED ##
     
     # Add field #
-    def _add_field(self, class_name: str, field_name: str, is_loading: bool):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if field exists or not
-        is_field_exist = self.__validate_field_existence(class_name, field_name, should_exist=False)
-        # If the field has already existed, stop
-        if not is_field_exist:
+    def _add_field(self, class_name: str, field_name: str, is_loading: bool):        
+        # Check if class and field exist
+        is_class_and_field_exist = self._validate_entities(class_name=class_name, field_name=field_name, class_should_exist=True, field_should_exist=False)
+        if not is_class_and_field_exist:
             return
         # Get class object
         class_object = self.__class_list[class_name]
@@ -152,16 +144,10 @@ class UMLCoreManager:
             print(f"\nSuccessfully added field '{field_name}'!")
         
     # Delete field #
-    def _delete_field(self, class_name: str, field_name: str, is_loading):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if field exists or not
-        is_field_exist = self.__validate_field_existence(class_name, field_name, should_exist=True)
-        # If the field does not exist, stop
-        if not is_field_exist:
+    def _delete_field(self, class_name: str, field_name: str):
+        # Check if class and field exist
+        is_class_and_field_exist = self._validate_entities(class_name=class_name, field_name=field_name, class_should_exist=True, field_should_exist=True)
+        if not is_class_and_field_exist:
             return
          # Get class object
         class_object = self.__class_list[class_name]
@@ -171,33 +157,25 @@ class UMLCoreManager:
         chosen_field = self.__get_chosen_field_or_method(class_name, field_name, is_field=True)
         # Remove the chosen field 
         field_list.remove(chosen_field)
-        if not is_loading:
-            print(f"\nSuccessfully removed field '{field_name}'!")
+        print(f"\nSuccessfully removed field '{field_name}'!")
         
     # Rename field #
-    def _rename_field(self, class_name: str, current_field_name: str, new_field_name: str, is_loading: bool):
+    def _rename_field(self, class_name: str, current_field_name: str, new_field_name: str):
         is_able_to_rename = self.__check_field_or_method_rename(class_name, current_field_name, new_field_name, is_field=True)
         if not is_able_to_rename:
             return
         # Get the field
         chosen_field = self.__get_chosen_field_or_method(class_name, current_field_name, is_field=True)
         chosen_field._set_name(new_field_name)
-        if not is_loading:
-            print(f"\nSuccessfully renamed from field '{current_field_name}' to field '{new_field_name}'!")
+        print(f"\nSuccessfully renamed from field '{current_field_name}' to field '{new_field_name}'!")
         
     ## METHOD RELATED ##
     
     # Add method #
     def _add_method(self, class_name: str, method_name: str, is_loading: bool):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=False)
-        # If the field has already existed, stop
-        if not is_method_exist:
+        # Check if class and method exist or not
+        is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=False)
+        if not is_class_and_method_exist:
             return
         # Get class object
         class_object = self.__class_list[class_name]
@@ -215,57 +193,46 @@ class UMLCoreManager:
             print(f"\nSuccessfully added method '{method_name}'!")
         
     # Delete method #
-    def _delete_method(self, class_name: str, method_name: str, is_loading: bool):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
+    def _delete_method(self, class_name: str, method_name: str):
+        # Check if class and method exist or not
+        is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=True)
+        if not is_class_and_method_exist:
             return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-        # If the method does not exist, stop
-        if not is_method_exist:
-            return
-         # Get class object
+        # Get class object
         class_object = self.__class_list[class_name]
         # Get method list
         method_list = class_object._get_class_method_list()
+        # Get method and parameter list and delete the method from it
+        method_and_parameter_list = class_object._get_method_and_parameters_list()
+        method_and_parameter_list.pop(method_name)
         # Get the method
         chosen_method = self.__get_chosen_field_or_method(class_name, method_name, is_field=False)
-        # Remove the chosen field 
+        # Remove the chosen method 
         method_list.remove(chosen_method)
-        if not is_loading:
-            print(f"\nSuccessfully removed method '{method_name}'!")
+        print(f"\nSuccessfully removed method '{method_name}'!")
         
     # Rename method #
-    def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str, is_loading: bool):
+    def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
         is_able_to_rename = self.__check_field_or_method_rename(class_name, current_method_name, new_method_name, is_field=False)
         if not is_able_to_rename:
             return
+        # Get class object
+        class_object = self.__class_list[class_name]
+        # Get method and parameter list and update the key (method name)
+        method_and_parameter_list = class_object._get_method_and_parameters_list()
+        method_and_parameter_list[new_method_name] = method_and_parameter_list.pop(current_method_name)
         # Get the method
         chosen_method = self.__get_chosen_field_or_method(class_name, current_method_name, is_field=False)
         chosen_method._set_name(new_method_name)
-        if not is_loading:
-            print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
+        print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
     
     ## PARAMETER RELATED ##
     
     # Add parameter #
     def _add_parameter(self, class_name: str, method_name: str, parameter_name: str, is_loading: bool):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-        # If the method does not exist, stop
-        if not is_method_exist:
-            return
-        # Check if parameter exists or not
-        is_parameter_exist = self.__validate_parameter_existence(class_name, method_name, parameter_name, should_exist=False)
-        # If parameter exist, stop
-        if not is_parameter_exist:
+        # Check if class, method and its parameter exist or not
+        is_class_and_method_and_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name,parameter_name=parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=False )
+        if not is_class_and_method_and_parameter_exist:
             return
         # Get method and parameter list
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
@@ -278,20 +245,9 @@ class UMLCoreManager:
             
     # Delete parameter #
     def _delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-        # If the method does not exist, stop
-        if not is_method_exist:
-            return
-        # Check if parameter exists or not
-        is_parameter_exist = self.__validate_parameter_existence(class_name, method_name, parameter_name, should_exist=True)
-        # If parameter does not exist, stop
-        if not is_parameter_exist:
+        # Check if class, method and its parameter exist or not
+        is_class_and_method_and_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name,parameter_name=parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=True )
+        if not is_class_and_method_and_parameter_exist:
             return
         # Get method and parameter list
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
@@ -303,23 +259,12 @@ class UMLCoreManager:
         
     # Rename parameter #
     def _rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-        # If the method does not exist, stop
-        if not is_method_exist:
-            return
-        # Check if current parameter exists or not
-        is_current_parameter_exist = self.__validate_parameter_existence(class_name, method_name, current_parameter_name, should_exist=True)
-        # If current parameter does not exist, stop
-        if not is_current_parameter_exist:
+        # Check if class, method and its parameter exist or not
+        is_class_and_method_and_current_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name,parameter_name=current_parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=True )
+        if not is_class_and_method_and_current_parameter_exist:
             return
         # Check if new parameter exists or not
-        is_new_parameter_exist = self.__validate_parameter_existence(class_name, method_name, new_parameter_name, should_exist=False)
+        is_new_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name,parameter_name=new_parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=False )
         # If new parameter exist, stop
         if not is_new_parameter_exist:
             return
@@ -330,15 +275,9 @@ class UMLCoreManager:
         
     # Replace parameter list, fail if class or method does not exist
     def _replace_param_list(self, class_name: str, method_name: str):
-        # Check if class exists or not
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        # If the class does not exist, stop
-        if not is_class_exist:
-            return
-        # Check if method exists or not
-        is_method_exist = self.__validate_method_existence(class_name, method_name, should_exist=True)
-        # If the method does not exist, stop
-        if not is_method_exist:
+        # Check if class and method exist or not
+        is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=True)
+        if not is_class_and_method_exist:
             return
         # Get new parameter names from the user
         user_input = input("\nEnter the names for the new parameter list, each name must be separated by spaces:\n\n==> ")
@@ -361,8 +300,6 @@ class UMLCoreManager:
         method_and_parameter_list[method_name] = new_param_list
         print(f"\nSuccessfully replaced parameter list for method '{method_name}'!")
 
-    
- 
     ## RELATIONSHIP RELATED ##
     
     # Add relationship wrapper #
@@ -417,7 +354,7 @@ class UMLCoreManager:
             print(f"\nSuccessfully added relationship from class '{source_class_name}' to class '{destination_class_name}' of type '{rel_type}'!")
         
     # Delete relationship #
-    def _delete_relationship(self, source_class_name: str, destination_class_name: str, is_loading: bool):
+    def _delete_relationship(self, source_class_name: str, destination_class_name: str):
         # Check if source class exists or not
         is_source_class_exist = self.__validate_class_existence(source_class_name, should_exist=True)
         # If the class does not exist, stop
@@ -437,8 +374,7 @@ class UMLCoreManager:
         current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
         # Remove relationship
         self.__relationship_list.remove(current_relationship)
-        if not is_loading:
-            print(f"\nSuccessfully removed relationship between class '{source_class_name}' to class '{destination_class_name}'!")  
+        print(f"\nSuccessfully removed relationship between class '{source_class_name}' to class '{destination_class_name}'!")  
     
     # Change type #
     def _change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
@@ -538,7 +474,7 @@ class UMLCoreManager:
     
     ## FIELD AND METHOD RELATED ##
     
-    # Check field name exist or not #
+    # Check field/method name exist or not #
     def __field_or_method_exist(self, class_name: str, input_name: str, is_field: bool) -> bool:
         # Check if class exists or not
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
@@ -552,7 +488,7 @@ class UMLCoreManager:
             general_list = class_object._get_class_field_list()
         else:
             general_list = class_object._get_class_method_list()
-        # Loop through the list to find the field name 
+        # Loop through the list to find the field or method name 
         for element in general_list:
             current_name = element._get_name()
             # If exists, return true
@@ -586,7 +522,7 @@ class UMLCoreManager:
             return False
         return True
     
-    # Check if we are able to rename field #
+    # Check if we are able to rename field/method #
     def __check_field_or_method_rename(self, class_name: str, current_name: str, new_name: str, is_field: bool) -> bool:
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         if not is_class_exist:
@@ -646,7 +582,7 @@ class UMLCoreManager:
         for parameter in parameter_list:
             if parameter_name == parameter._get_parameter_name():
                 return True
-            return False
+        return False
     
     # Validate parameter existence #
     def __validate_parameter_existence(self, class_name: str, method_name: str, parameter_name: str, should_exist: bool) -> bool:
@@ -860,6 +796,8 @@ class UMLCoreManager:
         class_data = main_data["classes"]
         relationship_data = main_data["relationships"]
         self.__reset_storage()
+        # Set main data again
+        self.__main_data = main_data
         # Re-create class, field, method and parameter
         extracted_class_data = self._extract_class_data(class_data)
         for each_pair in extracted_class_data:
@@ -1141,6 +1079,10 @@ class UMLCoreManager:
                 output.append(f"Type: {element._get_type()}")
         output.append(border_line)
         return "\n".join(output)
+    
+    # Get class detail #
+    def __get_class_detail_new_demo(self, class_name: str) -> str:
+        pass
 
     # Sorting Class List #
     def _sort_class_list(self):
@@ -1183,5 +1125,54 @@ class UMLCoreManager:
                 return False
             else:
                 print("Invalid input. Please enter 'Yes' or 'No'.")
+    
+    # Validate entities (Class, Method, Field, Parameter)          
+    def _validate_entities(
+        self, 
+        class_name: str = None, 
+        field_name: str = None, 
+        method_name: str = None, 
+        parameter_name: str = None, 
+        class_should_exist: bool = None, 
+        field_should_exist: bool = None,
+        method_should_exist: bool = None, 
+        parameter_should_exist: bool = None
+    ) -> bool:
+        """
+        General validation function for class, field, method, and parameter existence.
+        - class_name: Name of the class to check.
+        - field_name: Name of the field to check.
+        - method_name: Name of the method to check.
+        - parameter_name: Name of the parameter to check.
+        - class_should_exist: Whether the class should exist (True) or not (False).
+        - field_should_exist: Whether the field should exist (True) or not (False).
+        - method_should_exist: Whether the method should exist (True) or not (False).
+        - parameter_should_exist: Whether the parameter should exist (True) or not (False).
+    
+        Returns True if all required entities exist (or don't exist) as expected, otherwise False.
+        """
+        # Check class existence if specified
+        if class_name is not None and class_should_exist is not None:
+            is_class_exist = self.__validate_class_existence(class_name, class_should_exist)
+            if not is_class_exist:
+                return False
+        # Check field existence if specified
+        if field_name is not None and field_should_exist is not None:
+            is_field_exist = self.__validate_field_existence(class_name, field_name, field_should_exist)
+            if not is_field_exist:
+                return False
+        # Check method existence if specified
+        if method_name is not None and method_should_exist is not None:
+            is_method_exist = self.__validate_method_existence(class_name, method_name, method_should_exist)
+            if not is_method_exist:
+                return False
+        # Check parameter existence if specified
+        if parameter_name is not None and parameter_should_exist is not None:
+            is_parameter_exist = self.__validate_parameter_existence(class_name, method_name, parameter_name, parameter_should_exist)
+            if not is_parameter_exist:
+                return False
+        # All checks passed
+        return True
+
                               
 ###################################################################################################

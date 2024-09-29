@@ -75,7 +75,7 @@ class UMLCommandLineInterface:
     def create_relationship(source_class: str, destination_class: str, rel_type: str):
         return ProgramManager.create_relationship(source_class, destination_class, rel_type)
     
-    ## DATA RELATED FOR GUI ##
+    ## DATA RELATED FOR GUI AND TESTING ##
 
     # Get main data interface #
     def get_main_data(self) -> Dict:
@@ -97,6 +97,26 @@ class UMLCommandLineInterface:
     def extract_class_data(self, class_data: List[Dict]) -> List: 
         return ProgramManager._extract_class_data(class_data)
     
+    # This one is for Testing, you can check whether 
+    # Class, Field, Method, or Parameter exist or not
+    # Check uml_core_manager.py to see how to use this function
+    # You can find it in _add_class, _add_method, _add_parameters, etc.
+    def validate_entities(
+        self,
+        class_name: str = None, 
+        field_name: str = None, 
+        method_name: str = None, 
+        parameter_name: str = None, 
+        class_should_exist: bool = None, 
+        field_should_exist: bool = None,
+        method_should_exist: bool = None, 
+        parameter_should_exist: bool = None
+    ) -> bool:
+        return ProgramManager._validate_entities(
+            class_name, field_name, method_name, parameter_name, 
+            class_should_exist, field_should_exist, 
+            method_should_exist, parameter_should_exist)
+    
     ## CLASS RELATED ##
     
     # Add class interface #
@@ -105,11 +125,11 @@ class UMLCommandLineInterface:
         
     # Delete class interface #
     def delete_class(self, class_name: str):
-        ProgramManager._delete_class(class_name, is_loading=False)
+        ProgramManager._delete_class(class_name)
         
     # Rename class interface #
     def rename_class(self, current_name: str, new_name: str):
-        ProgramManager._rename_class(current_name, new_name, is_loading=False)
+        ProgramManager._rename_class(current_name, new_name)
         
     ## ATTRIBUTE RELATED ##
     
@@ -119,11 +139,11 @@ class UMLCommandLineInterface:
         
     # Delete attribute interface #
     def delete_attribute(self, class_name: str, attribute_name: str):
-        ProgramManager._delete_field(class_name, attribute_name, is_loading=False)
+        ProgramManager._delete_field(class_name, attribute_name)
     
     # Rename attribute interface #
     def rename_attribute(self, class_name: str, current_attribute_name: str, new_attribute_name: str):
-        ProgramManager._rename_field(class_name, current_attribute_name, new_attribute_name, is_loading=False)
+        ProgramManager._rename_field(class_name, current_attribute_name, new_attribute_name)
         
     ## METHOD RELATED ##
     
@@ -133,11 +153,11 @@ class UMLCommandLineInterface:
     
     # Delete method interface #
     def delete_method(self, class_name: str, method_name: str):
-        ProgramManager._delete_method(class_name, method_name, is_loading=False)
+        ProgramManager._delete_method(class_name, method_name)
         
     # Rename method interface #
     def rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
-        ProgramManager._rename_method(class_name, current_method_name, new_method_name, is_loading=False)
+        ProgramManager._rename_method(class_name, current_method_name, new_method_name)
         
     ## PARAMETER RELATED ##
     
@@ -165,7 +185,7 @@ class UMLCommandLineInterface:
     
     # Delete relationship interface #
     def delete_relationship(self, source_class_name: str, destination_class_name: str):
-        ProgramManager._delete_relationship(source_class_name, destination_class_name, is_loading=False)
+        ProgramManager._delete_relationship(source_class_name, destination_class_name)
         
     # Change relationship type interface #
     def change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
