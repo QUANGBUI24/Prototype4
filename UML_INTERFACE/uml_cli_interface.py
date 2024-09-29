@@ -208,6 +208,10 @@ class UMLCommandLineInterface:
     # Exit program #
     def exit(self):
         self.ProgramManager._exit()
+        
+    # Keep updating main data #
+    def update_main_data_for_every_action(self):
+        self.ProgramManager._update_main_data_for_every_action()
 
     #################################################################   
     
@@ -288,6 +292,8 @@ class UMLCommandLineInterface:
             parameters = user_input_component[1:]
             # Pass command and parameters to ProgramManager for processing
             self.ProgramManager._process_command(command, parameters)
+            # Updating main data
+            self.update_main_data_for_every_action()
             # Show the main menu again #
             if command == InterfaceOptions.HELP.value:
                 self.__prompt_menu()

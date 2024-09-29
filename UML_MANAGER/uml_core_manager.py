@@ -67,7 +67,7 @@ class UMLCoreManager:
         self.__storage_manager: Storage = Storage()
         self.__relationship_list: List[Relationship] = []
         self.__main_data: Dict = {}
-        self._view: View = View()
+        self.__user_view: View = View()
         
     # Getters #
         
@@ -786,7 +786,7 @@ class UMLCoreManager:
         class_data_list = []
         # Relationship list to put in the main data
         relationship_data_list = []
-        main_data = self.__update_main_data(user_input, class_data_list, relationship_data_list)
+        main_data = self.__update_main_data_from_loaded_file(user_input, class_data_list, relationship_data_list)
         self.__storage_manager._save_data_to_json(user_input, main_data)
         print(f"\nSuccessfully saved data to '{user_input}.json'!")
         
@@ -816,7 +816,7 @@ class UMLCoreManager:
         print(f"\nSuccessfully loaded data from '{user_input}.json'!")
         
     # Update main data to store data to json file #
-    def __update_main_data(self, user_input: str, class_data_list: List, relationship_data_list: List) -> Dict:
+    def __update_main_data_from_loaded_file(self, user_input: str, class_data_list: List, relationship_data_list: List) -> Dict:
         relationship_data_list = self._get_relationship_format_list()
         main_data = self.__main_data
         # Add file name to saved list if it is a new one
@@ -1117,7 +1117,8 @@ class UMLCoreManager:
                 
         # List all the created class names or all class detail #
         elif command == InterfaceOptions.LIST_CLASS.value:
-            self._display_wrapper() 
+            # self._display_wrapper()
+            self.__user_view._display_uml_data(self.__main_data) 
         # Show the details of the chosen class #
         elif command == InterfaceOptions.CLASS_DETAIL.value and first_param:
             self._display_single_class(first_param)
@@ -1323,6 +1324,19 @@ class UMLCoreManager:
                 return False
             else:
                 print("Invalid input. Please enter 'Yes' or 'No'.")
+                
+    # Update main data wrapper #
+    def _update_main_data_for_every_action(self):
+        # Class data list to put in the main data
+        class_data_list = []
+        relationship_data_list = self._get_relationship_format_list()
+        main_data = self.__main_data
+        # Add file name to saved list if it is a new one
+        for class_name in self.__class_list:
+            class_data_format = self._class_json_format(class_name)
+            class_data_list.append(class_data_format)
+        main_data["classes"] = class_data_list
+        main_data["relationships"] = relationship_data_list
     
     # Validate entities (Class, Method, Field, Parameter)          
     def _validate_entities(
