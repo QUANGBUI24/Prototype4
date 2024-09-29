@@ -1,93 +1,55 @@
 ###################################################################################################
 
 from typing import List, Dict
-from enum import Enum
-from UML_MANAGER.uml_core_manager import UMLCoreManager as Manager
-from .help_text import show_manual
+from UML_MANAGER.uml_core_manager import UMLCoreManager as Manager, InterfaceOptions
 
-###################################################################################################
-
-# Global manager #
-ProgramManager = Manager()
-
-###################################################################################################
-### ENUM VALUES FOR THE INTERFACE ###
-
-class InterfaceOptions(Enum):
-    ADD_CLASS = "add_class"
-    DELETE_CLASS = "delete_class"
-    RENAME = "rename_class"
-    ADD_FIELD = "add_field"
-    DELETE_FIELD = "delete_field"
-    RENAME_FIELD = "rename_field"
-    ADD_METHOD = "add_method"
-    DELETE_METHOD = "delete_method"
-    RENAME_METHOD = "rename_method"
-    ADD_PARAM = "add_param"
-    DELETE_PARAM = "delete_param"
-    RENAME_PARAM = "rename_param"
-    REPLACE_PARAM = "replace_param"
-    ADD_REL = "add_rel"
-    DELETE_REL = "delete_rel"
-    TYPE_MOD = "type_mod"
-    LIST_CLASS = "list_class"
-    CLASS_DETAIL = "class_detail"
-    CLASS_REL = "class_rel"
-    SAVED_LIST = "saved_list"
-    SAVE = "save"
-    LOAD = "load"
-    DELETE_SAVED = "delete_saved"
-    CLEAR_DATA = "clear_data"
-    DEFAULT = "default"
-    SORT = "sort"
-    HELP = "help"
-    EXIT = "exit"    
-    
 ###################################################################################################
 
 class UMLCommandLineInterface:
     
     # Constructor for interface #
     def __init__(self):
-        pass
+        # Each interface instance has its own program manager, easier for testing
+        self.ProgramManager = Manager()
+        
     #################################################################
     ### INTERFACE FUNCTIONS THAT CONNECT WITH THE MANAGER ###
     
     ## OBJECT CREATION ##
     
     # Class creation method interface #
-    def create_class(class_name: str):
-        return ProgramManager.create_class(class_name)
+    def create_class(self, class_name: str):
+        return self.ProgramManager.create_class(class_name)
     
     # Field creation method interface #
-    def create_field(field_name: str):
-        return ProgramManager.create_field(field_name)
+    def create_field(self, field_name: str):
+        return self.ProgramManager.create_field(field_name)
     
     # Method creation method interface #
-    def create_method(method_name: str):
-        return ProgramManager.create_method(method_name)
+    def create_method(self, method_name: str):
+        return self.ProgramManager.create_method(method_name)
     
     # Parameter creation method interface #
-    def create_parameter(parameter_name: str):
-        return ProgramManager.create_parameter(parameter_name)
+    def create_parameter(self, parameter_name: str):
+        return self.ProgramManager.create_parameter(parameter_name)
     
     # Relationship creation method interface #
-    def create_relationship(source_class: str, destination_class: str, rel_type: str):
-        return ProgramManager.create_relationship(source_class, destination_class, rel_type)
+    def create_relationship(self, source_class: str, destination_class: str, rel_type: str):
+        return self.ProgramManager.create_relationship(source_class, destination_class, rel_type)
     
     ## DATA RELATED FOR GUI AND TESTING ##
 
     # Get main data interface #
     def get_main_data(self) -> Dict:
-        return ProgramManager._get_main_data()
+        return self.ProgramManager._get_main_data()
     
     # Get relationship list interface #
     def get_relationship_list(self) -> List:
-        return ProgramManager._get_relationship_list()
+        return self.ProgramManager._get_relationship_list()
     
     # Get storage manager interface #
     def get_storage_manager(self):
-        return ProgramManager._get_storage_manager()
+        return self.ProgramManager._get_storage_manager()
     
     # Extract and and a list of UML class data interface #
     """class_data can be retrieved using get_main_data()
@@ -95,7 +57,7 @@ class UMLCommandLineInterface:
        class_data = main_data["classes"]
     """
     def extract_class_data(self, class_data: List[Dict]) -> List: 
-        return ProgramManager._extract_class_data(class_data)
+        return self.ProgramManager._extract_class_data(class_data)
     
     # This one is for Testing, you can check whether 
     # Class, Field, Method, or Parameter exist or not
@@ -112,7 +74,7 @@ class UMLCommandLineInterface:
         method_should_exist: bool = None, 
         parameter_should_exist: bool = None
     ) -> bool:
-        return ProgramManager._validate_entities(
+        return self.ProgramManager._validate_entities(
             class_name, field_name, method_name, parameter_name, 
             class_should_exist, field_should_exist, 
             method_should_exist, parameter_should_exist)
@@ -121,133 +83,137 @@ class UMLCommandLineInterface:
     
     # Add class interface #
     def add_class(self, class_name: str):
-        ProgramManager._add_class(class_name, is_loading=False)
+        self.ProgramManager._add_class(class_name, is_loading=False)
         
     # Delete class interface #
     def delete_class(self, class_name: str):
-        ProgramManager._delete_class(class_name)
+        self.ProgramManager._delete_class(class_name)
         
     # Rename class interface #
     def rename_class(self, current_name: str, new_name: str):
-        ProgramManager._rename_class(current_name, new_name)
+        self.ProgramManager._rename_class(current_name, new_name)
         
-    ## ATTRIBUTE RELATED ##
+    ## FIELD RELATED ##
     
-    # Add attribute interface #
-    def add_attribute(self, class_name: str, attribute_name: str):
-        ProgramManager._add_field(class_name, attribute_name, is_loading=False)
+    # Add field interface #
+    def add_field(self, class_name: str, field_name: str):
+        self.ProgramManager._add_field(class_name, field_name, is_loading=False)
         
-    # Delete attribute interface #
-    def delete_attribute(self, class_name: str, attribute_name: str):
-        ProgramManager._delete_field(class_name, attribute_name)
+    # Delete field interface #
+    def delete_field(self, class_name: str, field_name: str):
+        self.ProgramManager._delete_field(class_name, field_name)
     
-    # Rename attribute interface #
-    def rename_attribute(self, class_name: str, current_attribute_name: str, new_attribute_name: str):
-        ProgramManager._rename_field(class_name, current_attribute_name, new_attribute_name)
+    # Rename field interface #
+    def rename_field(self, class_name: str, current_field_name: str, new_field_name: str):
+        self.ProgramManager._rename_field(class_name, current_field_name, new_field_name)
         
     ## METHOD RELATED ##
     
     # Add method interface #
     def add_method(self, class_name: str, method_name: str):
-        ProgramManager._add_method(class_name, method_name, is_loading=False)
+        self.ProgramManager._add_method(class_name, method_name, is_loading=False)
     
     # Delete method interface #
     def delete_method(self, class_name: str, method_name: str):
-        ProgramManager._delete_method(class_name, method_name)
+        self.ProgramManager._delete_method(class_name, method_name)
         
     # Rename method interface #
     def rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
-        ProgramManager._rename_method(class_name, current_method_name, new_method_name)
+        self.ProgramManager._rename_method(class_name, current_method_name, new_method_name)
         
     ## PARAMETER RELATED ##
     
     # Add parameter interface #
     def add_parameter(self, class_name: str, method_name: str, parameter_name: str):
-        ProgramManager._add_parameter(class_name, method_name, parameter_name, is_loading=False)
+        self.ProgramManager._add_parameter(class_name, method_name, parameter_name, is_loading=False)
         
     # Delete parameter interface #
     def delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
-        ProgramManager._delete_parameter(class_name, method_name, parameter_name)
+        self.ProgramManager._delete_parameter(class_name, method_name, parameter_name)
         
     # Rename parameter interface #
     def rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
-        ProgramManager._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
+        self.ProgramManager._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
         
     # Replace parameter list interface #
     def replace_param_list(self, class_name: str, method_name: str):
-        ProgramManager._replace_param_list(class_name, method_name)
+        self.ProgramManager._replace_param_list(class_name, method_name)
         
     ## RELATIONSHIP RELATED ##
     
     # Add relationship interface #
     def add_relationship(self, source_class_name: str, destination_class_name: str, type: str):
-        ProgramManager._add_relationship(source_class_name, destination_class_name, type, is_loading=False)
+        self.ProgramManager._add_relationship(source_class_name, destination_class_name, type, is_loading=False)
     
     # Delete relationship interface #
     def delete_relationship(self, source_class_name: str, destination_class_name: str):
-        ProgramManager._delete_relationship(source_class_name, destination_class_name)
+        self.ProgramManager._delete_relationship(source_class_name, destination_class_name)
         
     # Change relationship type interface #
     def change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
-        ProgramManager._change_type(source_class_name, destination_class_name, new_type)
+        self.ProgramManager._change_type(source_class_name, destination_class_name, new_type)
     
     ## DISPLAY RELATED ##
     
     # Display saved file list #
     def display_saved_list(self):
-        ProgramManager._display_saved_list()
+        self.ProgramManager._display_saved_list()
         
     # Display classes #
     def display_classes(self):
-        ProgramManager._display_wrapper()
+        self.ProgramManager._display_wrapper()
         
     # Display single class #
     def display_single_class(self, class_name: str):
-        ProgramManager._display_single_class_detail(class_name)
+        self.ProgramManager._display_single_class_detail(class_name)
         
     # Display relationship #
     def display_relationship(self):
-        ProgramManager._display_relationship_list()
+        self.ProgramManager._display_relationship_list()
     
     ## SAVE/LOAD RELATED ##
     
     # Save data #
     def save(self):
-        ProgramManager._save()
+        self.ProgramManager._save()
         
     # Load data #
     def load(self):
-        ProgramManager._load()
+        self.ProgramManager._load()
     
     # Delete saved file #
     def delete_saved_file(self):
-        ProgramManager._delete_saved_file()
+        self.ProgramManager._delete_saved_file()
         
     # Get active file #
     def get_active_file(self) -> str:
-        return ProgramManager._get_active_file()
+        return self.ProgramManager._get_active_file()
     
     # Saved file name check #
     def saved_file_name_check(self, file_name: str) -> bool:
-        return ProgramManager._saved_file_name_check(file_name)
+        return self.ProgramManager._saved_file_name_check(file_name)
     
     # Clear current active data #
     def clear_current_active_data(self):
-        ProgramManager._clear_current_active_data()
+        self.ProgramManager._clear_current_active_data()
     
     # Go back to blank program #
     def end_session(self):
-        ProgramManager._end_session()
+        self.ProgramManager._end_session()
         
     # Sort class list #
     def sort_class_list(self):
-        ProgramManager._sort_class_list()
+        self.ProgramManager._sort_class_list()
         
-    # Turn off all file statuses when exiting program #
+    # Exit program #
     def exit(self):
-        ProgramManager._exit()
+        self.ProgramManager._exit()
 
     #################################################################   
+    
+    ## USER INTERFACE ##
+    
+    # Display banner #
     def __display_banner(self):
         banner = r"""
         ▗▖ ▗▖▗▖  ▗▖▗▖       ▗▄▄▄▖▗▄▄▄ ▗▄▄▄▖▗▄▄▄▖▗▄▖ ▗▄▄▖ 
@@ -260,11 +226,8 @@ class UMLCommandLineInterface:
     For more information on commands, type "help" for the manual.
         """
         print(banner)
-
-    # def __prompt_menu(self):
-    #    show_manual()
     
-    # Temporary menu to wait for Israel to update his menu interface
+    # Promp menu #
     def __prompt_menu(self):
         print("Welcome To Our UML Program!\n")
         # Class
@@ -303,187 +266,32 @@ class UMLCommandLineInterface:
         print("Type 'sort' to sort the class list in alphabetical order")
         print("Type 'help' to see the instructions")
         print("Type 'exit' to quit program")
-
+    
+    # Main program #
     def main_program_loop(self):
-        self.__display_banner()
-        self.__prompt_menu()
+       # Display a welcome message and help menu
+        self.__display_banner()  # Display the banner once
+        self.__prompt_menu()  # Show initial instructions
         while True:
+            # Collect input from the user
             current_active_file: str = self.get_active_file()
             if current_active_file != "No active file!":
                 current_active_file = current_active_file + ".json"
             print(f"\n(Current active file: {current_active_file})")
             print("\n==> ", end="")
-            user_input: str = input()
-            # Split the input by space
-            user_input_component = user_input.split()
-            # Get separate command and class name part
+            user_input: str = input()  # User provides the input
+            user_input_component = user_input.split()  # Split the input by space
+            # Parse command and parameters
+            if len(user_input_component) == 0:
+                continue
             command = user_input_component[0]
-            first_param = user_input_component[1] if len(user_input_component) > 1 else None
-            second_param = (user_input_component[2] if len(user_input_component) > 2 else None)
-            third_param = user_input_component[3] if len(user_input_component) > 3 else None
-            fourth_param = user_input_component[4] if len(user_input_component) > 4 else None
-            # Start the logic
-            #######################################################
-            
-            # Add class
-            if command == InterfaceOptions.ADD_CLASS.value and first_param:
-                self.add_class(first_param)
-            # Delete class
-            elif command == InterfaceOptions.DELETE_CLASS.value and first_param:
-                self.delete_class(first_param)
-            # Rename class
-            elif (
-                command == InterfaceOptions.RENAME.value
-                and first_param
-                and second_param
-            ):
-                self.rename_class(first_param, second_param)
-
-            #######################################################
-
-            # Add attribute #
-            elif (
-                command == InterfaceOptions.ADD_FIELD.value
-                and first_param
-                and second_param
-            ):
-                self.add_attribute(first_param, second_param)
-            # Delete attribute #
-            elif (
-                command == InterfaceOptions.DELETE_FIELD.value
-                and first_param
-                and second_param
-            ):
-                self.delete_attribute(first_param, second_param)
-            # Rename attribute #
-            elif (
-                command == InterfaceOptions.RENAME_FIELD.value
-                and first_param
-                and second_param
-                and third_param
-            ):
-                self.rename_attribute(first_param, second_param, third_param)
-
-            #######################################################
-            
-            # Add method #
-            elif (
-                command == InterfaceOptions.ADD_METHOD.value
-                and first_param
-                and second_param
-            ):
-                self.add_method(first_param, second_param)
-            # Delete method #
-            elif (
-                command == InterfaceOptions.DELETE_METHOD.value
-                and first_param
-                and second_param
-            ):
-                self.delete_method(first_param, second_param)
-            # Rename method #
-            elif (
-                command == InterfaceOptions.RENAME_METHOD.value
-                and first_param
-                and second_param
-                and third_param
-            ):
-                self.rename_method(first_param, second_param, third_param)
-            
-            #######################################################
-            
-            # Add parameter #
-            elif (
-                command == InterfaceOptions.ADD_PARAM.value
-                and first_param
-                and second_param
-                and third_param
-            ):
-                self.add_parameter(first_param, second_param, third_param)
-            # Delete parameter #
-            elif (
-                command == InterfaceOptions.DELETE_PARAM.value
-                and first_param
-                and second_param
-                and third_param
-            ):
-                self.delete_parameter(first_param, second_param, third_param)
-            # Rename parameter #
-            elif (
-                command == InterfaceOptions.RENAME_PARAM.value
-                and first_param
-                and second_param
-                and third_param
-                and fourth_param
-            ):
-                self.rename_parameter(first_param, second_param, third_param, fourth_param)
-            # Replace parameter list #
-            elif command == InterfaceOptions.REPLACE_PARAM.value and first_param and second_param:
-                self.replace_param_list(first_param, second_param)
-            
-            #######################################################
-
-            # Add relationship
-            elif (
-                command == InterfaceOptions.ADD_REL.value
-                and first_param
-                and second_param
-                and third_param
-            ):
-                self.add_relationship(first_param, second_param, third_param)
-            # Delete relationship #
-            elif (
-                command == InterfaceOptions.DELETE_REL.value
-                and first_param
-                and second_param
-            ):
-                self.delete_relationship(first_param, second_param)
-            # Chang relationship type #
-            elif (
-                command == InterfaceOptions.TYPE_MOD.value 
-                and first_param
-                and second_param
-                and third_param
-            ):
-                self.change_type(first_param, second_param, third_param)
-                
-            #######################################################
-                
-            # List all the created class names or all class detail #
-            elif command == InterfaceOptions.LIST_CLASS.value:
-                self.display_classes() 
-            # Show the details of the chosen class #
-            elif command == InterfaceOptions.CLASS_DETAIL.value and first_param:
-                self.display_single_class(first_param)
-            # Show the relationship of the chosen class with others #
-            elif command == InterfaceOptions.CLASS_REL.value:
-                self.display_relationship()
-            # Show the list of saved files #
-            elif command == InterfaceOptions.SAVED_LIST.value:
-                self.display_saved_list()
-            # Save the data #
-            elif command == InterfaceOptions.SAVE.value:
-                self.save()
-            # Load the data #
-            elif command == InterfaceOptions.LOAD.value:
-                self.load()
-            # Delete saved file #
-            elif command == InterfaceOptions.DELETE_SAVED.value:
-                self.delete_saved_file()
-            # Clear data in current storage #
-            elif command == InterfaceOptions.CLEAR_DATA.value:
-                self.clear_current_active_data()
-            # Go back to blank program #
-            elif command == InterfaceOptions.DEFAULT.value:
-                self.end_session()
-            # Sort the class list #
-            elif command == InterfaceOptions.SORT.value:
-                self.sort_class_list()
+            parameters = user_input_component[1:]
+            # Pass command and parameters to ProgramManager for processing
+            self.ProgramManager._process_command(command, parameters)
             # Show the main menu again #
-            elif command == InterfaceOptions.HELP.value:
+            if command == InterfaceOptions.HELP.value:
                 self.__prompt_menu()
-            # Exit the program #
+            # Exit command handling in the interface
             elif command == InterfaceOptions.EXIT.value:
                 break
-            else:
-                print(f"\nUnknown command '{user_input}'. Type 'help' for a list of commands.")
         self.exit()
