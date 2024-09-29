@@ -1,7 +1,6 @@
 ###################################################################################################
 
 import os
-from itertools import zip_longest
 from enum import Enum
 from typing import Dict, List
 from UML_CORE.UML_CLASS.uml_class import UMLClass as Class
@@ -11,15 +10,6 @@ from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relati
 from UML_CORE.UML_PARAMETER.uml_parameter import UMLParameter as Parameter
 from UML_MANAGER.uml_storage_manager import UMLStorageManager as Storage
 from UML_MANAGER.uml_cli_view import UMLView as View
-
-###################################################################################################
-### ENUM FOR RELATIONSHIP TYPE ###
-
-class RelationshipType(Enum):
-    AGGREGATION = "aggregation"
-    COMPOSITION = "composition"
-    INHERITANCE = "inheritance"
-    REALIZATION = "realization"
 
 ###################################################################################################
 ### ENUM VALUES FOR THE INTERFACE ###
@@ -343,9 +333,9 @@ class UMLCoreManager:
             return
         print("\nType '<source_class> <destination_class> <type>'")
         print("\nYou must choose one of the types below:")
-        self.__display_type_enum()
+        self.__user_view._display_type_enum()
         print("Below is class list:")
-        self.__display_list_of_only_class_name()
+        self.__user_view._display_class_names(self.__main_data)
         print("\n==> ", end="")
         user_input: str = input()
         # Split the input by space
@@ -796,7 +786,8 @@ class UMLCoreManager:
         print("\nPlease provide a name for the file you'd like to load.")
         print("Type 'quit' to go back to main menu:")
         # Show the list of saved files
-        self._display_saved_list()
+        save_list = self.__storage_manager._get_saved_list()
+        self.__user_view._display_saved_list(save_list)
         print("==> ", end="")
         user_input = input()
         # Prevent user from loading NAME_LIST.json
@@ -1117,17 +1108,17 @@ class UMLCoreManager:
                 
         # List all the created class names or all class detail #
         elif command == InterfaceOptions.LIST_CLASS.value:
-            # self._display_wrapper()
-            self.__user_view._display_uml_data(self.__main_data) 
+            self.__user_view._display_wrapper(self.__main_data) 
         # Show the details of the chosen class #
         elif command == InterfaceOptions.CLASS_DETAIL.value and first_param:
             self._display_single_class(first_param)
         # Show the relationship of the chosen class with others #
         elif command == InterfaceOptions.CLASS_REL.value:
-            self._display_relationship_list()
+            self.__user_view._display_relationships(self.__main_data)
         # Show the list of saved files #
         elif command == InterfaceOptions.SAVED_LIST.value:
-            self._display_saved_list()
+            saved_list = self.__storage_manager._get_saved_list()
+            self.__user_view._display_saved_list(saved_list)
         # Save the data #
         elif command == InterfaceOptions.SAVE.value:
             self._save()
@@ -1148,140 +1139,6 @@ class UMLCoreManager:
             self._sort_class_list()
         else:
             print(f"\nUnknown command '{command}'. Type 'help' for a list of commands.")
-    
-    # Display wrapper #
-    def _display_wrapper(self):
-        if len(self.__class_list) == 0:
-            print("\nNo class to display!")
-            return
-        is_detail = self._ask_user_choices("print all class detail")
-        if is_detail:
-            self._display_class_list_detail()
-        else:
-            self.__display_list_of_only_class_name()
-    
-    # Display class list #
-    def _display_class_list_detail(self, classes_per_row=3):
-        # Generate class details split into lines
-        class_details_list = [
-            self.__get_class_detail(class_name).split("\n")
-            for class_name in self.__class_list
-        ]
-        print("\n-------------------------------------------------------------------------------------------------\n")
-        # Chunk the class details into groups of `classes_per_row`
-        for i in range(0, len(class_details_list), classes_per_row):
-            chunk = class_details_list[i : i + classes_per_row]
-
-            # Use zip_longest to align and print side by side
-            for lines in zip_longest(*chunk, fillvalue=" " * 20):
-                print("   ".join(line.ljust(30) for line in lines))
-            print("\n-------------------------------------------------------------------------------------------------\n")
-            
-    # Display Relationship List #
-    def _display_relationship_list(self, classes_per_row=3):
-        if len(self.__relationship_list) == 0:
-            print("\nNo relationship to display!")
-            return
-        # Generate class details split into lines
-        class_relationship_detail_list = [
-            self.__get_relationship_detail(class_name).split("\n")
-            for class_name in self.__class_list
-        ]
-        print("\n-------------------------------------------------------------------------------------------------\n")
-        # Chunk the class relationship details into groups of `classes_per_row`
-        for i in range(0, len(class_relationship_detail_list), classes_per_row):
-            chunk = class_relationship_detail_list[i : i + classes_per_row]
-
-            # Use zip_longest to align and print side by side
-            for lines in zip_longest(*chunk, fillvalue=" " * 20):
-                print("   ".join(line.ljust(30) for line in lines))
-            print("\n-------------------------------------------------------------------------------------------------\n")
-    
-    # Display only list of class names #
-    def __display_list_of_only_class_name(self):
-        print("\n|===================|")
-        print(f"{"--     Name     --":^20}")
-        print("|*******************|")
-        class_list = self.__class_list
-        for class_name in class_list:
-            print(f"{class_name:^20}")
-        print("|===================|\n")
-        
-    # Display Class Details #
-    def _display_single_class_detail(self, class_name: str):
-        classes_detail_list = self.__get_class_detail(class_name)
-        if classes_detail_list is not None:
-            print(f"\n{classes_detail_list}")
-        
-    # Display saved file's names #
-    def _display_saved_list(self):
-        saved_list = self.__storage_manager._get_saved_list()
-        if len(saved_list) == 0:
-            print("\nNo saved file exists!")
-            return
-        print("\n|===================|")
-        for dictionary in saved_list:
-            for key in dictionary:
-                print(f"{key:^20}")
-        print("|===================|\n")
-        
-    # Get class detail #
-    def __get_class_detail(self, class_name: str) -> str:
-        is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
-        if not is_class_exist:
-            return
-        class_object = self.__class_list[class_name]
-        # Get max length for formatting
-        field_list = class_object._get_class_field_list()
-        method_and_parameter_list = class_object._get_method_and_parameters_list()
-        relationship_list = self.__relationship_list
-        # Find the maximum length for dynamic padding
-        max_length = len(class_name)
-        # Check the length of each field, method, and relationship to find the longest one
-        for field in field_list:
-            max_length = max(max_length, len(field._get_name()))
-        for method_name, parameter_list in method_and_parameter_list.items():
-            max_length = max(max_length, len(method_name))
-            for parameter in parameter_list:
-                max_length = max(max_length, len(parameter._get_parameter_name()))
-        for element in relationship_list:
-            max_length = max(max_length, len(element._get_source_class()), len(element._get_destination_class()), len(element._get_type()))
-        # Add padding for better readability
-        padding = 5
-        column_width = max_length + padding
-        # Create the formatted output
-        output = []
-        border_line = f"|{'=' * column_width}|"
-        output.append(border_line)
-        # Print class name
-        output.append(f"{'--     Name     --':^{column_width}}")
-        output.append(f"{class_name:^{column_width}}")
-        output.append(f"|{'*' * column_width}|")
-        # Print fields
-        output.append(f"{'--     Field     --':^{column_width}}")
-        for field in field_list:
-            output.append(f"{field._get_name():^{column_width}}")
-        output.append(f"|{'*' * column_width}|")
-        # Print methods and parameters
-        for method_name, parameter_list in method_and_parameter_list.items():
-            output.append("-" * column_width)
-            output.append(f"{'--     Methods    --':^{column_width}}")
-            output.append(f"{method_name:^{column_width}}")
-            output.append(f"{'--   Parameters   --':^{column_width}}")
-            for parameter in parameter_list:
-                output.append(f"{parameter._get_parameter_name():^{column_width}}")
-            output.append("-" * column_width)
-        output.append(f"|{'*' * column_width}|")
-        # Print relationships
-        output.append(f"{'-- Relationship  --':^{column_width}}")
-        for element in relationship_list:
-            if element._get_source_class() == class_name:
-                output.append("-" * column_width)
-                output.append(f"Source: {element._get_source_class()}")
-                output.append(f"Destination: {element._get_destination_class()}")
-                output.append(f"Type: {element._get_type()}")
-        output.append(border_line)
-        return "\n".join(output)
 
     # Sorting Class List #
     def _sort_class_list(self):
@@ -1291,19 +1148,10 @@ class UMLCoreManager:
             return
         sorted_class_list = dict(sorted(class_list.items()))
         self.__class_list = sorted_class_list
-        self._display_class_list_detail()
+        self.__user_view._display_uml_data(self.__main_data)
         
     #################################################################
     ### UTILITY FUNCTIONS ###  
-    
-    # Display type Enum #
-    def __display_type_enum(self):
-        print("\n|=================|")
-        print(f"{"--     Type    --":^20}")
-        print("|*****************|")
-        for type in RelationshipType:
-            print(f"{type.value:^20}")
-        print("|=================|\n")
         
     # Saved file check #
     def _saved_file_name_check(self, save_file_name: str) -> bool:
@@ -1313,17 +1161,6 @@ class UMLCoreManager:
                 if file_name == save_file_name:
                     return True
         return False
-    
-    # Ask For User Choices #
-    def _ask_user_choices(self, action: str) -> bool:
-        while True:
-            user_input = input(f"\nDo you want to {action}? (Yes/No): ").lower()
-            if user_input in ["yes", "y"]:
-                return True
-            elif user_input in ["no", "n"]:
-                return False
-            else:
-                print("Invalid input. Please enter 'Yes' or 'No'.")
                 
     # Update main data wrapper #
     def _update_main_data_for_every_action(self):
