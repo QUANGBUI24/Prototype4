@@ -4,6 +4,7 @@ from rich.console import Console
 from rich.tree import Tree
 from rich.table import Table
 from rich.panel import Panel
+from rich.box import SQUARE
 from enum import Enum
 from typing import List, Dict
 
@@ -84,9 +85,9 @@ class UMLView:
             ["exit", "Exit the program"]
         ]
         # Create a table to organize commands and descriptions
-        table = Table(title=banner, show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
+        table = Table(title=banner, show_header=True, header_style="bold yellow", border_style="bold dodger_blue2", box=SQUARE)
         table.add_column(f"{'Command':^75}", style="bold dodger_blue2", justify="left", no_wrap=True)
-        table.add_column(f"{'Description':^45}", style="bold dodger_blue2")
+        table.add_column(f"{'Description':^45}", style="bold bold white")
         # Add rows to the table
         for command, description in commands:
             table.add_row(command, description)
