@@ -27,7 +27,7 @@ class UMLView:
         
     # Display the menu
     def _prompt_menu(self):
-        banner = r"""[bold red]
+        banner = r"""[bold yellow]
     ▗▖ ▗▖▗▖  ▗▖▗▖       ▗▄▄▄▖▗▄▄▄ ▗▄▄▄▖▗▄▄▄▖▗▄▖ ▗▄▄▖ 
     ▐▌ ▐▌▐▛▚▞▜▌▐▌       ▐▌   ▐▌  █  █    █ ▐▌ ▐▌▐▌ ▐▌
     ▐▌ ▐▌▐▌  ▐▌▐▌       ▐▛▀▀▘▐▌  █  █    █ ▐▌ ▐▌▐▛▀▚▖
@@ -36,38 +36,38 @@ class UMLView:
         
         Welcome to the UML Management Interface!
     For more information on commands, type "help" for the manual.
-        [bold red]"""
+        [bold yellow]"""
         # Create a list of commands with their descriptions
         commands = [
             ["[bold yellow]Class Commands[/bold yellow]", ""],
-            ["add_class [bold white]<class_name>[bold white]", "Add a new class"],
-            ["delete_class [bold white]<class_name>[bold white]", "Delete an existing class"],
-            ["rename_class [bold white]<class_name> <new_name>[bold white]", "Rename a class"],
+            ["add_class [bright_white]<class_name>[bright_white]", "Add a new class"],
+            ["delete_class [bright_white]<class_name>[bright_white]", "Delete an existing class"],
+            ["rename_class [bright_white]<class_name> <new_name>[bright_white]", "Rename a class"],
 
             ["[bold yellow]Field Commands[/bold yellow]", ""],
-            ["add_field [bold white]<class_name> <attr_name>[bold white]", "Add a field to a class"],
-            ["delete_field [bold white]<class_name> <field_name>[bold white]", "Delete a field from a class"],
-            ["rename_field [bold white]<class_name> <current_field_name> <new_name>[bold white]", "Rename a field"],
+            ["add_field [bright_white]<class_name> <attr_name>[bright_white]", "Add a field to a class"],
+            ["delete_field [bright_white]<class_name> <field_name>[bright_white]", "Delete a field from a class"],
+            ["rename_field [bright_white]<class_name> <current_field_name> <new_name>[bright_white]", "Rename a field"],
 
             ["[bold yellow]Method Commands[/bold yellow]", ""],
-            ["add_method [bold white]<class_name> <method_name>[bold white]", "Add a method to a class"],
-            ["delete_method [bold white]<class_name> <method_name>[bold white]", "Delete a method from a class"],
-            ["rename_method [bold white]<class_name> <current_method_name> <new_name>[bold white]", "Rename a method"],
+            ["add_method [bright_white]<class_name> <method_name>[bright_white]", "Add a method to a class"],
+            ["delete_method [bright_white]<class_name> <method_name>[bright_white]", "Delete a method from a class"],
+            ["rename_method [bright_white]<class_name> <current_method_name> <new_name>[bright_white]", "Rename a method"],
 
             ["[bold yellow]Parameter Commands[/bold yellow]", ""],
-            ["add_param [bold white]<class_name> <method_name> <param_name>[bold white]", "Add a parameter to a method"],
-            ["delete_param [bold white]<class_name> <method_name> <param_name>[bold white]", "Delete a parameter from a method"],
-            ["rename_param [bold white]<class_name> <method_name> <current_param_name> <new_name>[bold white]", "Rename a parameter"],
-            ["replace_param [bold white]<class_name> <method_name>[bold white]", "Replace a method's parameter list"],
+            ["add_param [bright_white]<class_name> <method_name> <param_name>[bright_white]", "Add a parameter to a method"],
+            ["delete_param [bright_white]<class_name> <method_name> <param_name>[bright_white]", "Delete a parameter from a method"],
+            ["rename_param [bright_white]<class_name> <method_name> <current_param_name> <new_name>[bright_white]", "Rename a parameter"],
+            ["replace_param [bright_white]<class_name> <method_name>[bright_white]", "Replace a method's parameter list"],
 
             ["[bold yellow]Relationship Commands[/bold yellow]", ""],
-            ["add_rel [bold white]<source_class> <destination_class> <relationship_type>[bold white]", "Add a relationship between two classes"],
-            ["delete_rel [bold white]<source_class> <destination_class>[bold white]", "Delete a relationship between two classes"],
-            ["type_mod [bold white]<source_class> <destination_class> <type>[bold white]", "Modify the type of a relationship"],
+            ["add_rel [bright_white]<source_class> <destination_class> <relationship_type>[bright_white]", "Add a relationship between two classes"],
+            ["delete_rel [bright_white]<source_class> <destination_class>[bright_white]", "Delete a relationship between two classes"],
+            ["type_mod [bright_white]<source_class> <destination_class> <type>[bright_white]", "Modify the type of a relationship"],
 
             ["[bold yellow]Class-Related Commands[/bold yellow]", ""],
             ["list_class", "List all created classes"],
-            ["class_detail [bold white]<class_name>[bold white]", "View details of a specific class"],
+            ["class_detail [bright_white]<class_name>[bright_white]", "View details of a specific class"],
             ["class_rel", "View relationships between classes"],
 
             ["[bold yellow]Save/Load Commands[/bold yellow]", ""],
@@ -84,14 +84,14 @@ class UMLView:
             ["exit", "Exit the program"]
         ]
         # Create a table to organize commands and descriptions
-        table = Table(title=banner, show_header=True, header_style="bold magenta", border_style="bold red")
-        table.add_column("Command", style="bold red", justify="left", no_wrap=True)
-        table.add_column("Description", style="bold green")
+        table = Table(title=banner, show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
+        table.add_column(f"{'Command':^75}", style="bold dodger_blue2", justify="left", no_wrap=True)
+        table.add_column(f"{'Description':^45}", style="bold dodger_blue2")
         # Add rows to the table
         for command, description in commands:
             table.add_row(command, description)
         # Create a panel to wrap the table with a welcome message
-        panel = Panel.fit(table, border_style="bold red")
+        panel = Panel.fit(table, border_style="bold dodger_blue2")
         # Print the panel with the commands
         self.console.print(panel)
         
