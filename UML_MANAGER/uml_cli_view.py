@@ -27,7 +27,7 @@ class UMLView:
         
     # Display the menu
     def _prompt_menu(self):
-        banner = r"""
+        banner = r"""[bold red]
     ▗▖ ▗▖▗▖  ▗▖▗▖       ▗▄▄▄▖▗▄▄▄ ▗▄▄▄▖▗▄▄▄▖▗▄▖ ▗▄▄▖ 
     ▐▌ ▐▌▐▛▚▞▜▌▐▌       ▐▌   ▐▌  █  █    █ ▐▌ ▐▌▐▌ ▐▌
     ▐▌ ▐▌▐▌  ▐▌▐▌       ▐▛▀▀▘▐▌  █  █    █ ▐▌ ▐▌▐▛▀▚▖
@@ -36,7 +36,7 @@ class UMLView:
         
         Welcome to the UML Management Interface!
     For more information on commands, type "help" for the manual.
-        """
+        [bold red]"""
         # Create a list of commands with their descriptions
         commands = [
             ["[bold yellow]Class Commands[/bold yellow]", ""],
@@ -84,14 +84,14 @@ class UMLView:
             ["exit", "Exit the program"]
         ]
         # Create a table to organize commands and descriptions
-        table = Table(title=banner, show_header=True, header_style="bold magenta")
-        table.add_column("Command", style="cyan", justify="left", no_wrap=True)
-        table.add_column("Description", style="green")
+        table = Table(title=banner, show_header=True, header_style="bold magenta", border_style="bold red")
+        table.add_column("Command", style="bold red", justify="left", no_wrap=True)
+        table.add_column("Description", style="bold green")
         # Add rows to the table
         for command, description in commands:
             table.add_row(command, description)
         # Create a panel to wrap the table with a welcome message
-        panel = Panel.fit(table, border_style="bright_blue")
+        panel = Panel.fit(table, border_style="bold red")
         # Print the panel with the commands
         self.console.print(panel)
         
