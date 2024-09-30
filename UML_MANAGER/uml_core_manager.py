@@ -763,7 +763,8 @@ class UMLCoreManager:
         print("\nPlease provide a name for the file you'd like to save or choose file from the list to override.")
         print("Type 'quit' to go back to main menu:")
         # Show the list of saved files
-        self._display_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
+        self.__user_view._display_saved_list(saved_list)
         print("==> ", end="")
         user_input = input()
         # Prevent user from overriding NAME_LIST.json
@@ -872,7 +873,8 @@ class UMLCoreManager:
     def _delete_saved_file(self):
         print("\nPlease choose a file you want to delete.")
         print("Type 'quit' to go back to main menu:")
-        self._display_saved_list()
+        saved_list = self.__storage_manager._get_saved_list()
+        self.__user_view._display_saved_list(saved_list)
         user_input = input()
         # Prevent user from loading NAME_LIST.json
         if user_input == "NAME_LIST":

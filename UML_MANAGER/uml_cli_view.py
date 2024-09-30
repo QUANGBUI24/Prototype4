@@ -109,13 +109,11 @@ class UMLView:
     def _display_uml_data(self, main_data):
         # Main tree to hold UML structure
         tree = Tree("\nUML Classes and Relationships")
-
         # Add classes to the tree
         classes_tree = tree.add("Classes")
         for cls in main_data["classes"]:
             class_branch = classes_tree.add(f'[bold green]{cls["name"]}[/bold green]')
             self._display_class(class_branch, cls)
-
         # Add relationships to the tree
         relationships_tree = tree.add("Relationships")
         for relation in main_data["relationships"]:
@@ -143,11 +141,9 @@ class UMLView:
         # Create a table to display all class names
         table = Table(title="\nClass Names", show_header=True, header_style="bold yellow")
         table.add_column("Class Name", justify="center", style="bold cyan")
-
         # Iterate through all classes and add their names to the table
         for cls in main_data["classes"]:
             table.add_row(cls["name"])
-
         # Print the table with the class names
         self.console.print(table)
     
@@ -158,7 +154,6 @@ class UMLView:
         table.add_column("Source Class", style="bold blue")
         table.add_column("Relationship Type", style="bold green")
         table.add_column("Destination Class", style="bold blue")
-
         # Iterate through all relationships and add them to the table
         for relation in main_data["relationships"]:
             table.add_row(
@@ -166,7 +161,6 @@ class UMLView:
                 relation["type"],
                 relation["destination"]
             )
-
         # Print the table with relationships
         self.console.print(table)
     
@@ -175,11 +169,9 @@ class UMLView:
         # Create a table to display relationship types
         table = Table(title="\nRelationship Types", show_header=True, header_style="bold yellow")
         table.add_column("Type", justify="center", style="bold cyan")
-
         # Iterate through the RelationshipType enum and add each type to the table
         for type_ in RelationshipType:
             table.add_row(type_.value)
-
         # Print the table with the relationship types
         self.console.print(table)
         
@@ -187,7 +179,7 @@ class UMLView:
     def _display_saved_list(self, saved_list: List):
         # Check if there are any saved files
         if len(saved_list) == 0:
-            self.console.print("[bold red]No saved file exists![/bold red]")
+            self.console.print("\n[bold red]No saved file exists![/bold red]")
             return
         # Create a table to display saved file names
         table = Table(title="\nSaved Files", show_header=True, header_style="bold yellow")
