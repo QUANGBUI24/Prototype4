@@ -167,7 +167,6 @@ class UMLView:
         # Print the complete tree
         self.console.print(tree)
         
-    
     # Display relationship
     def _display_relationships(self, main_data):
         # Create a table to display all relationships
