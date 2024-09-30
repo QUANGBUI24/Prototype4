@@ -331,13 +331,15 @@ class UMLCoreManager:
         if len(self.__class_list) == 0:
             print("\nNo class exists!")
             return
-        print("\nType '<source_class> <destination_class> <type>'")
-        print("\nYou must choose one of the types below:")
+        print("\nType '<source_class> <destination_class> <type>' or type 'quit' to return to main menu")
         self.__user_view._display_type_enum()
-        print("Below is class list:")
+        self.__user_view._display_class_names(self.__main_data)
         self.__user_view._display_relationships(self.__main_data)
         print("\n==> ", end="")
         user_input: str = input()
+        if user_input == "quit":
+            print("\nCanceled adding relationship")
+            return
         # Split the input by space
         user_input_component = user_input.split()
         # Get separate class name part and type part

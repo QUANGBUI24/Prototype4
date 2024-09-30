@@ -119,7 +119,7 @@ class UMLView:
         relationships_tree = tree.add("Relationships")
         for relation in main_data["relationships"]:
             relationships_tree.add(
-                f'[bold blue]{relation["source"]}[/bold blue] --{relation["type"]}--> [bold blue]{relation["destination"]}[/bold blue]'
+                f'[bold dodger_blue2]{relation["source"]}[/bold dodger_blue2] --{relation["type"]}--> [bold dodger_blue2]{relation["destination"]}[/bold dodger_blue2]'
             )
         # Print the complete tree
         self.console.print(tree)
@@ -129,7 +129,7 @@ class UMLView:
         # Add fields of the class
         fields_branch = class_branch.add("[bold yellow]Fields[/bold yellow]")
         for field in cls["fields"]:
-            fields_branch.add(f'[cyan]{field["name"]}[/cyan]')
+            fields_branch.add(f'[bold cyan]{field["name"]}[/bold cyan]')
         # Add methods of the class
         methods_branch = class_branch.add("[bold yellow]Methods[/bold yellow]")
         for method in cls["methods"]:
@@ -140,8 +140,8 @@ class UMLView:
     # Display class names
     def _display_class_names(self, main_data: Dict):
         # Create a table to display all class names
-        table = Table(title="\nClass Names", show_header=True, header_style="bold yellow")
-        table.add_column("Class Name", justify="center", style="bold cyan")
+        table = Table(title="\n[bold white]Class Names[/bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
+        table.add_column("Class Name", justify="center", style="bold white")
         # Iterate through all classes and add their names to the table
         for cls in main_data["classes"]:
             table.add_row(cls["name"])
@@ -171,10 +171,10 @@ class UMLView:
     # Display relationship
     def _display_relationships(self, main_data):
         # Create a table to display all relationships
-        table = Table(title="\nRelationships", show_header=True, header_style="bold yellow")
-        table.add_column("Source Class", style="bold blue")
+        table = Table(title="\n[bold white]Relationships[/bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
+        table.add_column("Source Class", style="bold white")
         table.add_column("Relationship Type", style="bold green")
-        table.add_column("Destination Class", style="bold blue")
+        table.add_column("Destination Class", style="bold white")
         # Iterate through all relationships and add them to the table
         for relation in main_data["relationships"]:
             table.add_row(
@@ -188,8 +188,8 @@ class UMLView:
     # Display type for relationship
     def _display_type_enum(self):
         # Create a table to display relationship types
-        table = Table(title="\nRelationship Types", show_header=True, header_style="bold yellow")
-        table.add_column("Type", justify="center", style="bold cyan")
+        table = Table(title="\n[bold white]Relationship Types[/bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
+        table.add_column("Type", justify="center", style="bold white")
         # Iterate through the RelationshipType enum and add each type to the table
         for type_ in RelationshipType:
             table.add_row(type_.value)
@@ -203,8 +203,8 @@ class UMLView:
             self.console.print("\n[bold red]No saved file exists![/bold red]")
             return
         # Create a table to display saved file names
-        table = Table(title="\nSaved Files", show_header=True, header_style="bold yellow")
-        table.add_column("File Name", justify="center", style="bold cyan")
+        table = Table(title="\n[bold white]Saved Files[bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
+        table.add_column("File Name", justify="center", style="bold white")
         # Iterate through saved_list and add each file name to the table
         for dictionary in saved_list:
             for key in dictionary:
