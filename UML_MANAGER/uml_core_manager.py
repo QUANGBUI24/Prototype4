@@ -1149,8 +1149,8 @@ class UMLCoreManager:
         if len(class_list) == 0:
             print("\nNo class to sort!")
             return
-        sorted_class_list = dict(sorted(class_list.items()))
-        self.__class_list = sorted_class_list
+        self.__class_list = dict(sorted(self.__class_list.items()))
+        self._update_main_data_for_every_action()
         self.__user_view._display_uml_data(self.__main_data)
         
     #################################################################
