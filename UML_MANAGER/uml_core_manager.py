@@ -1114,7 +1114,7 @@ class UMLCoreManager:
             self.__user_view._display_wrapper(self.__main_data) 
         # Show the details of the chosen class #
         elif command == InterfaceOptions.CLASS_DETAIL.value and first_param:
-            self._display_single_class(first_param)
+            self.__user_view._display_single_class(first_param, self.__main_data)
         # Show the relationship of the chosen class with others #
         elif command == InterfaceOptions.CLASS_REL.value:
             self.__user_view._display_relationships(self.__main_data)

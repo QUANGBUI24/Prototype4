@@ -5,7 +5,7 @@ from rich.tree import Tree
 from rich.table import Table
 from rich.panel import Panel
 from enum import Enum
-from typing import List
+from typing import List, Dict
 
 ###################################################################################################
 ### ENUM FOR RELATIONSHIP TYPE ###
@@ -95,7 +95,7 @@ class UMLView:
         # Print the panel with the commands
         self.console.print(panel)
         
-    def _display_wrapper(self, main_data):
+    def _display_wrapper(self, main_data: Dict):
         if len(main_data["classes"]) == 0:
             print("\nNo class to display!")
             return
@@ -106,7 +106,7 @@ class UMLView:
             self._display_class_names(main_data)
 
     # Display all class detail
-    def _display_uml_data(self, main_data):
+    def _display_uml_data(self, main_data: Dict):
         # Main tree to hold UML structure
         tree = Tree("\nUML Classes and Relationships")
         # Add classes to the tree
@@ -137,7 +137,7 @@ class UMLView:
             methods_branch.add(f'[magenta]{method["name"]}({params})[/magenta]')
     
     # Display class names
-    def _display_class_names(self, main_data):
+    def _display_class_names(self, main_data: Dict):
         # Create a table to display all class names
         table = Table(title="\nClass Names", show_header=True, header_style="bold yellow")
         table.add_column("Class Name", justify="center", style="bold cyan")
@@ -146,6 +146,27 @@ class UMLView:
             table.add_row(cls["name"])
         # Print the table with the class names
         self.console.print(table)
+        
+    # Display single class detail
+    def _display_single_class(self, class_name: str, main_data: Dict):
+        # Main tree to hold UML structure
+        tree = Tree("\nUML Classes and Relationships")
+        # Add classes to the tree
+        classes_tree = tree.add("Class")
+        for cls in main_data["classes"]:
+            if cls["name"] == class_name:
+                class_branch = classes_tree.add(f'[bold green]{cls["name"]}[/bold green]')
+                self._display_class(class_branch, cls)
+        # Add relationships to the tree
+        relationships_tree = tree.add("Relationships")
+        for relation in main_data["relationships"]:
+            if relation["source"] == class_name or relation["destination"] == class_name:
+                relationships_tree.add(
+                    f'[bold blue]{relation["source"]}[/bold blue] --{relation["type"]}--> [bold blue]{relation["destination"]}[/bold blue]'
+                )
+        # Print the complete tree
+        self.console.print(tree)
+        
     
     # Display relationship
     def _display_relationships(self, main_data):
