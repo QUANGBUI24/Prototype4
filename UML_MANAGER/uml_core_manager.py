@@ -56,7 +56,7 @@ class UMLCoreManager:
         self.__class_list: Dict[str, Class] = {}
         self.__storage_manager: Storage = Storage()
         self.__relationship_list: List[Relationship] = []
-        self.__main_data: Dict = {}
+        self.__main_data: Dict = {"classes":[], "relationship":[]}
         self.__user_view: View = View()
         
     # Getters #
