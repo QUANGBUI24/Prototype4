@@ -108,7 +108,7 @@ class UMLView:
     # Display all class detail
     def _display_uml_data(self, main_data):
         # Main tree to hold UML structure
-        tree = Tree("UML Classes and Relationships")
+        tree = Tree("\nUML Classes and Relationships")
 
         # Add classes to the tree
         classes_tree = tree.add("Classes")
