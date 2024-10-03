@@ -115,7 +115,7 @@ class MainWindow(qtw.QWidget):
     #################################################################
     
     # Create a spin box with optional parameters for value, maximum, minimum, and single step
-    def create_spin_box(self, layout: qtw.QBoxLayout, font: str = "", font_size = 12, value=None, maximum=None, minimum=None, single_step=None, width=None, height=None):
+    def create_spin_box(self, layout: qtw.QBoxLayout, font: str = "", font_size = 12, value=None, maximum=None, minimum=None, single_step=None, prefix=None, suffix=None, width=None, height=None):
         spin_box = qtw.QSpinBox(self)
         # Set initial value if provided
         if value is not None:
@@ -129,6 +129,12 @@ class MainWindow(qtw.QWidget):
         # Set single step value if provided
         if single_step is not None:
             spin_box.setSingleStep(single_step)
+        # Set prefix if provided
+        if prefix is not None:
+            spin_box.setPrefix(prefix)
+        # Set postfix if provided
+        if suffix is not None:
+            spin_box.setSuffix(suffix)
         self.set_size(spin_box, width, height)
         spin_box.setFont(qtg.QFont(font, font_size))
         # Add spin box to the provided layout
