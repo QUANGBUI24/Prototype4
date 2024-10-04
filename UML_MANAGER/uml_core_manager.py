@@ -43,7 +43,7 @@ class InterfaceOptions(Enum):
     SORT = "sort"
     HELP = "help"
     EXIT = "exit"    
-    
+
 ###################################################################################################
 
 class UMLCoreManager:
@@ -56,22 +56,43 @@ class UMLCoreManager:
         self.__class_list: Dict[str, Class] = {}
         self.__storage_manager: Storage = Storage()
         self.__relationship_list: List[Relationship] = []
-        self.__main_data: Dict = {"classes":[], "relationship":[]}
+        self.__main_data: Dict = {"classes":[], "relationships":[]}
         self.__user_view: View = View()
+        self._observers = [] # For observer design pattern
+    
+    #################################################################
+      
+    # Observer management methods
+    def _attach(self, observer):
+        if observer not in self._observers:
+            self._observers.append(observer)
+    
+    def _detach(self, observer):
+        if observer in self._observers:
+            self._observers.remove(observer)
+    
+    def _notify(self, event_type=None, data=None):
+        for observer in self._observers:
+            observer.update(self, event_type, data)
+    
+    #################################################################
         
     # Getters #
         
     def _get_class_list(self) -> Dict[str, Class]:
         return self.__class_list
     
-    def _get_main_data(self) -> Dict:
-        return self.__main_data
+    def _get_storage_manager(self) -> Storage:
+        return self.__storage_manager
     
     def _get_relationship_list(self) -> List[Relationship]:
         return self.__relationship_list
     
-    def _get_storage_manager(self) -> Storage:
-        return self.__storage_manager
+    def _get_main_data(self) -> Dict:
+        return self.__main_data
+    
+    def _get_user_view(self) -> View:
+        return self.__user_view
         
     #################################################################
     ### STATIC FUNCTIONS ###
@@ -118,6 +139,10 @@ class UMLCoreManager:
         self.__class_list[class_name] = new_class
         if not is_loading:
             print(f"\nSuccessfully added class '{class_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify(event_type='add_class', data={'class_name': class_name})
         
     # Delete class #
     def _delete_class(self, class_name: str):
@@ -131,6 +156,10 @@ class UMLCoreManager:
         # Clean up connected relationship
         self.__clean_up_relationship(class_name)
         print(f"\nSuccessfully removed class '{class_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify(event_type='delete_class', data={'class_name': class_name})
         
     # Rename class #
     def _rename_class(self, current_name: str, new_name: str):
@@ -146,6 +175,8 @@ class UMLCoreManager:
         self.__class_list[new_name] = self.__class_list.pop(current_name)
         # Update name in relationship list
         self.__update_name_in_relationship(current_name, new_name)
+        # Updating main data
+        self._update_main_data_for_every_action()
         print(f"\nSuccessfully renamed from class '{current_name}' to class '{new_name}'!")
         
     ## FIELD RELATED ##
@@ -166,6 +197,8 @@ class UMLCoreManager:
         field_list.append(new_field)
         if not is_loading:
             print(f"\nSuccessfully added field '{field_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
         
     # Delete field #
     def _delete_field(self, class_name: str, field_name: str):
@@ -182,6 +215,8 @@ class UMLCoreManager:
         # Remove the chosen field 
         field_list.remove(chosen_field)
         print(f"\nSuccessfully removed field '{field_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
         
     # Rename field #
     def _rename_field(self, class_name: str, current_field_name: str, new_field_name: str):
@@ -192,6 +227,8 @@ class UMLCoreManager:
         chosen_field = self.__get_chosen_field_or_method(class_name, current_field_name, is_field=True)
         chosen_field._set_name(new_field_name)
         print(f"\nSuccessfully renamed from field '{current_field_name}' to field '{new_field_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
         
     ## METHOD RELATED ##
     
@@ -215,6 +252,8 @@ class UMLCoreManager:
         method_and_parameter_list[method_name] = []
         if not is_loading:
             print(f"\nSuccessfully added method '{method_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
         
     # Delete method #
     def _delete_method(self, class_name: str, method_name: str):
@@ -234,6 +273,8 @@ class UMLCoreManager:
         # Remove the chosen method 
         method_list.remove(chosen_method)
         print(f"\nSuccessfully removed method '{method_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
         
     # Rename method #
     def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
@@ -249,7 +290,9 @@ class UMLCoreManager:
         chosen_method = self.__get_chosen_field_or_method(class_name, current_method_name, is_field=False)
         chosen_method._set_name(new_method_name)
         print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
-    
+        # Updating main data
+        self._update_main_data_for_every_action()
+        
     ## PARAMETER RELATED ##
     
     # Add parameter #
@@ -266,7 +309,9 @@ class UMLCoreManager:
         method_and_parameter_list[method_name].append(new_parameter)
         if not is_loading:
             print(f"\nSuccessfully added parameter '{parameter_name}' to method '{method_name}'!")
-            
+        # Updating main data
+        self._update_main_data_for_every_action()
+        
     # Delete parameter #
     def _delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
         # Check if class, method and its parameter exist or not
@@ -280,6 +325,8 @@ class UMLCoreManager:
         # Remove the chosen parameter
         method_and_parameter_list[method_name].remove(chosen_parameter)
         print(f"\nSuccessfully removed parameter '{parameter_name}' from method '{method_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
         
     # Rename parameter #
     def _rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
@@ -296,6 +343,8 @@ class UMLCoreManager:
         chosen_parameter = self.__get_chosen_parameter(class_name, method_name, current_parameter_name)
         chosen_parameter._set_parameter_name(new_parameter_name)
         print(f"\nSuccessfully renamed from parameter '{current_parameter_name}' to parameter '{new_parameter_name}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
         
     # Replace parameter list, fail if class or method does not exist
     def _replace_param_list(self, class_name: str, method_name: str):
@@ -323,7 +372,9 @@ class UMLCoreManager:
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
         method_and_parameter_list[method_name] = new_param_list
         print(f"\nSuccessfully replaced parameter list for method '{method_name}'!")
-
+        # Updating main data
+        self._update_main_data_for_every_action()
+        
     ## RELATIONSHIP RELATED ##
     
     # Add relationship wrapper #
@@ -371,7 +422,8 @@ class UMLCoreManager:
             self._add_relationship(source_class_name, destination_class_name, type, is_loading)
         else:
             print("\nWrong format! Please try again!")
-            
+        # Updating main data
+        self._update_main_data_for_every_action()
             
     # Add relationship #
     def _add_relationship(self, source_class_name: str, destination_class_name: str, rel_type: str, is_loading: bool):
@@ -381,6 +433,8 @@ class UMLCoreManager:
         self.__relationship_list.append(new_relationship)
         if not is_loading:
             print(f"\nSuccessfully added relationship from class '{source_class_name}' to class '{destination_class_name}' of type '{rel_type}'!")
+        # Updating main data
+        self._update_main_data_for_every_action()
         
     # Delete relationship #
     def _delete_relationship(self, source_class_name: str, destination_class_name: str):
@@ -404,7 +458,9 @@ class UMLCoreManager:
         # Remove relationship
         self.__relationship_list.remove(current_relationship)
         print(f"\nSuccessfully removed relationship between class '{source_class_name}' to class '{destination_class_name}'!")  
-    
+        # Updating main data
+        self._update_main_data_for_every_action()
+        
     # Change type #
     def _change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
         # Check if class names are identical or not
@@ -433,7 +489,9 @@ class UMLCoreManager:
             return
         current_relationship._set_type(new_type)
         print(f"\nSuccessfully changed the type between class '{source_class_name}' and class '{destination_class_name}' to '{new_type}'!")
-            
+        # Updating main data
+        self._update_main_data_for_every_action()
+        
     #################################################################
     ### HELPER FUNCTIONS ###  
     

@@ -1,4 +1,4 @@
-from UML_INTERFACE.uml_interface import UMLCommandLineInterface as Interface  
+from UML_INTERFACE.uml_core_manager_interface import UMLInterface as Interface  
 
 def main():
     program_interface = Interface()

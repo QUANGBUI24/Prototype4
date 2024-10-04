@@ -7,6 +7,7 @@ from rich.panel import Panel
 from rich.box import SQUARE
 from enum import Enum
 from typing import List, Dict
+from UML_MANAGER.uml_observer import UMLObserver as Observer
 
 ###################################################################################################
 ### ENUM FOR RELATIONSHIP TYPE ###
@@ -18,7 +19,7 @@ class RelationshipType(Enum):
     REALIZATION = "realization"
 
 # UMLView class for displaying UML data
-class UMLView:
+class UMLView(Observer):
 
     def __init__(self):
         self.console = Console()

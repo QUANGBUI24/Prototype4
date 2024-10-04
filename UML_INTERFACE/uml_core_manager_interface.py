@@ -6,7 +6,7 @@ from UML_MANAGER.uml_cli_view import UMLView as View
 
 ###################################################################################################
 
-class UMLCommandLineInterface:
+class UMLInterface:
     
     # Constructor for interface #
     def __init__(self):
@@ -40,18 +40,26 @@ class UMLCommandLineInterface:
         return self.ProgramManager.create_relationship(source_class, destination_class, rel_type)
     
     ## DATA RELATED FOR GUI AND TESTING ##
+    
+    # Get class list #
+    def get_class_list(self):
+        return self.ProgramManager._get_class_list()
+    
+    # Get storage manager interface #
+    def get_storage_manager(self):
+        return self.ProgramManager._get_storage_manager()
+    
+    # Get relationship list interface #
+    def get_relationship_list(self) -> List:
+        return self.ProgramManager._get_relationship_list()
 
     # Get main data interface #
     def get_main_data(self) -> Dict:
         return self.ProgramManager._get_main_data()
     
-    # Get relationship list interface #
-    def get_relationship_list(self) -> List:
-        return self.ProgramManager._get_relationship_list()
-    
-    # Get storage manager interface #
-    def get_storage_manager(self):
-        return self.ProgramManager._get_storage_manager()
+    # Get view #
+    def get_user_view(self):
+        return self.ProgramManager._get_user_view()
     
     # Extract and and a list of UML class data interface #
     """class_data can be retrieved using get_main_data()
@@ -162,8 +170,8 @@ class UMLCommandLineInterface:
         self.ProgramManager._display_saved_list()
         
     # Display classes #
-    def display_classes(self):
-        self.ProgramManager._display_wrapper()
+    def display_classes(self, main_data):
+        self.View._display_wrapper(main_data)
         
     # Display single class #
     def display_single_class(self, class_name: str):
@@ -214,6 +222,20 @@ class UMLCommandLineInterface:
     # Keep updating main data #
     def update_main_data_for_every_action(self):
         self.ProgramManager._update_main_data_for_every_action()
+        
+    ## OBSERVER RELATED ##
+    
+    # Attach 
+    def attach(self, observer):
+        self.ProgramManager._attach(observer)
+        
+    # Detach
+    def detach(self, observer):
+        self.ProgramManager._detach(observer)
+        
+    # Notify
+    def notify(self):
+        self.ProgramManager._notify()
 
     #################################################################   
     
@@ -239,8 +261,6 @@ class UMLCommandLineInterface:
             parameters = user_input_component[1:]
             # Pass command and parameters to ProgramManager for processing
             self.ProgramManager._process_command(command, parameters)
-            # Updating main data
-            self.update_main_data_for_every_action()
             # Show the main menu again #
             if command == InterfaceOptions.HELP.value:
                 self.View._prompt_menu()
