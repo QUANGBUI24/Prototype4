@@ -1,5 +1,6 @@
 import PyQt5.QtWidgets as qtw
 import PyQt5.QtGui as qtg
+from PyQt5 import uic
 ##################################################################################################################################  
 
 class MainWindow(qtw.QWidget):
