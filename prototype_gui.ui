@@ -6,22 +6,25 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1064</width>
-    <height>818</height>
+    <width>1556</width>
+    <height>1218</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QGraphicsView" name="graphicsView">
+   <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>20</y>
-      <width>921</width>
-      <height>761</height>
+      <x>56</x>
+      <y>200</y>
+      <width>1171</width>
+      <height>191</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
     </property>
    </widget>
   </widget>
@@ -31,7 +34,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1064</width>
+     <width>1556</width>
      <height>21</height>
     </rect>
    </property>
@@ -39,33 +42,65 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="New"/>
+    <addaction name="Open"/>
     <addaction name="separator"/>
-    <addaction name="actionNew"/>
-    <addaction name="actionOpen_2"/>
+    <addaction name="Save"/>
+    <addaction name="SaveAs"/>
     <addaction name="separator"/>
-    <addaction name="actionSave_2"/>
-    <addaction name="actionSave_As_2"/>
-    <addaction name="separator"/>
-    <addaction name="actionQuit"/>
+    <addaction name="Quit"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="actionCopy"/>
-    <addaction name="actionPaste"/>
+    <addaction name="Copy"/>
+    <addaction name="Cut"/>
+    <addaction name="Paste"/>
     <addaction name="separator"/>
-    <addaction name="actionEdit_Mode_2"/>
+    <addaction name="Edit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionInstructions"/>
+    <addaction name="About"/>
+    <addaction name="Instructions"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionAdd_Class"/>
+   <addaction name="actionRename_Class"/>
+   <addaction name="actionDelete_Class"/>
+   <addaction name="separator"/>
+   <addaction name="actionAdd_Field"/>
+   <addaction name="actionRename_Field"/>
+   <addaction name="actionDelete_Field"/>
+   <addaction name="separator"/>
+   <addaction name="actionAdd_Method"/>
+   <addaction name="actionRename_Method"/>
+   <addaction name="actionDelete_Method"/>
+   <addaction name="separator"/>
+   <addaction name="actionAdd_Parameter"/>
+   <addaction name="actionRename_Parameter"/>
+   <addaction name="actionReplace_Parameter_List"/>
+   <addaction name="actionDelete_Parameter"/>
+   <addaction name="separator"/>
+   <addaction name="actionAdd_Relationship"/>
+   <addaction name="actionDelete_Relationship"/>
+   <addaction name="actionChange_Relationship_Type"/>
   </widget>
   <action name="actionSave">
    <property name="text">
@@ -87,7 +122,7 @@
     <string>Hehe</string>
    </property>
   </action>
-  <action name="actionNew">
+  <action name="New">
    <property name="text">
     <string>New...</string>
    </property>
@@ -98,7 +133,7 @@
     <string>Ctrl+N</string>
    </property>
   </action>
-  <action name="actionOpen_2">
+  <action name="Open">
    <property name="text">
     <string>Open...</string>
    </property>
@@ -109,7 +144,7 @@
     <string>Ctrl+O</string>
    </property>
   </action>
-  <action name="actionSave_2">
+  <action name="Save">
    <property name="text">
     <string>Save</string>
    </property>
@@ -120,7 +155,7 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionSave_As_2">
+  <action name="SaveAs">
    <property name="text">
     <string>Save As...</string>
    </property>
@@ -136,7 +171,7 @@
     <string>Close</string>
    </property>
   </action>
-  <action name="actionQuit">
+  <action name="Quit">
    <property name="text">
     <string>Quit</string>
    </property>
@@ -157,7 +192,7 @@
     <string>View Mode</string>
    </property>
   </action>
-  <action name="actionEdit_Mode_2">
+  <action name="Edit">
    <property name="text">
     <string>Edit Mode</string>
    </property>
@@ -178,7 +213,7 @@
     <string>Help Me</string>
    </property>
   </action>
-  <action name="actionCopy">
+  <action name="Copy">
    <property name="text">
     <string>Copy</string>
    </property>
@@ -189,7 +224,7 @@
     <string>Ctrl+C</string>
    </property>
   </action>
-  <action name="actionPaste">
+  <action name="Paste">
    <property name="text">
     <string>Paste</string>
    </property>
@@ -200,7 +235,7 @@
     <string>Ctrl+V</string>
    </property>
   </action>
-  <action name="actionInstructions">
+  <action name="Instructions">
    <property name="text">
     <string>Instructions</string>
    </property>
@@ -209,6 +244,195 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="Cut">
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="About">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionAdd_Class">
+   <property name="text">
+    <string>Add Class</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionDelete_Class">
+   <property name="text">
+    <string>Delete Class</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionAdd_Method">
+   <property name="text">
+    <string>Add Method</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionAdd_Field">
+   <property name="text">
+    <string>Add Field</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionAdd_Parameter">
+   <property name="text">
+    <string>Add Parameter</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionRename_Class">
+   <property name="text">
+    <string>Rename Class</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionDelete_Field">
+   <property name="text">
+    <string>Delete Field</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionRename_Field">
+   <property name="text">
+    <string>Rename Field</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionRename_Method">
+   <property name="text">
+    <string>Rename Method</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionDelete_Method">
+   <property name="text">
+    <string>Delete Method</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionRename_Parameter">
+   <property name="text">
+    <string>Rename Parameter</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionReplace_Parameter_List">
+   <property name="text">
+    <string>Replace Parameter List</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionDelete_Parameter">
+   <property name="text">
+    <string>Delete Parameter</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionAdd_Relationship">
+   <property name="text">
+    <string>Add Relationship</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionDelete_Relationship">
+   <property name="text">
+    <string>Delete Relationship</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionChange_Relationship_Type">
+   <property name="text">
+    <string>Change Relationship Type</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
    </property>
   </action>
  </widget>

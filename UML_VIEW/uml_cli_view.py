@@ -7,7 +7,7 @@ from rich.panel import Panel
 from rich.box import SQUARE
 from enum import Enum
 from typing import List, Dict
-from UML_MANAGER.uml_observer import UMLObserver as Observer
+from UML_VIEW.uml_observer import UMLObserver as Observer
 from UML_MANAGER.uml_core_manager import InterfaceOptions 
 
 ###################################################################################################

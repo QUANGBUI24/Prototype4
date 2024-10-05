@@ -3,15 +3,17 @@
 from typing import List, Dict
 from UML_MANAGER.uml_core_manager import UMLCoreManager as Manager, InterfaceOptions
 from rich.console import Console
+from UML_VIEW.uml_cli_view import UMLView as View
+
 ###################################################################################################
 
 class UMLInterface:
     
     # Constructor for interface #
-    def __init__(self, view):
+    def __init__(self):
         # Each interface instance has its own program manager, easier for testing
-        self.View = view
-        self.ProgramManager = Manager(view)
+        self.View = View()
+        self.ProgramManager = Manager(self.View)
         self.__console = Console()
         
         
