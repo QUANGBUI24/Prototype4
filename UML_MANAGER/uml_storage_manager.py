@@ -72,7 +72,7 @@ class UMLStorageManager:
             return None
     
     # Save data for GUI #
-    def _save_data_to_json_gui(self, file_name: str, file_path, main_data: Dict):
+    def _save_data_to_json_gui(self, file_name: str, file_path: str, main_data: Dict):
         try:
             # Check if the file exists
             if not os.path.exists(file_path):
