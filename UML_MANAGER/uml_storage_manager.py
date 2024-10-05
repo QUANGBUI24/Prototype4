@@ -70,6 +70,31 @@ class UMLStorageManager:
             # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
             print(f"\nError decoding JSON from {file_path}.")
             return None
+    
+    # Save data for GUI #
+    def _save_data_to_json_gui(self, file_name: str, file_path, main_data: Dict):
+        try:
+            # Check if the file exists
+            if not os.path.exists(file_path):
+                # If the file doesn't exist, create it and write the data list
+                with open(file_path, "w") as json_file:
+                    json.dump(main_data, json_file, indent=4)
+                    return
+            # If the file exists and the file name is in the saved list, update the data
+            for dictionary in self.__saved_file_name_list:
+                if file_name in dictionary:
+                    # Open the file and load its current data
+                    with open(file_path, "r") as json_file:
+                        data = json.load(json_file)
+                        # Overwrite the loaded data with the current data list
+                        data = main_data
+                    # Save the updated data to the file
+                    with open(file_path, "w") as json_file:
+                        json.dump(data, json_file, indent=4)
+        except json.JSONDecodeError:
+            # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
+            print(f"\nError decoding JSON from {file_path}.")
+            return None
         
     # Load data from the specified JSON file
     def _load_data_from_json(self, file_name: str):

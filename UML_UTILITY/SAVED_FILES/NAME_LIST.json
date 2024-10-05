@@ -13,5 +13,8 @@
     },
     {
         "test03": "off"
+    },
+    {
+        "test.json": "off"
     }
 ]

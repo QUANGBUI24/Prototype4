@@ -190,6 +190,10 @@ class UMLInterface:
     def save(self):
         self.ProgramManager._save()
         
+    # Save data GUI #
+    def save_gui(self, file_name, file_path):
+        self.ProgramManager._save_gui(file_name, file_path)
+        
     # Load data #
     def load(self):
         self.ProgramManager._load()

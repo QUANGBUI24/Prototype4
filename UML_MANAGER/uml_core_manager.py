@@ -858,6 +858,15 @@ class UMLCoreManager:
         self.__storage_manager._save_data_to_json(user_input, main_data)
         self.__console.print(f"\n[bold green]Successfully saved data to [bold white]'{user_input}.json'![/bold white][/bold green]")
         
+    # Save for GUI #     
+    def _save_gui(self, file_name, file_path):
+        # Class data list to put in the main data
+        class_data_list = []
+        # Relationship list to put in the main data
+        relationship_data_list = []
+        main_data = self.__update_main_data_from_loaded_file(file_name, class_data_list, relationship_data_list)
+        self.__storage_manager._save_data_to_json_gui(file_name, file_path, main_data)
+    
     # Load data #
     def _load(self):
         # Prompt the user for a file name to save
