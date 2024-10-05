@@ -2,17 +2,18 @@
 
 from typing import List, Dict
 from UML_MANAGER.uml_core_manager import UMLCoreManager as Manager, InterfaceOptions
-from UML_MANAGER.uml_cli_view import UMLView as View
-
+from rich.console import Console
 ###################################################################################################
 
 class UMLInterface:
     
     # Constructor for interface #
-    def __init__(self):
+    def __init__(self, view):
         # Each interface instance has its own program manager, easier for testing
-        self.ProgramManager = Manager()
-        self.View = View()
+        self.View = view
+        self.ProgramManager = Manager(view)
+        self.__console = Console()
+        
         
     #################################################################
     ### INTERFACE FUNCTIONS THAT CONNECT WITH THE MANAGER ###
@@ -226,16 +227,16 @@ class UMLInterface:
     ## OBSERVER RELATED ##
     
     # Attach 
-    def attach(self, observer):
-        self.ProgramManager._attach(observer)
+    def attach_observer(self, observer):
+        self.ProgramManager._attach_observer(observer)
         
     # Detach
-    def detach(self, observer):
-        self.ProgramManager._detach(observer)
+    def detach_observer(self, observer):
+        self.ProgramManager._detach_observer(observer)
         
-    # Notify
-    def notify(self):
-        self.ProgramManager._notify()
+    # notify_observer
+    def notify_observer(self):
+        self.ProgramManager._notify_observer()
 
     #################################################################   
     
@@ -250,8 +251,8 @@ class UMLInterface:
             current_active_file: str = self.get_active_file()
             if current_active_file != "No active file!":
                 current_active_file = current_active_file + ".json"
-            print(f"\n(Current active file: {current_active_file})")
-            print("\n==> ", end="")
+            self.__console.print(f"\n[bold yellow](Current active file: [bold white]{current_active_file}[/bold white])[/bold yellow]")
+            self.__console. print("\n[bold yellow]==>[/bold yellow] ", end="")
             user_input: str = input()  # User provides the input
             user_input_component = user_input.split()  # Split the input by space
             # Parse command and parameters
@@ -259,12 +260,12 @@ class UMLInterface:
                 continue
             command = user_input_component[0]
             parameters = user_input_component[1:]
-            # Pass command and parameters to ProgramManager for processing
-            self.ProgramManager._process_command(command, parameters)
             # Show the main menu again #
             if command == InterfaceOptions.HELP.value:
                 self.View._prompt_menu()
             # Exit command handling in the interface
             elif command == InterfaceOptions.EXIT.value:
                 break
+            # Pass command and parameters to ProgramManager for processing
+            self.ProgramManager._process_command(command, parameters)
         self.exit()

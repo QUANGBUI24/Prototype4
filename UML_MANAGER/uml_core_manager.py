@@ -1,6 +1,7 @@
 ###################################################################################################
 
 import os
+from rich.console import Console
 from enum import Enum
 from typing import Dict, List
 from UML_CORE.UML_CLASS.uml_class import UMLClass as Class
@@ -9,7 +10,6 @@ from UML_CORE.UML_METHOD.uml_method import UMLMethod as Method
 from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relationship
 from UML_CORE.UML_PARAMETER.uml_parameter import UMLParameter as Parameter
 from UML_MANAGER.uml_storage_manager import UMLStorageManager as Storage
-from UML_MANAGER.uml_cli_view import UMLView as View
 
 ###################################################################################################
 ### ENUM VALUES FOR THE INTERFACE ###
@@ -52,28 +52,29 @@ class UMLCoreManager:
     
     # UML Class Manager Constructor #
     
-    def __init__(self):        
+    def __init__(self, view):    
+        self.__console = Console()    
         self.__class_list: Dict[str, Class] = {}
         self.__storage_manager: Storage = Storage()
         self.__relationship_list: List[Relationship] = []
         self.__main_data: Dict = {"classes":[], "relationships":[]}
-        self.__user_view: View = View()
+        self.__user_view = view
         self._observers = [] # For observer design pattern
-    
+            
     #################################################################
       
     # Observer management methods
-    def _attach(self, observer):
+    def _attach_observer(self, observer):
         if observer not in self._observers:
             self._observers.append(observer)
     
-    def _detach(self, observer):
+    def _detach_observer(self, observer):
         if observer in self._observers:
             self._observers.remove(observer)
     
-    def _notify(self, event_type=None, data=None):
+    def _notify_observers (self, event_type=None, data=None, is_loading=None):
         for observer in self._observers:
-            observer.update(self, event_type, data)
+            observer._update(event_type, data, is_loading)
     
     #################################################################
         
@@ -91,7 +92,7 @@ class UMLCoreManager:
     def _get_main_data(self) -> Dict:
         return self.__main_data
     
-    def _get_user_view(self) -> View:
+    def _get_user_view(self):
         return self.__user_view
         
     #################################################################
@@ -137,12 +138,10 @@ class UMLCoreManager:
         # Else, add the class
         new_class = self.create_class(class_name)
         self.__class_list[class_name] = new_class
-        if not is_loading:
-            print(f"\nSuccessfully added class '{class_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
         # Notify observers
-        self._notify(event_type='add_class', data={'class_name': class_name})
+        self._notify_observers (event_type=InterfaceOptions.ADD_CLASS.value, data={"class_name" : class_name}, is_loading=is_loading)
         
     # Delete class #
     def _delete_class(self, class_name: str):
@@ -155,11 +154,10 @@ class UMLCoreManager:
         self.__class_list.pop(class_name)
         # Clean up connected relationship
         self.__clean_up_relationship(class_name)
-        print(f"\nSuccessfully removed class '{class_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
         # Notify observers
-        self._notify(event_type='delete_class', data={'class_name': class_name})
+        self._notify_observers (event_type=InterfaceOptions.DELETE_CLASS.value, data={"class_name" : class_name})
         
     # Rename class #
     def _rename_class(self, current_name: str, new_name: str):
@@ -177,7 +175,8 @@ class UMLCoreManager:
         self.__update_name_in_relationship(current_name, new_name)
         # Updating main data
         self._update_main_data_for_every_action()
-        print(f"\nSuccessfully renamed from class '{current_name}' to class '{new_name}'!")
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.RENAME_CLASS.value, data={"old_name" : current_name, "new_name" : new_name})
         
     ## FIELD RELATED ##
     
@@ -195,10 +194,10 @@ class UMLCoreManager:
         new_field = self.create_field(field_name)
         # Add field
         field_list.append(new_field)
-        if not is_loading:
-            print(f"\nSuccessfully added field '{field_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.ADD_FIELD.value, data={"class_name" : class_name, "field_name" : field_name}, is_loading=is_loading)
         
     # Delete field #
     def _delete_field(self, class_name: str, field_name: str):
@@ -214,9 +213,10 @@ class UMLCoreManager:
         chosen_field = self.__get_chosen_field_or_method(class_name, field_name, is_field=True)
         # Remove the chosen field 
         field_list.remove(chosen_field)
-        print(f"\nSuccessfully removed field '{field_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.DELETE_FIELD.value, data={"class_name" : class_name, "field_name" : field_name})
         
     # Rename field #
     def _rename_field(self, class_name: str, current_field_name: str, new_field_name: str):
@@ -226,9 +226,11 @@ class UMLCoreManager:
         # Get the field
         chosen_field = self.__get_chosen_field_or_method(class_name, current_field_name, is_field=True)
         chosen_field._set_name(new_field_name)
-        print(f"\nSuccessfully renamed from field '{current_field_name}' to field '{new_field_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.RENAME_FIELD.value, 
+                     data={"class_name" : class_name, "old_field_name" : current_field_name, "new_field_name" : new_field_name})
         
     ## METHOD RELATED ##
     
@@ -249,11 +251,11 @@ class UMLCoreManager:
         # Get method and parameter list
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
         # Add method with empty list of parameter
-        method_and_parameter_list[method_name] = []
-        if not is_loading:
-            print(f"\nSuccessfully added method '{method_name}'!")
+        method_and_parameter_list[method_name] = [] 
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.ADD_METHOD.value, data={"class_name" : class_name, "method_name" : method_name}, is_loading=is_loading)
         
     # Delete method #
     def _delete_method(self, class_name: str, method_name: str):
@@ -272,9 +274,10 @@ class UMLCoreManager:
         chosen_method = self.__get_chosen_field_or_method(class_name, method_name, is_field=False)
         # Remove the chosen method 
         method_list.remove(chosen_method)
-        print(f"\nSuccessfully removed method '{method_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.DELETE_METHOD.value, data={"class_name" : class_name, "method_name" : method_name})
         
     # Rename method #
     def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
@@ -289,9 +292,11 @@ class UMLCoreManager:
         # Get the method
         chosen_method = self.__get_chosen_field_or_method(class_name, current_method_name, is_field=False)
         chosen_method._set_name(new_method_name)
-        print(f"\nSuccessfully renamed from method '{current_method_name}' to method '{new_method_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.RENAME_METHOD.value,
+                     data={"class_name" : class_name, "old_method_name" : current_method_name, "new_method_name" : new_method_name})
         
     ## PARAMETER RELATED ##
     
@@ -306,11 +311,12 @@ class UMLCoreManager:
         # Create parameter
         new_parameter = self.create_parameter(parameter_name)
         # Add new parameter
-        method_and_parameter_list[method_name].append(new_parameter)
-        if not is_loading:
-            print(f"\nSuccessfully added parameter '{parameter_name}' to method '{method_name}'!")
+        method_and_parameter_list[method_name].append(new_parameter) 
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.ADD_PARAM.value,
+                     data={"class_name" : class_name, "method_name" : method_name, "param_name" : parameter_name}, is_loading=is_loading)
         
     # Delete parameter #
     def _delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
@@ -324,9 +330,11 @@ class UMLCoreManager:
         chosen_parameter = self.__get_chosen_parameter(class_name, method_name, parameter_name)
         # Remove the chosen parameter
         method_and_parameter_list[method_name].remove(chosen_parameter)
-        print(f"\nSuccessfully removed parameter '{parameter_name}' from method '{method_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.DELETE_PARAM.value, 
+                     data={"class_name" : class_name, "method_name" : method_name, "param_name" : parameter_name})
         
     # Rename parameter #
     def _rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
@@ -342,9 +350,12 @@ class UMLCoreManager:
         # Get chosen parameter
         chosen_parameter = self.__get_chosen_parameter(class_name, method_name, current_parameter_name)
         chosen_parameter._set_parameter_name(new_parameter_name)
-        print(f"\nSuccessfully renamed from parameter '{current_parameter_name}' to parameter '{new_parameter_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.RENAME_PARAM.value, 
+                     data={"class_name" : class_name, "method_name" : method_name, 
+                           "old_param_name" : current_parameter_name, "new_param_name" : new_parameter_name})
         
     # Replace parameter list, fail if class or method does not exist
     def _replace_param_list(self, class_name: str, method_name: str):
@@ -353,15 +364,16 @@ class UMLCoreManager:
         if not is_class_and_method_exist:
             return
         # Get new parameter names from the user
-        user_input = input("\nEnter the names for the new parameter list, each name must be separated by spaces:\n\n==> ")
+        self.__console.print("\n[bold yellow]Enter the names for the new parameter list, each name must be separated by spaces:[/bold yellow]\n\n[bold white]==>[/bold white] ")
+        user_input = input()
         new_param_name_list = user_input.split()
         # Check for duplicates in the parameter list
         unique_param_names = list(set(new_param_name_list))
         if len(unique_param_names) != len(new_param_name_list):
-            print("\nDuplicate parameters detected:")
+            self.__console.print("\n[bold red]Duplicate parameters detected:[/bold red]")
             duplicates = [param for param in new_param_name_list if new_param_name_list.count(param) > 1]
-            print(f"\nDuplicates: {set(duplicates)}")
-            print("\nPlease modify the parameter list manually to ensure uniqueness.")
+            self.__console.print(f"\n[bold red]Duplicates: [bold white]{set(duplicates)}[/bold white][/bold red]")
+            self.__console.print("\n[bold red]Please modify the parameter list manually to ensure uniqueness.[/bold red]")
             return
         # Create parameter objects for the specific method
         new_param_list: List[Parameter] = []
@@ -371,25 +383,27 @@ class UMLCoreManager:
         # Replace the parameter list in the specified method
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
         method_and_parameter_list[method_name] = new_param_list
-        print(f"\nSuccessfully replaced parameter list for method '{method_name}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.REPLACE_PARAM.value, 
+                     data={"class_name" : class_name, "method_name" : method_name, "new_list" : new_param_list})
         
     ## RELATIONSHIP RELATED ##
     
     # Add relationship wrapper #
     def _add_relationship_wrapper(self, is_loading: bool):
         if len(self.__class_list) == 0:
-            print("\nNo class exists!")
+            self.__console.print("\n[bold red]No class exists![/bold red]")
             return
-        print("\nType '<source_class> <destination_class> <type>' or type 'quit' to return to main menu")
+        self.__console.print("\n[bold yellow]Type [bold white]'<source_class> <destination_class> <type>'[/bold white] or type [bold white]'quit'[/bold white] to return to main menu[/bold yellow]")
         self.__user_view._display_type_enum()
         self.__user_view._display_class_names(self.__main_data)
         self.__user_view._display_relationships(self.__main_data)
-        print("\n==> ", end="")
+        print("\n[bold yellow]==>[/bold yellow] ", end="")
         user_input: str = input()
         if user_input == "quit":
-            print("\nCanceled adding relationship")
+            self.__console.print("\n[bold green]Canceled adding relationship[/bold green]")
             return
         # Split the input by space
         user_input_component = user_input.split()
@@ -412,7 +426,7 @@ class UMLCoreManager:
             # Check if the relationship already exist or not
             is_relationship_exist = self.__relationship_exist(source_class_name, destination_class_name)
             if is_relationship_exist:
-                print(f"\nRelation ship between class '{source_class_name}' to class '{destination_class_name}' has already existed!")
+                self.__console.print(f"\n[bold red]Relation ship between class [bold white]'{source_class_name}'[/bold white] to class [bold white]'{destination_class_name}'[/bold white] has already existed![/bold red]")
                 return
             # Checking type, 
             is_type_exist = self.__validate_type_existence(type, should_exist=True)
@@ -421,20 +435,20 @@ class UMLCoreManager:
             # If exists, then finally add relationship
             self._add_relationship(source_class_name, destination_class_name, type, is_loading)
         else:
-            print("\nWrong format! Please try again!")
-        # Updating main data
-        self._update_main_data_for_every_action()
+            self.__console.print("\n[bold red]Wrong format! Please try again![/bold red]")
             
     # Add relationship #
     def _add_relationship(self, source_class_name: str, destination_class_name: str, rel_type: str, is_loading: bool):
         # Create new relationship
         new_relationship = self.create_relationship(source_class_name, destination_class_name, rel_type)
         # Add new relationship to the list
-        self.__relationship_list.append(new_relationship)
-        if not is_loading:
-            print(f"\nSuccessfully added relationship from class '{source_class_name}' to class '{destination_class_name}' of type '{rel_type}'!")
+        self.__relationship_list.append(new_relationship) 
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.ADD_REL.value, 
+                     data={"source" : source_class_name, "dest" : destination_class_name, "type" : rel_type}, 
+                     is_loading=is_loading)
         
     # Delete relationship #
     def _delete_relationship(self, source_class_name: str, destination_class_name: str):
@@ -451,21 +465,22 @@ class UMLCoreManager:
         # Check if the relationship already exist or not
         is_relationship_exist = self.__relationship_exist(source_class_name, destination_class_name)
         if not is_relationship_exist:
-            print(f"\nRelation ship between class '{source_class_name}' to class '{destination_class_name}' does not exist!")
+            self.__console.print(f"\n[bold red]Relation ship between class [bold white]'{source_class_name}'[/bold white] to class [bold white]'{destination_class_name}'[/bold white] does not exist![bold red]")
             return
         # Get chosen relationship
         current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
         # Remove relationship
         self.__relationship_list.remove(current_relationship)
-        print(f"\nSuccessfully removed relationship between class '{source_class_name}' to class '{destination_class_name}'!")  
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.DELETE_REL.value, data={"source" : source_class_name, "dest" : destination_class_name})
         
     # Change type #
     def _change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
         # Check if class names are identical or not
         if source_class_name == destination_class_name:
-            print("\nNo relationship from a class to itself!")
+            self.__console.print("\n[bold red]No relationship from a class to itself![/bold red]")
             return
         # Check source class existence
         is_source_class_name_exist = self.__validate_class_existence(source_class_name, should_exist=True)
@@ -478,7 +493,7 @@ class UMLCoreManager:
         # Check if new type is identical to current type:
         current_type = self.__get_chosen_relationship_type(source_class_name, destination_class_name)
         if current_type == new_type:
-            print(f"\nNew type '{new_type}' is identical to the existing type of the current relationship!")
+            self.__console.print(f"\n[bold red]New type [bold white]'{new_type}'[/bold white] is identical to the existing type of the current relationship![/bold red]")
             return
         # Check if type already existed or not
         is_type_exist = self.__validate_type_existence(new_type, should_exist=True)
@@ -488,9 +503,10 @@ class UMLCoreManager:
         if current_relationship is None:
             return
         current_relationship._set_type(new_type)
-        print(f"\nSuccessfully changed the type between class '{source_class_name}' and class '{destination_class_name}' to '{new_type}'!")
         # Updating main data
         self._update_main_data_for_every_action()
+        # Notify observers
+        self._notify_observers (event_type=InterfaceOptions.TYPE_MOD.value, data={"source" : source_class_name, "dest" : destination_class_name, "new_type" : new_type})
         
     #################################################################
     ### HELPER FUNCTIONS ###  
@@ -506,11 +522,11 @@ class UMLCoreManager:
         # When class name should exist but it does not
         is_class_name_exist = self.__class_exists(class_name)
         if should_exist and not is_class_name_exist:
-            print(f"\nClass '{class_name}' does not exist!")
+            self.__console.print(f"\n[bold red]Class [bold white]'{class_name}'[/bold white] does not exist![/bold red]")
             return False
         # When class name should not exist but it does
         elif not should_exist and is_class_name_exist:
-            print(f"\nClass '{class_name}' has already existed!")
+            self.__console.print(f"\n[bold red]Class [bold white]'{class_name}'[/bold white] has already existed![/bold red]")
             return False
         # True in any other cases
         return True
@@ -588,11 +604,11 @@ class UMLCoreManager:
         # When field name should exist but it does not
         is_field_name_exist = self.__field_or_method_exist(class_name, field_name, is_field=True)
         if should_exist and not is_field_name_exist:
-            print(f"\nField '{field_name}' does not exist in class '{class_name}'!")
+            self.__console.print(f"\n[bold red]Field [bold white]'{field_name}'[/bold white] does not exist in class [bold white]'{class_name}'[/bold white]![/bold red]")
             return False
         # When field name should not exist but it does
         elif not should_exist and is_field_name_exist:
-            print(f"\nField '{field_name}' has already existed in class '{class_name}'!")
+            self.__console.print(f"\n[bold red]Field [bold white]'{field_name}'[/bold white] has already existed in class [bold white]'{class_name}'[/bold white]![/bold red]")
             return False
         return True
     
@@ -601,11 +617,11 @@ class UMLCoreManager:
         # When method name should exist but it does not
         is_method_name_exist = self.__field_or_method_exist(class_name, method_name, is_field=False)
         if should_exist and not is_method_name_exist:
-            print(f"\nMethod '{method_name}' does not exist in class '{class_name}'!")
+            self.__console.print(f"\n[bold red]Method [bold white]'{method_name}'[/bold white] does not exist in class [bold white]'{class_name}'[/bold white]![/bold red]")
             return False
         # When method name should not exist but it does
         elif not should_exist and is_method_name_exist:
-            print(f"\nMethod '{method_name}' has already existed in class '{class_name}'!")
+            self.__console.print(f"\n[bold red]Method [bold white]'{method_name}'[/bold white] has already existed in class [bold white]'{class_name}'[/bold white]![/bold red]")
             return False
         return True
     
@@ -663,7 +679,7 @@ class UMLCoreManager:
         # Get method and parameter list
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
         if method_name not in method_and_parameter_list:
-           print(f"\nMethod '{method_name}' does not exist!")
+           self.__console.print(f"\n[bold red]Method [bold white]'{method_name}'[/bold white] does not exist![/bold red]")
            return False
         parameter_list = method_and_parameter_list[method_name]
         for parameter in parameter_list:
@@ -676,11 +692,11 @@ class UMLCoreManager:
         is_parameter_exist = self.__parameter_exist(class_name, method_name, parameter_name)
         # If should exist but not exist, return false
         if should_exist and not is_parameter_exist:
-            print(f"\nParameter '{parameter_name}' does not exist!")
+            self.__console.print(f"\n[bold red]Parameter [bold white]'{parameter_name}'[/bold white] does not exist![/bold red]")
             return False
         # If should not exist but exists, return false
         elif not should_exist and is_parameter_exist:
-            print(f"\nParameter '{parameter_name}' has already existed!")
+            self.__console.print(f"\n[bold red]Parameter [bold white]'{parameter_name}'[/bold white] has already existed![/bold red]")
             return False
         return True
     
@@ -707,7 +723,7 @@ class UMLCoreManager:
     def __validate_type_existence(self, type_name: str, should_exist: bool) -> bool:
         is_type_exist = self.__type_exist(type_name)
         if should_exist and not is_type_exist:
-            print(f"\nType '{type_name}' does not exist!")
+            self.__console.print(f"\n[bold red]Type [bold white]'{type_name}'[/bold white] does not exist![/bold red]")
             return False
         return True
 
@@ -738,7 +754,7 @@ class UMLCoreManager:
         current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
         if current_relationship is not None:
             return current_relationship._get_type()
-        print(f"\nNo relationship between class '{source_class_name}' and class '{destination_class_name}'!")
+        self.__console.print(f"\n[bold red]No relationship between class [bold white]'{source_class_name}'[/bold white] and class [bold white]'{destination_class_name}'[/bold white![/bold red]")
         return None
             
     #################################################################
@@ -820,19 +836,19 @@ class UMLCoreManager:
     # Save data #
     def _save(self):
         # Prompt the user for a file name to save
-        print("\nPlease provide a name for the file you'd like to save or choose file from the list to override.")
-        print("Type 'quit' to go back to main menu:")
+        self.__console.print("\n[bold yellow]Please provide a name for the file you'd like to save or choose file from the list to override.[/bold yellow]")
+        self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[bold yellow]")
         # Show the list of saved files
         saved_list = self.__storage_manager._get_saved_list()
         self.__user_view._display_saved_list(saved_list)
-        print("==> ", end="")
+        self.__console.print("[bold yellow]==>[/bold yellow] ", end="")
         user_input = input()
         # Prevent user from overriding NAME_LIST.json
         if user_input == "NAME_LIST":
-            print(f"\nYou can't save to '{user_input}.json'")
+            self.__console.print(f"\n[bold red]You can't save to [bold white]'{user_input}.json'[/bold white][bold red]")
             return 
         if user_input == "quit":
-            print("\nCanceled saving!")
+            self.__console.print("\n[bold green]Canceled saving![/bold green]")
             return
         # Class data list to put in the main data
         class_data_list = []
@@ -840,33 +856,33 @@ class UMLCoreManager:
         relationship_data_list = []
         main_data = self.__update_main_data_from_loaded_file(user_input, class_data_list, relationship_data_list)
         self.__storage_manager._save_data_to_json(user_input, main_data)
-        print(f"\nSuccessfully saved data to '{user_input}.json'!")
+        self.__console.print(f"\n[bold green]Successfully saved data to [bold white]'{user_input}.json'![/bold white][/bold green]")
         
     # Load data #
     def _load(self):
         # Prompt the user for a file name to save
-        print("\nPlease provide a name for the file you'd like to load.")
-        print("Type 'quit' to go back to main menu:")
+        self.__console.print("\n[bold yellow]Please provide a name for the file you'd like to load.[/bold yellow]")
+        self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
         # Show the list of saved files
         save_list = self.__storage_manager._get_saved_list()
         self.__user_view._display_saved_list(save_list)
-        print("==> ", end="")
+        self.__console.print("[bold yellow]==>[/bold yellow] ", end="")
         user_input = input()
         # Prevent user from loading NAME_LIST.json
         if user_input == "NAME_LIST":
-            print(f"\nYou can't load from '{user_input}.json'")
+            self.__console.print(f"\n[bold red]You can't load from [bold white]'{user_input}.json'[/bold white][/bold red]")
             return 
         if user_input == "quit":
-            print("\nCanceled loading!")
+            self.__console.print("\n[bold green]Canceled loading![/bold green]")
             return
         is_loading = self._saved_file_name_check(user_input)
         if not is_loading:
-            print(f"\nFile '{user_input}.json' does not exist")
+            self.__console.print(f"\n[bold red]File [bold white]'{user_input}.json'[/bold white] does not exist[/bold red]")
             return
         main_data = self.__main_data = self.__storage_manager._load_data_from_json(user_input)
         self.__update_data_members(main_data)
         self.__check_file_and_set_status(user_input)
-        print(f"\nSuccessfully loaded data from '{user_input}.json'!")
+        self.__console.print(f"\n[bold green]Successfully loaded data from [bold white]'{user_input}.json'[/bold white]![/bold green]")
         
     # Update main data to store data to json file #
     def __update_main_data_from_loaded_file(self, user_input: str, class_data_list: List, relationship_data_list: List) -> Dict:
@@ -914,7 +930,7 @@ class UMLCoreManager:
         class_info_list: List[Dict[str, Dict[str, List | Dict]]] = []
         # Loop through each class element
         for class_element in class_data:
-            # Create a dictionary to store method name and its litst of parameters
+            # Create a dictionary to store method name and its list of parameters
             method_and_param_list = {}
             # Get class name
             class_name = class_element["name"]
@@ -931,21 +947,21 @@ class UMLCoreManager:
     
     # Delete Saved File #
     def _delete_saved_file(self):
-        print("\nPlease choose a file you want to delete.")
-        print("Type 'quit' to go back to main menu:")
+        self.__console.print("\n[bold yellow]Please choose a file you want to delete.[/bold yellow]")
+        self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
         saved_list = self.__storage_manager._get_saved_list()
         self.__user_view._display_saved_list(saved_list)
         user_input = input()
         # Prevent user from loading NAME_LIST.json
         if user_input == "NAME_LIST":
-            print(f"\nYou can't delete file '{user_input}.json'")
+            self.__console.print(f"\n[bold red]You can't delete file [bold white]'{user_input}.json'[/bold white][/bold red]")
             return 
         if user_input == "quit":
-            print("\nCanceled loading!")
+            self.__console.print("\n[bold green]Canceled loading![/bold green]")
             return
         is_file_exist = self._check_saved_file_exist(user_input)
         if not is_file_exist:
-            print(f"File '{user_input}.json' does not exist!")
+            self.__console.print(f"[bold red]File [bold white]'{user_input}.json'[/bold white] does not exist![/bold red]")
             return
         # Get saved file's name list
         save_list = self.__storage_manager._get_saved_list()
@@ -957,7 +973,7 @@ class UMLCoreManager:
         # Physically remove the file   
         file_path = f"UML_UTILITY/SAVED_FILES/{user_input}.json"
         os.remove(file_path)
-        print(f"\nSuccessfully removed file '{user_input}.json'")
+        self.__console.print(f"\n[bold green]Successfully removed file [bold white]'{user_input}.json'[/bold white][/bold green]")
         
     # Check if a saved file exist #
     def _check_saved_file_exist(self, file_name: str):
@@ -972,7 +988,7 @@ class UMLCoreManager:
     def _end_session(self):
         self.__set_all_file_off()
         self.__reset_storage()
-        print("\nSuccessfully back to default program!")
+        self.__console.print("\n[bold green]Successfully back to default program![/bold green]")
     
     # Get active file #
     def _get_active_file(self) -> str:
@@ -987,19 +1003,19 @@ class UMLCoreManager:
     def _clear_current_active_data(self):
         saved_list = self.__storage_manager._get_saved_list()
         if len(saved_list) == 0:
-            print("\nNo file!")
+            self.__console.print("\n[bold red]No active file to clear data![bold red]")
             return
         current_active_file = self._get_active_file()
         if current_active_file == "No active file!":
-            print("\nNo active file!")
+            self.__console.print("\n[bold red]No active file![bold red]")
             return
         self.__reset_storage()
         self.__storage_manager._save_data_to_json(current_active_file, self.__main_data)
-        print(f"\nSuccessfully clear data in file '{current_active_file}.json'")
+        self.__console.print(f"\n[bold green]Successfully clear data in file [bold white]'{current_active_file}.json'[/bold white][/bold green]")
         
     def _exit(self):
         self.__set_all_file_off()
-        print("\nExited Program")
+        self.__console.print("\n[bold green]Exited Program[/bold green]")
     
     # Set all file status to off #
     def __set_all_file_off(self):
@@ -1201,13 +1217,13 @@ class UMLCoreManager:
         elif command == InterfaceOptions.SORT.value:
             self._sort_class_list()
         else:
-            print(f"\nUnknown command '{command}'. Type 'help' for a list of commands.")
+            self.__console.print(f"\n[bold red]Unknown command [bold white]'{command}'[/bold white]. Type 'help' for a list of commands.[/bold red]")
 
     # Sorting Class List #
     def _sort_class_list(self):
         class_list = self.__class_list
         if len(class_list) == 0:
-            print("\nNo class to sort!")
+            self.__console.print("\n[bold red]No class to sort![/bold red]")
             return
         self.__class_list = dict(sorted(self.__class_list.items()))
         self._update_main_data_for_every_action()

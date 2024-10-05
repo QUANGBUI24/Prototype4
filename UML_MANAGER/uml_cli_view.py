@@ -8,6 +8,7 @@ from rich.box import SQUARE
 from enum import Enum
 from typing import List, Dict
 from UML_MANAGER.uml_observer import UMLObserver as Observer
+from UML_MANAGER.uml_core_manager import InterfaceOptions 
 
 ###################################################################################################
 ### ENUM FOR RELATIONSHIP TYPE ###
@@ -20,10 +21,106 @@ class RelationshipType(Enum):
 
 # UMLView class for displaying UML data
 class UMLView(Observer):
-
+    
     def __init__(self):
         self.console = Console()
-        
+    
+    # UMLView class (the observer) updates data when user make changes
+    def _update(self, event_type, data, is_loading: bool):
+        # Add class #
+        if event_type == InterfaceOptions.ADD_CLASS.value:
+            class_name = data["class_name"]
+            if not is_loading:
+                self.console.print(f"\n[bold green]Class [bold white]'{class_name}'[/bold white] has been added.[/bold green]")
+        # Delete class #
+        elif event_type == InterfaceOptions.DELETE_CLASS.value:
+            class_name = data.get('class_name', 'Unknown')
+            self.console.print(f"\n[bold green]Class [bold white]'{class_name}'[/bold white] has been deleted.[/bold green]")
+        # Rename class #
+        elif event_type == InterfaceOptions.RENAME_CLASS.value:
+            old_name = data["old_name"]
+            new_name = data["new_name"]
+            self.console.print(f"\n[bold green]Class [bold white]'{old_name}'[/bold white] has been renamed to [bold white]'{new_name}'[/bold white].[/bold green]")
+        # Add field #
+        elif event_type == InterfaceOptions.ADD_FIELD.value:
+            class_name = data["class_name"]
+            field_name = data["field_name"]
+            if not is_loading:
+                self.console.print(f"\n[bold green]Field [bold white]'{field_name}'[/bold white] has been added to class [bold white]'{class_name}'[/bold white].[/bold green]")
+        # Delete field #
+        elif event_type == InterfaceOptions.DELETE_FIELD.value:
+            class_name = data["class_name"]
+            field_name = data["field_name"]
+            self.console.print(f"\n[bold green]Field [bold white]'{field_name}'[/bold white] has been deleted from class [bold white]'{class_name}'[/bold white].[/bold green]")
+        # Rename field #
+        elif event_type == InterfaceOptions.RENAME_FIELD.value:
+            class_name = data["class_name"]
+            old_field_name = data["old_field_name"]
+            new_field_name = data["new_field_name"]
+            self.console.print(f"\n[bold green]Field [bold white]'{old_field_name}'[/bold white] in class [bold white]'{class_name}'[/bold white] has been renamed to [bold white]'{new_field_name}'[/bold white].[/bold green]")
+        # Add method #
+        elif event_type == InterfaceOptions.ADD_METHOD.value:
+            class_name = data["class_name"]
+            method_name = data["method_name"]
+            if not is_loading:
+                self.console.print(f"\n[bold green]Successfully added method [bold white]'{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
+        # Delete method #
+        elif event_type == InterfaceOptions.DELETE_METHOD.value:
+            class_name = data["class_name"]
+            method_name = data["method_name"]
+            self.console.print(f"\n[bold green]Successfully removed method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
+        # Rename method #
+        elif event_type == InterfaceOptions.RENAME_METHOD.value:
+            class_name = data["class_name"]
+            old_method_name = data["old_method_name"]
+            new_method_name = data["new_method_name"]
+            self.console.print(f"\n[bold green]Successfully renamed from method [bold white]'{old_method_name}'[/bold white] to method [bold white]'{new_method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
+        # Add parameter #
+        elif event_type == InterfaceOptions.ADD_PARAM.value:
+            class_name = data["class_name"]
+            method_name = data["method_name"]
+            param_name = data["param_name"]
+            if not is_loading:
+                self.console.print(f"\n[bold green]Successfully added parameter [bold white]'{param_name}'[/bold white] to method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
+        # Delete parameter #
+        elif event_type == InterfaceOptions.DELETE_PARAM.value:
+            class_name = data["class_name"]
+            method_name = data["method_name"]
+            param_name = data["param_name"]
+            self.console.print(f"\n[bold green]Successfully removed parameter [bold white]'{param_name}'[/bold white] from method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
+        # Rename parameter #
+        elif event_type == InterfaceOptions.RENAME_PARAM.value:
+            class_name = data["class_name"]
+            method_name = data["method_name"]
+            old_param_name = data["old_param_name"]
+            new_param_name = data["new_param_name"]
+            self.console.print(f"\n[bold green]Successfully renamed from parameter [bold white]'{old_param_name}'[/bold white] to parameter [bold white]'{new_param_name}'[/bold white]![/bold green]")
+        # Replace parameter #
+        elif event_type == InterfaceOptions.REPLACE_PARAM.value:
+            class_name = data["class_name"]
+            method_name = data["method_name"]
+            new_list = data["new_list"]
+            self.console.print(f"\n[bold green]Successfully replaced parameter list for method [bold white]'{method_name}'[/bold white]![/bold green]")
+        # Add relationship # 
+        elif event_type == InterfaceOptions.ADD_REL.value:
+            source_class = data["source"]
+            destination_class = data["dest"]
+            rel_type = data["type"]
+            if not is_loading:
+                self.console.print(f"\n[bold green]Successfully added relationship from class [bold white]'{source_class}'[/bold white] to class [bold white]'{destination_class}'[/bold white] of type '{rel_type}'![/bold green]")
+        # Delete relationship # 
+        elif event_type == InterfaceOptions.DELETE_REL.value:
+            source_class = data["source"]
+            destination_class = data["dest"]
+            self.console.print(f"\n[bold green]Successfully removed relationship between class [bold white]'{source_class}'[/bold white] to class [bold white]'{destination_class}'[/bold white][/bold green]!") 
+        # Change relationship type # 
+        elif event_type == InterfaceOptions.TYPE_MOD.value:
+            source_class = data["source"]
+            destination_class = data["dest"]
+            new_type = data["new_type"]
+            self.console.print(f"\n[bold green]Successfully changed the type between class [bold white]'{source_class}'[/bold white] and class [bold white]'{destination_class}'[/bold white] to [bold white]'{new_type}'[/bold white]![/bold green]")
+    
+    # Get relationship type
     def _get_enum_list(self):
         return RelationshipType
         
@@ -99,7 +196,7 @@ class UMLView(Observer):
         
     def _display_wrapper(self, main_data: Dict):
         if len(main_data["classes"]) == 0:
-            print("\nNo class to display!")
+            self.console.print("\n[bold red]No class to display![/bold red]")
             return
         is_detail = self._ask_user_choices("print all class detail")
         if is_detail:
@@ -120,7 +217,7 @@ class UMLView(Observer):
         relationships_tree = tree.add("Relationships")
         for relation in main_data["relationships"]:
             relationships_tree.add(
-                f'[bold dodger_blue2]{relation["source"]}[/bold dodger_blue2] --{relation["type"]}--> [bold dodger_blue2]{relation["destination"]}[/bold dodger_blue2]'
+                f'[bold dodger_blue2]{relation["source"]}[/bold dodger_blue2] [bold white]--{relation["type"]}-->[bold white] [bold dodger_blue2]{relation["destination"]}[/bold dodger_blue2]'
             )
         # Print the complete tree
         self.console.print(tree)
@@ -130,13 +227,13 @@ class UMLView(Observer):
         # Add fields of the class
         fields_branch = class_branch.add("[bold yellow]Fields[/bold yellow]")
         for field in cls["fields"]:
-            fields_branch.add(f'[bold cyan]{field["name"]}[/bold cyan]')
+            fields_branch.add(f'[bold dark_slate_gray2]{field["name"]}[/bold dark_slate_gray2]')
         # Add methods of the class
         methods_branch = class_branch.add("[bold yellow]Methods[/bold yellow]")
         for method in cls["methods"]:
             # Extract the names of the parameters
             params = ', '.join(param["name"] for param in method["params"])
-            methods_branch.add(f'[magenta]{method["name"]}({params})[/magenta]')
+            methods_branch.add(f'[bold dark_orange]{method["name"]}([bold slate_blue1]{params}[/bold slate_blue1])[/bold dark_orange]')
     
     # Display class names
     def _display_class_names(self, main_data: Dict):
@@ -164,7 +261,7 @@ class UMLView(Observer):
         for relation in main_data["relationships"]:
             if relation["source"] == class_name or relation["destination"] == class_name:
                 relationships_tree.add(
-                    f'[bold blue]{relation["source"]}[/bold blue] --{relation["type"]}--> [bold blue]{relation["destination"]}[/bold blue]'
+                    f'[bold dodger_blue2]{relation["source"]}[/bold dodger_blue2] [bold white]--{relation["type"]}-->[/bold white] [bold dodger_blue2]{relation["destination"]}[/bold dodger_blue2]'
                 )
         # Print the complete tree
         self.console.print(tree)
@@ -216,7 +313,8 @@ class UMLView(Observer):
     # Ask For User Choices #
     def _ask_user_choices(self, action: str) -> bool:
         while True:
-            user_input = input(f"\nDo you want to {action}? (Yes/No): ").lower()
+            self.console.print(f"\n[bold yellow]Do you want to {action}? (Yes/No): [bold yellow]")
+            user_input = input().lower()
             if user_input in ["yes", "y"]:
                 return True
             elif user_input in ["no", "n"]:
