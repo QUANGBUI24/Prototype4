@@ -100,7 +100,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Sets the view to dark mode.
         """
-        self.grid_color = QtGui.QColor(255,255,0)  # Dark gray for grid lines
+        self.grid_color = QtGui.QColor(0,255,255)  # Cyan for grid lines
         self.is_dark_mode = True
         self.viewport().update()
         self.scene.update()
@@ -224,6 +224,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.centerOn(0, 0)  # Center the view on the origin (initial position)
         
 ###################################################################################################
+
+class UMLClassBox(QtWidgets.QGraphicsRectItem):
+    pass
 
 ###################################################################################################
 
