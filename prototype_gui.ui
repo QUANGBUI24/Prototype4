@@ -76,8 +76,10 @@
    <addaction name="add_class"/>
    <addaction name="delete_class"/>
    <addaction name="separator"/>
-   <addaction name="toggle_grid"/>
+   <addaction name="reset_view"/>
    <addaction name="change_grid_color"/>
+   <addaction name="toggle_grid"/>
+   <addaction name="toggle_mode"/>
   </widget>
   <action name="actionSave">
    <property name="text">
@@ -284,6 +286,22 @@
    </property>
    <property name="shortcut">
     <string>Del</string>
+   </property>
+  </action>
+  <action name="reset_view">
+   <property name="text">
+    <string>Reset View</string>
+   </property>
+  </action>
+  <action name="toggle_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Mode</string>
    </property>
   </action>
  </widget>

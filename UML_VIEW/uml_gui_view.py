@@ -5,240 +5,225 @@ import os
 from PyQt5 import uic
 from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_VIEW.uml_observer import UMLObserver as Observer
-
+  
 ###################################################################################################
 
-class GridWidget(QtWidgets.QWidget):
+class GridGraphicsView(QtWidgets.QGraphicsView):
     """
-    GridWidget is a custom widget that displays a grid pattern. This grid can be used
+    GridGraphicsView is a custom view that displays a grid pattern. This grid can be used
     as a background for applications like UML diagram editors to help align and organize
     graphical elements. It supports zooming in and out using the mouse wheel scroll
     and panning by dragging with the middle mouse button. The cursor changes to a hand
     icon when panning to provide visual feedback.
-    
-    Parameters:
-        - parent (QtWidgets.QWidget, optional): The parent widget. Defaults to None.
-        - grid_size (int, optional): The initial spacing between grid lines in pixels. Defaults to 20.
-        - color (QtGui.QColor, optional): The color of the grid lines. Defaults to a light gray.
     """
 
     def __init__(self, parent=None, grid_size=20, color=QtGui.QColor(200, 200, 200)):
-        # Call the superclass (QWidget) constructor to ensure proper initialization
-        super().__init__(parent)
+        """
+        Initializes the GridGraphicsView instance.
 
-        # Store the grid spacing and color as instance variables for later use
+        Parameters:
+        - parent (QtWidgets.QWidget, optional): The parent widget. Defaults to None.
+        - grid_size (int, optional): The initial spacing between grid lines in pixels. Defaults to 20.
+        - color (QtGui.QColor, optional): The color of the grid lines. Defaults to a light gray.
+        """
+        # Set up the scene and view
+        self.scene = QtWidgets.QGraphicsScene(parent)
+        super().__init__(self.scene, parent)
+        
+        # Set initial mode (light mode by default)
+        self.is_dark_mode = False
+        self.setLightMode()
+
+        # Define the zoom step size (number of pixels to adjust per scroll)
+        self.zoom_step = 2  # Adjust this value for faster or slower zooming
+        
+        # Store the grid properties
         self.grid_size = grid_size
         self.grid_color = color
 
-        # Set the minimum size of the widget to ensure the grid is visible
-        self.setMinimumSize(1000, 1000)  # Set a default size; adjust as needed
-
         # Define minimum and maximum grid sizes to prevent excessive zooming
-        self.min_grid_size = 5    # Minimum grid spacing in pixels
+        self.min_grid_size = 20    # Minimum grid spacing in pixels
         self.max_grid_size = 100  # Maximum grid spacing in pixels
 
-        # Initialize the grid offset to (0, 0), representing no panning
-        self.x_offset = 0
-        self.y_offset = 0
+        # Set initial view properties
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.setSceneRect(-5000, -5000, 10000, 10000)  # Set large scene to ensure sufficient space for the grid
+        self.setScene(self.scene)
+        
+        # Enable panning state variables
+        self.is_panning = False
+        self.last_mouse_pos = None
 
-        # Initialize variables to track panning state
-        self.is_panning = False       # Indicates whether panning is currently active
-        self.last_mouse_pos = None    # Stores the last mouse position during panning
+    def drawBackground(self, painter, rect):
+        """
+        Draws the background grid pattern.
 
-        # Set the cursor to the default arrow cursor initially
-        self.setCursor(QtCore.Qt.ArrowCursor)
-
-    #################################################################
-    ### NOT FOR BUTTON EVENT ###
-    
-    """
-    The paintEvent method is a built-in PyQt method that is called whenever the widget needs to be repainted.
-    This can occur when the widget is first displayed, resized, or explicitly updated.
-    Overriding this method allows for custom drawing on the widget.
-    
-    Parameters:
-        - event (QtGui.QPaintEvent): The paint event containing information about the region to be repainted.
-    """
-    def paintEvent(self, event):
-        # Create a QPainter object to handle the drawing operations
-        painter = QtGui.QPainter(self)
-
-        # Enable antialiasing for smoother lines
-        painter.setRenderHint(QtGui.QPainter.Antialiasing)
-
+        Parameters:
+        - painter (QtGui.QPainter): The painter object used for custom painting.
+        - rect (QtCore.QRectF): The area to be painted.
+        """
+        # Fill the background with the current background color
+        if self.is_dark_mode:
+            painter.fillRect(rect, QtGui.QColor(30, 30, 30))  # Dark background
+        else:
+            painter.fillRect(rect, QtGui.QColor(255, 255, 255))  # Light background
+            
         # Create a QPen object with the specified grid color
         pen = QtGui.QPen(self.grid_color)
-
-        # Set the width of the pen to 1 pixel for fine grid lines
         pen.setWidth(1)
 
-        # Apply the pen to the painter
+        # Set the painter to use the pen
         painter.setPen(pen)
 
-        # Calculate the adjusted grid size based on the current zoom level
-        adjusted_grid_size = self.grid_size
+        # Calculate the top-left and bottom-right points of the rect
+        left = int(rect.left()) - (int(rect.left()) % self.grid_size)
+        top = int(rect.top()) - (int(rect.top()) % self.grid_size)
 
-        # Calculate the starting points for vertical and horizontal lines based on the current offset
-        start_x = self.x_offset % adjusted_grid_size
-        start_y = self.y_offset % adjusted_grid_size
+        # Draw vertical lines across the scene
+        for x in range(left, int(rect.right()), self.grid_size):
+            painter.drawLine(x, int(rect.top()), x, int(rect.bottom()))
 
-        # Loop through the width of the widget, drawing vertical lines at intervals of adjusted_grid_size
-        x = start_x
-        while x < self.width():
-            painter.drawLine(x, 0, x, self.height())
-            x += adjusted_grid_size
+        # Draw horizontal lines across the scene
+        for y in range(top, int(rect.bottom()), self.grid_size):
+            painter.drawLine(int(rect.left()), y, int(rect.right()), y)
+            
+    def setLightMode(self):
+        """
+        Sets the view to light mode.
+        """
+        self.grid_color = QtGui.QColor(200, 200, 200)  # Light gray for grid lines
+        self.is_dark_mode = False
+        self.viewport().update()
+        self.scene.update()
 
-        # Loop through the height of the widget, drawing horizontal lines at intervals of adjusted_grid_size
-        y = start_y
-        while y < self.height():
-            painter.drawLine(0, y, self.width(), y)
-            y += adjusted_grid_size
+    def setDarkMode(self):
+        """
+        Sets the view to dark mode.
+        """
+        self.grid_color = QtGui.QColor(255,255,0)  # Dark gray for grid lines
+        self.is_dark_mode = True
+        self.viewport().update()
+        self.scene.update()
 
-        # End the painting process to free up resources
-        painter.end()
+    def toggleMode(self):
+        """
+        Toggles between dark mode and light mode.
+        """
+        if self.is_dark_mode:
+            self.setLightMode()
+        else:
+            self.setDarkMode()
 
-    """
-    Handles mouse wheel events to implement zoom in and out functionality using the mouse wheel scroll.
-
-    Parameters:
-    - event (QtGui.QWheelEvent): The wheel event containing information about the scroll.
-
-    Behavior:
-    - Scrolling up (positive delta): Zoom in by decreasing the grid_size, making the grid denser.
-    - Scrolling down (negative delta): Zoom out by increasing the grid_size, making the grid sparser.
-    - Clamps grid_size between min_grid_size and max_grid_size to prevent excessive zooming.
-    
-    Parameters:
-        - event (QtGui.QWheelEvent): The wheel event containing information about the scroll.
-"""
     def wheelEvent(self, event):
+        """
+        Handles mouse wheel events to implement zoom in and out functionality using the mouse wheel scroll.
+
+        Parameters:
+        - event (QtGui.QWheelEvent): The wheel event containing information about the scroll.
+        """
         delta = event.angleDelta().y()
-
-        # Define the zoom step size (number of pixels to adjust per scroll)
-        zoom_step = 1  # Adjust this value for faster or slower zooming
-
+        
         if delta > 0:
             # Wheel scrolled up: Zoom in by decreasing the grid_size
-            new_grid_size = self.grid_size + zoom_step
+            new_grid_size = self.grid_size + self.zoom_step
 
             # Ensure the new grid size does not go below the minimum limit
             if new_grid_size <= self.max_grid_size:
                 self.grid_size = new_grid_size
-                self.update()  # Request a repaint to apply the new grid size
+                self.viewport().update()  # Request a repaint to apply the new grid size
         elif delta < 0:
             # Wheel scrolled down: Zoom out by increasing the grid_size
-            new_grid_size = self.grid_size - zoom_step
+            new_grid_size = self.grid_size - self.zoom_step
 
             # Ensure the new grid size does not exceed the maximum limit
             if new_grid_size >= self.min_grid_size:
                 self.grid_size = new_grid_size
-                self.update()  # Request a repaint to apply the new grid size
-
+                self.viewport().update()  # Request a repaint to apply the new grid size
+        
         # Accept the event to indicate it has been handled
         event.accept()
-        
-    """
-    Handles mouse button press events to initiate panning when the middle mouse button is pressed.
 
-    Parameters:
-    - event (QtGui.QMouseEvent): The mouse event containing information about the button pressed.
-    """
     def mousePressEvent(self, event):
-        # Check if the middle mouse button was pressed
+        """
+        Handles mouse button press events to initiate panning when the middle mouse button is pressed.
+
+        Parameters:
+        - event (QtGui.QMouseEvent): The mouse event containing information about the button pressed.
+        """
         if event.button() == QtCore.Qt.MiddleButton:
-            # Begin panning
+            # Start panning
             self.is_panning = True
-
-            # Store the position where the panning started
             self.last_mouse_pos = event.pos()
-
-            # Change the cursor to a closed hand to indicate panning
             self.setCursor(QtCore.Qt.ClosedHandCursor)
-
-            # Accept the event to indicate it has been handled
             event.accept()
         else:
-            # For other mouse buttons, pass the event to the superclass
             super().mousePressEvent(event)
 
-    """
-    Handles mouse move events to update the grid offset when panning is active.
-
-    Parameters:
-    - event (QtGui.QMouseEvent): The mouse event containing information about the cursor position.
-    """
     def mouseMoveEvent(self, event):
-        # Check if panning is currently active
+        """
+        Handles mouse move events to update the scene position when panning is active.
+
+        Parameters:
+        - event (QtGui.QMouseEvent): The mouse event containing information about the cursor position.
+        """
         if self.is_panning and self.last_mouse_pos is not None:
-            # Get the current mouse position
-            current_pos = event.pos()
+            # Calculate the distance moved
+            delta = event.pos() - self.last_mouse_pos
 
-            # Calculate the distance moved since the last mouse position
-            delta_x = current_pos.x() - self.last_mouse_pos.x()
-            delta_y = current_pos.y() - self.last_mouse_pos.y()
+            # Translate the view accordingly
+            self.setTransformationAnchor(QtWidgets.QGraphicsView.NoAnchor)
+            self.translate(delta.x(), delta.y())
 
-            # Update the grid offsets based on the movement
-            self.x_offset += delta_x
-            self.y_offset += delta_y
-
-            # Store the new mouse position for the next movement
-            self.last_mouse_pos = current_pos
-
-            # Request a repaint to update the grid position
-            self.update()
+            # Update last mouse position
+            self.last_mouse_pos = event.pos()
 
             # Accept the event to indicate it has been handled
             event.accept()
         else:
-            # If not panning, pass the event to the superclass
             super().mouseMoveEvent(event)
 
-    """
-    Handles mouse button release events to end panning when the middle mouse button is released.
-
-    Parameters:
-    - event (QtGui.QMouseEvent): The mouse event containing information about the button released.
-    """
     def mouseReleaseEvent(self, event):
-        # Check if the middle mouse button was released
+        """
+        Handles mouse button release events to end panning when the middle mouse button is released.
+
+        Parameters:
+        - event (QtGui.QMouseEvent): The mouse event containing information about the button released.
+        """
         if event.button() == QtCore.Qt.MiddleButton and self.is_panning:
             # End panning
             self.is_panning = False
             self.last_mouse_pos = None
-
-            # Change the cursor back to the default arrow cursor
             self.setCursor(QtCore.Qt.ArrowCursor)
-
-            # Accept the event to indicate it has been handled
             event.accept()
         else:
-            # For other mouse buttons, pass the event to the superclass
             super().mouseReleaseEvent(event)
 
-    #################################################################
-    ### FOR BUTTON EVENT ###
-    """
-    The setGridVisible method controls the visibility of the grid widget.
-    
-    Parameters:
-        - visible (bool): If True, the grid is shown; if False, it is hidden.
-    """
     def setGridVisible(self, visible):
-        # Set the visibility of the widget based on the 'visible' parameter
+        """
+        Controls the visibility of the grid lines in the scene.
+
+        Parameters:
+        - visible (bool): If True, the grid is shown; if False, it is hidden.
+        """
         self.setVisible(visible)
 
-    """
-    The setGridColor method updates the color of the grid lines and repaints the widget to reflect the change.
-    
-    Parameters:
-        - color (QtGui.QColor): The new color for the grid lines.
-    """
     def setGridColor(self, color):
-        # Update the grid_color instance variable with the new color
-        self.grid_color = color
+        """
+        Updates the color of the grid lines and repaints the scene to reflect the change.
 
-        # Request a repaint of the widget to apply the new color
-        self.update()
+        Parameters:
+        - color (QtGui.QColor): The new color for the grid lines.
+        """
+        self.grid_color = color
+        self.viewport().update()  # Redraw the grid with the new color
+    
+    def resetView(self):
+        """Resets the zoom and position to the initial state."""
+        self.grid_size = 20
+        self.resetTransform()  # Reset the zoom to its original state
+        self.centerOn(0, 0)  # Center the view on the origin (initial position)
+        
+###################################################################################################
 
 ###################################################################################################
 
@@ -251,21 +236,26 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         uic.loadUi('prototype_gui.ui', self)
 
         # Create the grid widget and set it as the central widget of the main window
-        self.grid_widget = GridWidget(self)
+        # self.grid_widget = GridWidget(self)
+        self.grid_widget = GridGraphicsView()
         self.setCentralWidget(self.grid_widget)
 
         #################################################################   
         ### BUTTONS ###
         
-        ## GRID BUTTONS ##
+        ## GRID/VIEW BUTTONS ##
         # Find the QAction objects from the UI file
         self.toggle_grid_button = self.findChild(QtWidgets.QAction, "toggle_grid")
         self.change_grid_color_button = self.findChild(QtWidgets.QAction, "change_grid_color")
+        self.reset_view_button = self.findChild(QtWidgets.QAction, "reset_view")
+        self.toggle_mode_button = self.findChild(QtWidgets.QAction, "toggle_mode")
+        
         # Connect QAction signals to the respective slot methods
         # The 'toggled' signal emits a boolean value indicating the checked state
         self.toggle_grid_button.triggered.connect(self.toggle_grid_method)
-        # Connect the change grid color action to the respective slot method
         self.change_grid_color_button.triggered.connect(self.change_gridColor_method)
+        self.reset_view_button.triggered.connect(self.reset_view_method)
+        self.toggle_mode_button.triggered.connect(self.toggle_mode_method)
         
         ## UML DIAGRAM BUTTONS ##
         # Find the QAction objects from the toolbar
@@ -299,6 +289,19 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         # If the user selected a valid color, update the grid color
         if color.isValid():
             self.grid_widget.setGridColor(color)
+            
+    """
+    Helps user to get to default screen
+    """      
+    def reset_view_method(self):
+        # Reset to original view
+        self.grid_widget.resetView()
+        
+    """
+    Switching light and dark mode
+    """       
+    def toggle_mode_method(self):
+        self.grid_widget.toggleMode()
             
     """
     Adds a new UML class item to the scene when the 'add_class' QAction is triggered.

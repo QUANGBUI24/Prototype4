@@ -143,7 +143,7 @@ class GridWidget(QtWidgets.QWidget):
             if new_grid_size >= self.min_grid_size:
                 self.grid_size = new_grid_size
                 self.update()  # Request a repaint to apply the new grid size
-
+        self.viewport().update()
         # Accept the event to indicate it has been handled
         event.accept()
         
