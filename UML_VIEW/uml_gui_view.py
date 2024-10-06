@@ -20,7 +20,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.methods = methods if methods is not None else []
 
         # Define the bounding rectangle size
-        self.setRect(0, 0, 300, 200)
+        self.setRect(0, 0, 150, 200)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0)))  # Black border
         self.setBrush(QtGui.QBrush(QtGui.QColor(0, 255, 255)))  # Cyan background
 
@@ -220,13 +220,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.is_dark_mode = False
         self.setLightMode()
         
-        # Add a sample UML class box to the scene
-        class_box = UMLClassBox("Person", ["name: String", "age: int"], ["getName(): String", "getAge(): int"])
-        class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Make the box movable
-        class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)  # Make the box selectable
-        class_box.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Enable update on move/resize
-        self.scene.addItem(class_box)
-        
         # Define the zoom step size (number of pixels to adjust per scroll)
         self.zoom_step = 2  # Adjust this value for faster or slower zooming
         
@@ -246,6 +239,23 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Enable panning state variables
         self.is_panning = False
         self.last_mouse_pos = None
+        
+        # Track the selected UML class item
+        self.selected_class = None  
+        
+    def add_class(self):
+        # Add a sample UML class box to the scene
+        class_box = UMLClassBox("ClassName", ["Field_1", "Field_2"], ["Method_1()", "Method_2()"])
+        class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)  # Make the box movable
+        class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)  # Make the box selectable
+        class_box.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Enable update on move/resize
+        self.scene.addItem(class_box)
+        
+    def delete_selected_class(self):
+        """Deletes the selected class from the scene."""
+        if self.selected_class:
+            self.scene.removeItem(self.selected_class)
+            self.selected_class = None
 
     def drawBackground(self, painter, rect):
         """
@@ -344,6 +354,14 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Parameters:
         - event (QtGui.QMouseEvent): The mouse event containing information about the button pressed.
         """
+        # Tracking chosen class box
+        item = self.itemAt(event.pos())
+        if isinstance(item, UMLClassBox):
+            self.selected_class = item
+        else:
+            self.selected_class = None
+            
+        # Dragging around the grid view using middle mouse button
         if event.button() == QtCore.Qt.MiddleButton:
             # Start panning
             self.is_panning = True
@@ -453,10 +471,10 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         
         ## UML DIAGRAM BUTTONS ##
         # Find the QAction objects from the toolbar
-        # self.add_class_action = self.findChild(QtWidgets.QAction, "add_class")
-        # self.add_class_action.triggered.connect(self.add_class_to_diagram)
-        # self.delete_class_action = self.findChild(QtWidgets.QAction, "delete_class")
-        # self.delete_class_action.triggered.connect(self.delete_selected_class_from_diagram)
+        self.add_class_action = self.findChild(QtWidgets.QAction, "add_class")
+        self.add_class_action.triggered.connect(self.add_class_to_diagram)
+        self.delete_class_action = self.findChild(QtWidgets.QAction, "delete_class")
+        self.delete_class_action.triggered.connect(self.delete_selected_class_from_diagram)
          
     #################################################################    
     ### EVENT FUNCTIONS ###
@@ -500,13 +518,13 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
     """
     Adds a new UML class item to the scene when the 'add_class' QAction is triggered.
     """       
-    # def add_class_to_diagram(self):
-    #     # Call the method to add a UML class to the diagram
-    #     self.uml_view.add_class()
+    def add_class_to_diagram(self):
+        # Call the method to add a UML class to the diagram
+        self.grid_view.add_class()
         
-    # def delete_selected_class_from_diagram(self):
-    #     # Call the method to delete the selected UML class
-    #     self.uml_view.delete_selected_class()
+    def delete_selected_class_from_diagram(self):
+        # Call the method to delete the selected UML class
+        self.grid_view.delete_selected_class()
 
     #################################################################
 
