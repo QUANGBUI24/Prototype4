@@ -387,7 +387,7 @@ class Arrow(QtWidgets.QGraphicsLineItem):
     Inherits from QGraphicsLineItem to draw lines in the scene.
     """
 
-    def __init__(self, startItem, endItem, startKey, endKey):
+    def __init__(self, startItem, endItem, startKey, endKey, is_dark_mode=None):
         """
         Initializes a new Arrow instance.
 
@@ -403,9 +403,15 @@ class Arrow(QtWidgets.QGraphicsLineItem):
         self.startKey = startKey  # Connection point key on starting box
         self.endKey = endKey  # Connection point key on ending box
         self.setZValue(2)  # Ensure the arrow is on top of other items
+        
+        # Check if it's in dark mode or not
+        self.is_dark_mode = is_dark_mode
 
         # Set pen for drawing the line
-        pen = QtGui.QPen(QtCore.Qt.black)
+        if self.is_dark_mode:
+            pen = QtGui.QPen(QtCore.Qt.white)
+        else:
+            pen = QtGui.QPen(QtCore.Qt.black)
         pen.setWidth(2)
         self.setPen(pen)
 
@@ -448,6 +454,7 @@ class Arrow(QtWidgets.QGraphicsLineItem):
         """
         painter.setPen(self.pen())
         line = self.line()
+        
         painter.drawLine(line)
 
         # Calculate angle of the line for arrowhead orientation
@@ -466,7 +473,6 @@ class Arrow(QtWidgets.QGraphicsLineItem):
         # Create the arrowhead polygon
         arrowHead = QtGui.QPolygonF([line.p2(), arrowP1, arrowP2])
 
-        painter.setBrush(QtCore.Qt.black)
         painter.drawPolygon(arrowHead)  # Draw the arrowhead
 
     def mousePressEvent(self, event):
@@ -601,8 +607,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         if event.modifiers() & QtCore.Qt.ControlModifier:
             delta = event.angleDelta().y()
-            zoom_limit = 1.0
-            max_zoom_limit = 5.0
+            zoom_limit = 0.5
+            max_zoom_limit = 10.0
             current_scale = self.transform().m11()
 
             # Zoom in or out based on wheel movement
@@ -668,7 +674,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 self.line = QtWidgets.QGraphicsLineItem(
                     QtCore.QLineF(self.startPoint, self.startPoint)
                 )
-                pen = QtGui.QPen(QtCore.Qt.black)
+                if self.is_dark_mode:
+                    pen = QtGui.QPen(QtCore.Qt.white)
+                else:
+                    pen = QtGui.QPen(QtCore.Qt.black)
                 pen.setWidth(2)
                 self.line.setPen(pen)
                 self.line.setZValue(2)
@@ -759,7 +768,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         self.line = None
                         arrow = Arrow(
                             self.startItem, self.endItem,
-                            self.startKey, self.endKey
+                            self.startKey, self.endKey, self.is_dark_mode
                         )
                         self.scene().addItem(arrow)
                 else:
@@ -1000,5 +1009,5 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         Delete the selected class or arrow from the diagram.
         """
         self.grid_view.delete_selected_item()
-
+        
 #################################################################
