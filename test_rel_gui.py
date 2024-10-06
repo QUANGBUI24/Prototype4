@@ -1,16 +1,24 @@
-###################################################################################################
-
 import sys
-import os
+import math
 from PyQt5 import uic
 from PyQt5 import QtWidgets, QtGui, QtCore
-from UML_VIEW.uml_observer import UMLObserver as Observer
+from PyQt5.QtWidgets import (
+    QApplication, QGraphicsScene, QGraphicsView, QGraphicsRectItem,
+    QGraphicsLineItem, QGraphicsTextItem, QGraphicsEllipseItem, QGraphicsItem
+)
+from PyQt5.QtGui import (
+    QPen, QBrush, QPolygonF, QPainter, QColor
+)
+from PyQt5.QtCore import (
+    Qt, QPointF, QLineF
+)
 
-###################################################################################################
+# Assuming UMLObserver is defined elsewhere or remove it if not used
+# from UML_VIEW.uml_observer import UMLObserver as Observer
 
+##########################################################################
+### UMLClassBox ###
 class UMLClassBox(QtWidgets.QGraphicsRectItem):
-    #################################################################
-    ### CONSTRUCTOR ###
     """
     A representation of a UML class box with editable sections.
     """
@@ -51,6 +59,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.methods_text.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.methods_text.setDefaultTextColor(QtGui.QColor(0, 0, 0))
         self.methods_text.setPlainText(self.format_methods())  # Set methods text
+        
+        # Create connection points before updating positions
+        self.create_connection_points()
+
 
         # Resizing attributes
         self.is_box_dragged = False
@@ -61,12 +73,28 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Update positions based on the current box size
         self.update_positions()
-        
+
+        # Flags and variables for connections
+        self.arrows = []
+        self.setFlags(
+            QGraphicsItem.ItemIsMovable |
+            QGraphicsItem.ItemIsSelectable |
+            QGraphicsItem.ItemSendsGeometryChanges
+        )
+
+        # Define connection points
+        self.connectionPoints = {
+            'top': QPointF(self.rect().center().x(), self.rect().top()),
+            'bottom': QPointF(self.rect().center().x(), self.rect().bottom()),
+            'left': QPointF(self.rect().left(), self.rect().center().y()),
+            'right': QPointF(self.rect().right(), self.rect().center().y())
+        }
+
     #################################################################
     ### MEMBER FUNCTIONS ###
-    
+
     ## BOX RELATED ##
-    
+
     def format_methods(self):
         """Format the methods for display with parameters."""
         method_lines = []
@@ -74,13 +102,13 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             # Start with the method name
             line = method['name']
             method_lines.append(line)  # Add the method name to the list
-        
+
             # Add parameters with indentation
             for param in method['parameters']:
                 method_lines.append(f"    {param}")  # Indent with spaces
 
         return "\n".join(method_lines)
-    
+
     def create_resize_handles(self):
         """Create four resize handles at the corners of the class box."""
         # Create four handles for each corner
@@ -89,12 +117,12 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         }
 
         for handle in self.handles.values():
-            handle.setBrush(QtGui.QBrush(QtGui.QColor(0, 255, 255)))  # Red color for visibility
+            handle.setBrush(QtGui.QBrush(QtGui.QColor(0, 255, 255)))  # Cyan color for visibility
             handle.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Enable update on move/resize
             handle.setAcceptHoverEvents(True)  # Allow hover events on handles
             handle.hoverEnterEvent = self.handle_hoverEnterEvent
             handle.hoverLeaveEvent = self.handle_hoverLeaveEvent
-            
+
     def update_positions(self):
         """Update the positions of text items and handles based on the current box size."""
         rect = self.rect()
@@ -108,9 +136,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Update the positions of the separators based on the text heights
         self.update_separators()
-        
+
         # Position the resize handles
-        self.handles['bottom_right'].setPos(rect.x() + rect.width() - self.handle_size // 2, rect.y() + rect.height() - self.handle_size // 2)  # Bottom-right
+        self.handles['bottom_right'].setPos(rect.x() + rect.width() - self.handle_size // 2,
+                                            rect.y() + rect.height() - self.handle_size // 2)  # Bottom-right
 
     def update_separators(self):
         """Update the positions of the separator lines based on the current box size and text heights."""
@@ -124,10 +153,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
             self.separator_line1.setPen(QtGui.QPen(QtCore.Qt.black))  # Set line color
             self.separator_line2.setPen(QtGui.QPen(QtCore.Qt.black))  # Set line color
-    
+
     #################################################################
     ## MOUSE RELATED ##
-    
+
     def handle_hoverEnterEvent(self, event):
         """Change cursor to resize when hovering over this handle."""
         self.setCursor(QtCore.Qt.SizeFDiagCursor)  # Example cursor change for handles
@@ -137,7 +166,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         """Reset cursor when leaving this handle."""
         self.setCursor(QtCore.Qt.ArrowCursor)  # Reset cursor to default
         event.accept()
-        
+
     def mousePressEvent(self, event):
         """Handle mouse press events for the UML class box or the handles."""
         if event.button() == QtCore.Qt.LeftButton:
@@ -163,9 +192,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
             # Calculate minimum height based on the text items
             min_height = (self.fields_label.y() + self.fields_label.boundingRect().height() +
-                        self.field_text.boundingRect().height() +
-                        self.methods_label.boundingRect().height() +
-                        self.methods_text.boundingRect().height() + 40)  # Add padding
+                          self.field_text.boundingRect().height() +
+                          self.methods_label.boundingRect().height() +
+                          self.methods_text.boundingRect().height() + 40)  # Add padding
 
             # Calculate the maximum width based on the longest string in the labels and text items
             longest_string_width = max(
@@ -201,7 +230,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         super().mouseReleaseEvent(event)
 
-    def snap_to_grid(self, current_grid_size = 20):
+    def snap_to_grid(self, current_grid_size=20):
         """Snap the UML class box to the nearest grid position considering the current zoom level."""
         grid_size = current_grid_size * self.transform().m11()  # Scale grid size by zoom factor
         pos = self.pos()
@@ -210,18 +239,99 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         new_x = round(pos.x() / grid_size) * grid_size
         # Snap y-coordinate
         new_y = round(pos.y() / grid_size) * grid_size
-        
+
         # Set the new position
         self.setPos(new_x, new_y)
 
         # Optionally, update the positions of other elements after snapping
         self.update_positions()
 
-###################################################################################################
+    def addArrow(self, arrow):
+        self.arrows.append(arrow)
 
+    def removeArrow(self, arrow):
+        if arrow in self.arrows:
+            self.arrows.remove(arrow)
+
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemPositionHasChanged:
+            for arrow in self.arrows:
+                arrow.updatePosition()
+        return super().itemChange(change, value)
+
+    def getConnectionPoints(self):
+        # Map these points to scene coordinates
+        scenePoints = {}
+        for key, point in self.connectionPoints.items():
+            scenePoints[key] = self.mapToScene(point)
+        return scenePoints
+
+    def paint(self, painter, option, widget=None):
+        super().paint(painter, option, widget)
+
+        # Draw connection points
+        painter.setBrush(QBrush(QColor(0, 150, 0)))  # Dark green color
+        radius = 5
+        for point in self.connectionPoints.values():
+            painter.drawEllipse(point - QPointF(radius, radius), radius, radius)
+
+##########################################################################
+### Arrow ###
+class Arrow(QGraphicsLineItem):
+    def __init__(self, startItem, endItem, startKey, endKey):
+        super().__init__()
+        self.startItem = startItem
+        self.endItem = endItem
+        self.startKey = startKey
+        self.endKey = endKey
+        self.setZValue(2)  # Ensure the arrow is on top
+        pen = QPen(Qt.black)
+        pen.setWidth(2)
+        self.setPen(pen)
+        self.arrowSize = 10
+        self.setFlags(
+            QGraphicsItem.ItemIsSelectable |
+            QGraphicsItem.ItemIsFocusable
+        )
+        # Add this arrow to the items
+        self.startItem.addArrow(self)
+        self.endItem.addArrow(self)
+        self.updatePosition()
+
+    def updatePosition(self):
+        # Get updated positions of the connection points
+        startPoints = self.startItem.getConnectionPoints()
+        endPoints = self.endItem.getConnectionPoints()
+        startPoint = startPoints[self.startKey]
+        endPoint = endPoints[self.endKey]
+        line = QLineF(startPoint, endPoint)
+        self.setLine(line)
+
+    def paint(self, painter, option, widget=None):
+        painter.setPen(self.pen())
+        line = self.line()
+        painter.drawLine(line)
+
+        # Draw the arrowhead
+        angle = math.atan2(-line.dy(), line.dx())
+
+        arrowP1 = line.p2() - QPointF(
+            math.sin(angle + math.pi / 3) * self.arrowSize,
+            math.cos(angle + math.pi / 3) * self.arrowSize
+        )
+        arrowP2 = line.p2() - QPointF(
+            math.sin(angle + math.pi - math.pi / 3) * self.arrowSize,
+            math.cos(angle + math.pi - math.pi / 3) * self.arrowSize
+        )
+
+        arrowHead = QPolygonF([line.p2(), arrowP1, arrowP2])
+
+        painter.setBrush(Qt.black)
+        painter.drawPolygon(arrowHead)
+
+##########################################################################
+### GridGraphicsView ###
 class GridGraphicsView(QtWidgets.QGraphicsView):
-    #################################################################
-    ### CONSTRUCTOR ###
     """
     GridGraphicsView is a custom view that displays a grid pattern. This grid can be used
     as a background for applications like UML diagram editors to help align and organize
@@ -242,17 +352,17 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Set up the scene and view
         self.scene = QtWidgets.QGraphicsScene(parent)
         super().__init__(self.scene, parent)
-        
+
         # Initialize grid visibility attribute
         self.grid_visible = True  # Default to visible
-        
+
         # Set initial mode (light mode by default)
         self.is_dark_mode = False
         self.setLightMode()
-        
+
         # Define the zoom step size (number of pixels to adjust per scroll)
         self.zoom_step = 2  # Adjust this value for faster or slower zooming
-        
+
         # Store the grid properties
         self.grid_size = grid_size
         self.grid_color = color
@@ -265,21 +375,27 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.setRenderHint(QtGui.QPainter.Antialiasing)
         self.setSceneRect(-5000, -5000, 10000, 10000)  # Set large scene to ensure sufficient space for the grid
         self.setScene(self.scene)
-        
+
         # Enable panning state variables
         self.is_panning = False
         self.last_mouse_pos = None
-        
+
         # Track the selected UML class item
-        self.selected_class = None  
-    
+        self.selected_class = None
+
+        # Variables for arrow drawing
+        self.startItem = None
+        self.line = None
+        self.startPoint = None
+        self.startKey = None
+
     #################################################################
     ## GRID VIEW RELATED ##
-    
+
     def scale(self, sx, sy):
         """Override the scale method to resize class boxes when zooming."""
         super().scale(sx, sy)
-        
+
         # Loop through all items in the scene and resize UML class boxes
         for item in self.scene.items():
             if isinstance(item, UMLClassBox):
@@ -287,7 +403,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 current_rect = item.rect()
                 new_width = current_rect.width() * sx
                 new_height = current_rect.height() * sy
-                
+
                 # Update the UML class box with new dimensions
                 item.setRect(0, 0, new_width, new_height)
                 item.update_positions()  # Update positions of text and handles
@@ -305,7 +421,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             painter.fillRect(rect, QtGui.QColor(30, 30, 30))  # Dark background
         else:
             painter.fillRect(rect, QtGui.QColor(255, 255, 255))  # Light background
-            
+
         if self.grid_visible:  # Check if the grid should be drawn
             # Create a QPen object with the specified grid color
             pen = QtGui.QPen(self.grid_color)
@@ -325,7 +441,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Draw horizontal lines across the scene
             for y in range(top, int(rect.bottom()), self.grid_size):
                 painter.drawLine(int(rect.left()), y, int(rect.right()), y)
-                
+
             # Draw origin lines
             origin_pen = QtGui.QPen(QtGui.QColor(255, 0, 0))  # Set to red color for origin lines
             origin_pen.setWidth(2)  # Optional: Increase the line width for visibility
@@ -342,10 +458,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     #################################################################
     ## MOUSE RELATED ##
-    
+
     def wheelEvent(self, event):
         """Handles mouse wheel events to implement zoom in and out functionality using the mouse wheel scroll."""
-    
+
         # Check if the Ctrl key is pressed
         if event.modifiers() & QtCore.Qt.ControlModifier:
             delta = event.angleDelta().y()
@@ -363,7 +479,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 # Wheel scrolled down: Zoom out
                 if self.transform().m11() > zoom_limit:  # Check if current scale is greater than min
                     self.scale(0.9, 0.9)
-        
+
             # Snap the box to the appropriate grid size
             self.update_snap()
 
@@ -376,10 +492,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     def mousePressEvent(self, event):
         """
-        Handles mouse button press events to initiate panning when the middle mouse button is pressed.
-
-        Parameters:
-        - event (QtGui.QMouseEvent): The mouse event containing information about the button pressed.
+        Handles mouse button press events to initiate panning when the middle mouse button is pressed,
+        or to start drawing arrows with the right mouse button.
         """
         # Tracking chosen class box
         item = self.itemAt(event.pos())
@@ -387,22 +501,50 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             self.selected_class = item
         else:
             self.selected_class = None
-        # Dragging around the grid view using middle mouse
+
         if event.button() == QtCore.Qt.MiddleButton:
             # Start panning
             self.is_panning = True
             self.last_mouse_pos = event.pos()
             self.setCursor(QtCore.Qt.ClosedHandCursor)
             event.accept()
+        elif event.button() == QtCore.Qt.RightButton:
+            # Start drawing an arrow
+            scene_pos = self.mapToScene(event.pos())
+            items = self.scene.items(scene_pos)
+            items = [item for item in items if isinstance(item, UMLClassBox)]
+            if items:
+                clicked_item = items[0]
+                # Find the closest connection point
+                connectionPoints = clicked_item.getConnectionPoints()
+                min_distance = None
+                closest_point = None
+                closest_key = None
+                for key, point in connectionPoints.items():
+                    distance = QLineF(scene_pos, point).length()
+                    if min_distance is None or distance < min_distance:
+                        min_distance = distance
+                        closest_point = point
+                        closest_key = key
+                self.startItem = clicked_item
+                self.startPoint = closest_point
+                self.startKey = closest_key
+
+                self.line = QGraphicsLineItem(QLineF(self.startPoint, self.startPoint))
+                pen = QPen(Qt.black)
+                pen.setWidth(2)
+                self.line.setPen(pen)
+                self.line.setZValue(2)  # Ensure the line is on top of other items
+                self.scene.addItem(self.line)
+                event.accept()
+            else:
+                super().mousePressEvent(event)
         else:
             super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         """
-        Handles mouse move events to update the scene position when panning is active.
-
-        Parameters:
-        - event (QtGui.QMouseEvent): The mouse event containing information about the cursor position.
+        Handles mouse move events to update the scene position when panning is active or drawing arrows.
         """
         if self.is_panning and self.last_mouse_pos is not None:
             # Calculate the distance moved
@@ -414,21 +556,24 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
             # Update last mouse position
             self.last_mouse_pos = event.pos()
-            
+
             # Request a redraw of the viewport
-            self.viewport().update()  
-            
+            self.viewport().update()
+
             # Accept the event to indicate it has been handled
+            event.accept()
+        elif self.line:
+            # Update the temporary line during arrow drawing
+            new_end = self.mapToScene(event.pos())
+            newLine = QLineF(self.startPoint, new_end)
+            self.line.setLine(newLine)
             event.accept()
         else:
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         """
-        Handles mouse button release events to end panning when the middle mouse button is released.
-
-        Parameters:
-        - event (QtGui.QMouseEvent): The mouse event containing information about the button released.
+        Handles mouse button release events to end panning or finish drawing arrows.
         """
         if event.button() == QtCore.Qt.MiddleButton and self.is_panning:
             # End panning
@@ -436,10 +581,71 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             self.last_mouse_pos = None
             self.setCursor(QtCore.Qt.ArrowCursor)
             event.accept()
+        elif event.button() == QtCore.Qt.RightButton and self.line:
+            # Finish drawing the arrow
+            scene_pos = self.mapToScene(event.pos())
+            items = self.scene.items(scene_pos)
+            items = [item for item in items if isinstance(item, UMLClassBox)]
+            if items:
+                released_item = items[0]
+                if released_item != self.startItem:
+                    # Find the closest connection point on the released item
+                    connectionPoints = released_item.getConnectionPoints()
+                    min_distance = None
+                    closest_point = None
+                    closest_key = None
+                    for key, point in connectionPoints.items():
+                        distance = QLineF(scene_pos, point).length()
+                        if min_distance is None or distance < min_distance:
+                            min_distance = distance
+                            closest_point = point
+                            closest_key = key
+                    self.endItem = released_item
+                    self.endPoint = closest_point
+                    self.endKey = closest_key
+
+                    # Check if an arrow from startItem to endItem already exists
+                    arrow_exists = any(
+                        arrow.startItem == self.startItem and arrow.endItem == self.endItem
+                        for arrow in self.startItem.arrows
+                    )
+
+                    if arrow_exists:
+                        # Don't create a new arrow
+                        self.scene.removeItem(self.line)
+                        self.line = None
+                        # Optionally, you can notify the user
+                        QtWidgets.QMessageBox.warning(self, "Duplicate Relationship",
+                                                      "An arrow between these classes already exists.")
+                    else:
+                        # Remove the temporary line
+                        self.scene.removeItem(self.line)
+                        self.line = None
+
+                        # Create the arrow
+                        arrow = Arrow(
+                            self.startItem, self.endItem,
+                            self.startKey, self.endKey
+                        )
+                        self.scene.addItem(arrow)
+                else:
+                    self.scene.removeItem(self.line)
+                    self.line = None
+            else:
+                self.scene.removeItem(self.line)
+                self.line = None
+
+            self.startItem = None
+            self.endItem = None
+            self.startPoint = None
+            self.endPoint = None
+            self.startKey = None
+            self.endKey = None
+            event.accept()
         else:
             super().mouseReleaseEvent(event)
             # Request a redraw of the viewport
-            self.viewport().update()  
+            self.viewport().update()
 
     #################################################################
     ## UTILITY ##
@@ -449,7 +655,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         for item in self.scene.items():
             if isinstance(item, UMLClassBox):
                 item.snap_to_grid()
-        
+
     def setGridVisible(self, visible):
         """
         Controls the visibility of the grid lines in the scene.
@@ -469,7 +675,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         self.grid_color = color
         self.viewport().update()  # Redraw the grid with the new color
-    
+
     def resetView(self):
         """Resets the zoom and position to the initial state."""
         for item in self.scene.items():
@@ -481,7 +687,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.grid_size = 20
         self.resetTransform()  # Reset the zoom to its original state
         self.centerOn(0, 0)  # Center the view on the origin (initial position)
-        
+
     def add_class(self):
         # Add a sample UML class box to the scene
         field = ["Field_1", "Field_2"]
@@ -493,13 +699,18 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)  # Make the box selectable
         class_box.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)  # Enable update on move/resize
         self.scene.addItem(class_box)
-        
+
     def delete_selected_class(self):
-        """Deletes the selected class from the scene."""
+        """Deletes the selected class and connected arrows from the scene."""
         if self.selected_class:
+            # Remove connected arrows
+            for arrow in self.selected_class.arrows[:]:
+                arrow.startItem.removeArrow(arrow)
+                arrow.endItem.removeArrow(arrow)
+                self.scene.removeItem(arrow)
             self.scene.removeItem(self.selected_class)
             self.selected_class = None
-            
+
     def setLightMode(self):
         """
         Sets the view to light mode.
@@ -513,7 +724,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Sets the view to dark mode.
         """
-        self.grid_color = QtGui.QColor(255,255,0)  # Cyan for grid lines
+        self.grid_color = QtGui.QColor(255, 255, 0)  # Cyan for grid lines
         self.is_dark_mode = True
         self.viewport().update()
         self.scene.update()
@@ -527,94 +738,93 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             self.setDarkMode()
 
-###################################################################################################
-
-class MainWindow(QtWidgets.QMainWindow, Observer):
-    def __init__(self, interface):
+##########################################################################
+### MainWindow ###
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
         super().__init__()
-        self.interface = interface  # Interface to communicate with UMLCoreManager
 
-        # Load the UI first to access all elements defined in the UI file
-        uic.loadUi('prototype_gui.ui', self)
+        # Load the UI if you have a .ui file
+        # uic.loadUi('prototype_gui.ui', self)
 
-        # Create the grid widget and set it as the central widget of the main window
-        # self.grid_view = GridWidget(self)
+        # Create the grid view and set it as the central widget
         self.grid_view = GridGraphicsView()
         self.setCentralWidget(self.grid_view)
-        self.box = UMLClassBox()
 
-        #################################################################   
+        #################################################################
         ### BUTTONS ###
-        
+
+        # Create toolbars and actions if not using a UI file
+        toolbar = self.addToolBar("Main Toolbar")
+
         ## GRID/VIEW BUTTONS ##
-        # Find the QAction objects from the UI file
-        self.toggle_grid_button = self.findChild(QtWidgets.QAction, "toggle_grid")
-        self.change_grid_color_button = self.findChild(QtWidgets.QAction, "change_grid_color")
-        self.reset_view_button = self.findChild(QtWidgets.QAction, "reset_view")
-        self.toggle_mode_button = self.findChild(QtWidgets.QAction, "toggle_mode")
-        
-        # Connect QAction signals to the respective slot methods
-        # The 'toggled' signal emits a boolean value indicating the checked state
-        self.toggle_grid_button.triggered.connect(self.toggle_grid_method)
-        self.change_grid_color_button.triggered.connect(self.change_gridColor_method)
-        self.reset_view_button.triggered.connect(self.reset_view_method)
-        self.toggle_mode_button.triggered.connect(self.toggle_mode_method)
-        
+        self.toggle_grid_action = QtWidgets.QAction("Toggle Grid", self)
+        self.toggle_grid_action.setCheckable(True)
+        self.toggle_grid_action.setChecked(True)
+        self.toggle_grid_action.triggered.connect(self.toggle_grid_method)
+        toolbar.addAction(self.toggle_grid_action)
+
+        self.change_grid_color_action = QtWidgets.QAction("Change Grid Color", self)
+        self.change_grid_color_action.triggered.connect(self.change_gridColor_method)
+        toolbar.addAction(self.change_grid_color_action)
+
+        self.reset_view_action = QtWidgets.QAction("Reset View", self)
+        self.reset_view_action.triggered.connect(self.reset_view_method)
+        toolbar.addAction(self.reset_view_action)
+
+        self.toggle_mode_action = QtWidgets.QAction("Toggle Mode", self)
+        self.toggle_mode_action.triggered.connect(self.toggle_mode_method)
+        toolbar.addAction(self.toggle_mode_action)
+
         ## UML DIAGRAM BUTTONS ##
-        # Find the QAction objects from the toolbar
-        self.add_class_action = self.findChild(QtWidgets.QAction, "add_class")
+        self.add_class_action = QtWidgets.QAction("Add Class", self)
         self.add_class_action.triggered.connect(self.add_class_to_diagram)
-        self.delete_class_action = self.findChild(QtWidgets.QAction, "delete_class")
+        toolbar.addAction(self.add_class_action)
+
+        self.delete_class_action = QtWidgets.QAction("Delete Class", self)
         self.delete_class_action.triggered.connect(self.delete_selected_class_from_diagram)
-         
-    #################################################################    
+        toolbar.addAction(self.delete_class_action)
+
+    #################################################################
     ### EVENT FUNCTIONS ###
-    
+
     ## GRID EVENTS ##
 
-    """
-        Toggles the visibility of the grid widget each time the toggle button is clicked.
-        If the grid is visible, it will be hidden, and vice versa.
-
-        Parameters:
-        - checked (bool): Indicates whether the grid should be visible.
-    """
     def toggle_grid_method(self, checked):
         # Set the visibility of the grid widget based on the checked state
         self.grid_view.setGridVisible(checked)
 
-    """
-    Opens a color dialog to allow the user to select a new grid color for the grid widget.
-    """
     def change_gridColor_method(self):
         # Open a color dialog with the current grid color as the initial color
-        color = QtWidgets.QColorDialog.getColor(initial=self.grid_view.grid_color, parent=self, title="Select Grid Color")
+        color = QtWidgets.QColorDialog.getColor(initial=self.grid_view.grid_color, parent=self,
+                                                title="Select Grid Color")
         # If the user selected a valid color, update the grid color
         if color.isValid():
             self.grid_view.setGridColor(color)
-            
-    """
-    Helps user to get to default screen
-    """      
+
     def reset_view_method(self):
         # Reset to original view
         self.grid_view.resetView()
-        
-    """
-    Switching light and dark mode
-    """       
+
     def toggle_mode_method(self):
         self.grid_view.toggleMode()
-            
-    """
-    Adds a new UML class item to the scene when the 'add_class' QAction is triggered.
-    """       
+
     def add_class_to_diagram(self):
         # Call the method to add a UML class to the diagram
         self.grid_view.add_class()
-        
+
     def delete_selected_class_from_diagram(self):
         # Call the method to delete the selected UML class
         self.grid_view.delete_selected_class()
 
-    #################################################################
+##########################################################################
+### Main Function ###
+def main():
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.setWindowTitle("UML Diagram Editor")
+    window.show()
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()
