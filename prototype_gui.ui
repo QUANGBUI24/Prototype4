@@ -57,7 +57,13 @@
    <addaction name="menuEdit"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QToolBar" name="toolBar">
+  <widget class="QToolBar" name="mainToolBar">
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -67,26 +73,11 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionAdd_Class"/>
-   <addaction name="actionRename_Class"/>
-   <addaction name="actionDelete_Class"/>
+   <addaction name="add_class"/>
+   <addaction name="delete_class"/>
    <addaction name="separator"/>
-   <addaction name="actionAdd_Field"/>
-   <addaction name="actionRename_Field"/>
-   <addaction name="actionDelete_Field"/>
-   <addaction name="separator"/>
-   <addaction name="actionAdd_Method"/>
-   <addaction name="actionRename_Method"/>
-   <addaction name="actionDelete_Method"/>
-   <addaction name="separator"/>
-   <addaction name="actionAdd_Parameter"/>
-   <addaction name="actionRename_Parameter"/>
-   <addaction name="actionReplace_Parameter_List"/>
-   <addaction name="actionDelete_Parameter"/>
-   <addaction name="separator"/>
-   <addaction name="actionAdd_Relationship"/>
-   <addaction name="actionDelete_Relationship"/>
-   <addaction name="actionChange_Relationship_Type"/>
+   <addaction name="toggle_grid"/>
+   <addaction name="change_grid_color"/>
   </widget>
   <action name="actionSave">
    <property name="text">
@@ -245,7 +236,7 @@
     <string>About</string>
    </property>
   </action>
-  <action name="actionAdd_Class">
+  <action name="add_class">
    <property name="text">
     <string>Add Class</string>
    </property>
@@ -255,8 +246,33 @@
      <pointsize>14</pointsize>
     </font>
    </property>
+   <property name="shortcut">
+    <string>Shift+N</string>
+   </property>
   </action>
-  <action name="actionDelete_Class">
+  <action name="toggle_grid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Grid</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>14</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="change_grid_color">
+   <property name="text">
+    <string>Change Grid Color</string>
+   </property>
+  </action>
+  <action name="delete_class">
    <property name="text">
     <string>Delete Class</string>
    </property>
@@ -266,159 +282,8 @@
      <pointsize>14</pointsize>
     </font>
    </property>
-  </action>
-  <action name="actionAdd_Method">
-   <property name="text">
-    <string>Add Method</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionAdd_Field">
-   <property name="text">
-    <string>Add Field</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionAdd_Parameter">
-   <property name="text">
-    <string>Add Parameter</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionRename_Class">
-   <property name="text">
-    <string>Rename Class</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionDelete_Field">
-   <property name="text">
-    <string>Delete Field</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionRename_Field">
-   <property name="text">
-    <string>Rename Field</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionRename_Method">
-   <property name="text">
-    <string>Rename Method</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionDelete_Method">
-   <property name="text">
-    <string>Delete Method</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionRename_Parameter">
-   <property name="text">
-    <string>Rename Parameter</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionReplace_Parameter_List">
-   <property name="text">
-    <string>Replace Parameter List</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionDelete_Parameter">
-   <property name="text">
-    <string>Delete Parameter</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionAdd_Relationship">
-   <property name="text">
-    <string>Add Relationship</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionDelete_Relationship">
-   <property name="text">
-    <string>Delete Relationship</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-  </action>
-  <action name="actionChange_Relationship_Type">
-   <property name="text">
-    <string>Change Relationship Type</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
+   <property name="shortcut">
+    <string>Del</string>
    </property>
   </action>
  </widget>
