@@ -57,7 +57,7 @@
    <addaction name="menuEdit"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QToolBar" name="mainToolBar">
+  <widget class="QToolBar" name="left_tool_bar">
    <property name="font">
     <font>
      <family>MV Boli</family>
