@@ -1,6 +1,6 @@
 from UML_INTERFACE.uml_core_manager_interface import UMLInterface as Interface  
 from UML_VIEW.uml_cli_view import UMLView as CLIView
-from UML_VIEW.uml_gui_view import MainWindow as GUIView
+from UML_VIEW.UML_GUI.uml_gui_view import MainWindow as GUIView
 from PyQt5.QtWidgets import QApplication
 import sys
 
