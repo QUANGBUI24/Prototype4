@@ -50,10 +50,13 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.selected_arrow = None  # NEW: Track selected arrow
 
         # Variables for arrow drawing
-        self.startItem = None  # Starting class box for arrow
-        self.line = None  # Temporary line during arrow drawing
-        self.startPoint = None  # Starting point of the arrow
-        self.startKey = None  # Starting connection point key
+        self.startItem = None
+        self.endItem = None
+        self.startPoint = None
+        self.endPoint = None
+        self.startKey = None
+        self.endKey = None
+        self.line = None
 
     #################################################################
     ## GRID VIEW RELATED ##
@@ -180,32 +183,32 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 clicked_item = items[0]
                 # Find the closest connection point
                 connectionPoints = clicked_item.getConnectionPoints()
-                min_distance = None
-                closest_point = None
-                closest_key = None
-                for key, point in connectionPoints.items():
-                    distance = QtCore.QLineF(scene_pos, point).length()
-                    if min_distance is None or distance < min_distance:
-                        min_distance = distance
-                        closest_point = point
-                        closest_key = key
-                self.startItem = clicked_item
-                self.startPoint = closest_point
-                self.startKey = closest_key
+                if connectionPoints:
+                    min_distance = None
+                    closest_point = None
+                    closest_key = None
+                    for key, point in connectionPoints.items():
+                        distance = QtCore.QLineF(scene_pos, point).length()
+                        if min_distance is None or distance < min_distance:
+                            min_distance = distance
+                            closest_point = point
+                            closest_key = key
 
-                # Create a temporary line for the arrow
-                self.line = QtWidgets.QGraphicsLineItem(
-                    QtCore.QLineF(self.startPoint, self.startPoint)
-                )
-                if self.is_dark_mode:
-                    pen = QtGui.QPen(QtCore.Qt.white)
-                else:
-                    pen = QtGui.QPen(QtCore.Qt.black)
-                pen.setWidth(2)
-                self.line.setPen(pen)
-                self.line.setZValue(2)
-                self.scene().addItem(self.line)
-                event.accept()
+                    if closest_point and closest_key:
+                        self.startItem = clicked_item
+                        self.startPoint = closest_point
+                        self.startKey = closest_key
+
+                        # Create a temporary line for the arrow
+                        self.line = QtWidgets.QGraphicsLineItem(
+                            QtCore.QLineF(self.startPoint, self.startPoint)
+                        )
+                        pen = QtGui.QPen(QtCore.Qt.white) if self.is_dark_mode else QtGui.QPen(QtCore.Qt.black)
+                        pen.setWidth(2)
+                        self.line.setPen(pen)
+                        self.line.setZValue(2)
+                        self.scene().addItem(self.line)
+                        event.accept()
             else:
                 super().mousePressEvent(event)
         else:
@@ -229,9 +232,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         elif self.line:
             # Update the temporary arrow line during drawing
             new_end = self.mapToScene(event.pos())
-            newLine = QtCore.QLineF(self.startPoint, new_end)
-            self.line.setLine(newLine)
-            event.accept()
+            if self.startPoint:
+                newLine = QtCore.QLineF(self.startPoint, new_end)
+                self.line.setLine(newLine)
+                event.accept()
         else:
             super().mouseMoveEvent(event)
 
@@ -255,61 +259,76 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             items = [item for item in items if isinstance(item, UMLClassBox)]
             if items:
                 released_item = items[0]
-                if released_item != self.startItem:
-                    # Find the closest connection point on the released item
-                    connectionPoints = released_item.getConnectionPoints()
-                    min_distance = None
-                    closest_point = None
-                    closest_key = None
-                    for key, point in connectionPoints.items():
-                        distance = QtCore.QLineF(scene_pos, point).length()
-                        if min_distance is None or distance < min_distance:
-                            min_distance = distance
-                            closest_point = point
-                            closest_key = key
-                    self.endItem = released_item
-                    self.endPoint = closest_point
-                    self.endKey = closest_key
+                if released_item and self.startItem and released_item != self.startItem:
+                    try:
+                        # Find the closest connection point on the released item
+                        connectionPoints = released_item.getConnectionPoints()
+                        if connectionPoints:
+                            min_distance = None
+                            closest_point = None
+                            closest_key = None
+                            for key, point in connectionPoints.items():
+                                distance = QtCore.QLineF(scene_pos, point).length()
+                                if min_distance is None or distance < min_distance:
+                                    min_distance = distance
+                                    closest_point = point
+                                    closest_key = key
 
-                    # Check if an arrow between these classes already exists
-                    arrow_exists = any(
-                        arrow.startItem == self.startItem and arrow.endItem == self.endItem
-                        for arrow in self.startItem.arrows
-                    )
+                            # Validate the closest point and key
+                            if closest_point and closest_key:
+                                self.endItem = released_item
+                                self.endPoint = closest_point
+                                self.endKey = closest_key
 
-                    if arrow_exists:
-                        # Don't create a duplicate arrow
-                        self.scene().removeItem(self.line)
-                        self.line = None
-                        QtWidgets.QMessageBox.warning(
-                            self, "Duplicate Relationship",
-                            "An arrow between these classes already exists."
-                        )
-                    else:
-                        # Remove the temporary line and create the arrow
-                        self.scene().removeItem(self.line)
-                        self.line = None
-                        arrow = Arrow(
-                            self.startItem, self.endItem,
-                            self.startKey, self.endKey, self.is_dark_mode
-                        )
-                        self.scene().addItem(arrow)
+                                # Check if an arrow between these classes already exists
+                                arrow_exists = any(
+                                    arrow.startItem == self.startItem and arrow.endItem == self.endItem
+                                    for arrow in self.startItem.arrows
+                                )
+
+                                if arrow_exists:
+                                    # Don't create a duplicate arrow
+                                    if self.line:
+                                        self.scene().removeItem(self.line)
+                                        self.line = None
+                                    QtWidgets.QMessageBox.warning(
+                                        self, "Duplicate Relationship",
+                                        "An arrow between these classes already exists."
+                                    )
+                                else:
+                                    # Remove the temporary line and create the arrow
+                                    if self.line:
+                                        self.scene().removeItem(self.line)
+                                        self.line = None
+                                    arrow = Arrow(
+                                        self.startItem, self.endItem,
+                                        self.startKey, self.endKey, self.is_dark_mode
+                                    )
+                                    self.scene().addItem(arrow)
+                    except Exception as e:
+                        print(f"Error during arrow creation: {e}")
+                        if self.line:
+                            self.scene().removeItem(self.line)
+                            self.line = None
                 else:
-                    # Same item clicked; remove temporary line
+                    # Same item clicked or invalid start/released item; remove temporary line
+                    if self.line:
+                        self.scene().removeItem(self.line)
+                        self.line = None
+            else:
+                # No valid item under cursor; remove temporary line
+                if self.line:
                     self.scene().removeItem(self.line)
                     self.line = None
-            else:
-                # No item under cursor; remove temporary line
-                self.scene().removeItem(self.line)
-                self.line = None
 
-            # Reset variables
+            # Reset variables to avoid inconsistent state
             self.startItem = None
             self.endItem = None
             self.startPoint = None
             self.endPoint = None
             self.startKey = None
             self.endKey = None
+            self.line = None
             event.accept()
         else:
             super().mouseReleaseEvent(event)
