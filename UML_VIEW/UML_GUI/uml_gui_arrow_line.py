@@ -1,9 +1,6 @@
 ###################################################################################################
 
 import math  # For mathematical calculations (used in Arrow class)
-import sys
-import os
-from PyQt5 import uic
 from PyQt5 import QtWidgets, QtGui, QtCore
 
 ###################################################################################################

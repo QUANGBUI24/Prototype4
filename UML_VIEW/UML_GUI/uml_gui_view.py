@@ -1,10 +1,7 @@
 ###################################################################################################
 
-import math  # For mathematical calculations (used in Arrow class)
-import sys
-import os
 from PyQt5 import uic
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets
 from UML_VIEW.UML_GUI.uml_gui_grid import GridGraphicsView
 from UML_VIEW.UML_GUI.uml_gui_class_box import UMLClassBox
 from UML_VIEW.uml_observer import UMLObserver as Observer
@@ -31,9 +28,9 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         uic.loadUi('prototype_gui.ui', self)
 
         # Create the grid view and set it as the central widget
-        self.grid_view = GridGraphicsView()
+        self.grid_view = GridGraphicsView(self.interface)
         self.setCentralWidget(self.grid_view)
-        self.box = UMLClassBox()
+        self.box = UMLClassBox(self.interface)
 
         #################################################################
         ### BUTTONS SETUP ###

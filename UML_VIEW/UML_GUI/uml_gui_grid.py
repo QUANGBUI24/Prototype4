@@ -1,9 +1,5 @@
 ###################################################################################################
 
-import math  # For mathematical calculations (used in Arrow class)
-import sys
-import os
-from PyQt5 import uic
 from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_VIEW.UML_GUI.uml_gui_class_box import UMLClassBox
 from UML_VIEW.UML_GUI.uml_gui_arrow_line import Arrow
@@ -19,7 +15,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     #################################################################
     ### CONSTRUCTOR ###
 
-    def __init__(self, parent=None, grid_size=20, color=QtGui.QColor(200, 200, 200)):
+    def __init__(self, interface, parent=None, grid_size=20, color=QtGui.QColor(200, 200, 200)):
         """
         Initializes a new GridGraphicsView instance.
 
@@ -30,6 +26,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         super().__init__(QtWidgets.QGraphicsScene(parent), parent)
 
+        # Interface to communicate with UMLCoreManager
+        self.interface = interface  
+        
         # Initialize grid properties
         self.grid_visible = True  # Flag to show/hide the grid
         self.is_dark_mode = False  # Flag for light/dark mode
@@ -415,7 +414,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         field = ["Field_1", "Field_2"]
         methods = [{"Method_1" : ["Param_1", "Param_2"]}, {"Method_2" : ["Param_4", "Param_5"]}]
-        class_box = UMLClassBox(class_name="Class_Name", field=field, methods=methods)
+        class_box = UMLClassBox(self.interface, class_name="Class_Name", field=field, methods=methods)
         class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
         class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
         class_box.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
