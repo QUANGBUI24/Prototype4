@@ -30,8 +30,8 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         super().__init__(parent)
 
         # Default properties for attributes (fields) and methods if not provided
-        self.field = field if field is not None else []
-        self.methods = methods if methods is not None else []
+        self.field: list[str] = field if field is not None else []
+        self.methods: list[dict[str,list[str]]] = methods if methods is not None else [{}]
 
         # Define the bounding rectangle size of the class box
         self.setRect(0, 0, 150, 250)
@@ -91,13 +91,12 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         - str: Formatted methods as a string.
         """
         method_lines = []
-        for method in self.methods:
-            line = method['name']
-            method_lines.append(line)  # Add the method name
-
-            # Add parameters with indentation
-            for param in method['parameters']:
-                method_lines.append(f"    {param}")  # Indent parameters
+        for each_pair in self.methods:
+            for method_name, param_list in each_pair.items():
+                line = method_name
+                method_lines.append(line)
+                for each_param in param_list:
+                    method_lines.append(f"    {each_param}")  # Indent parameters
 
         return "\n".join(method_lines)  # Return formatted methods as a string
 

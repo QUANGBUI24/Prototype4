@@ -414,10 +414,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Add a sample UML class box to the scene.
         """
         field = ["Field_1", "Field_2"]
-        methods = [
-            {'name': 'Method_1', 'parameters': ['param_1', 'param_2']},
-            {'name': 'Method_2', 'parameters': []}
-        ]
+        methods = [{"Method_1" : ["Param_1", "Param_2"]}, {"Method_2" : ["Param_4", "Param_5"]}]
         class_box = UMLClassBox(class_name="Class_Name", field=field, methods=methods)
         class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
         class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
