@@ -4,6 +4,91 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 
 ###################################################################################################
 
+class MethodItem(QtWidgets.QGraphicsRectItem):
+    def __init__(self, method_name, default_margin=None, parent=None):
+        super().__init__(QtCore.QRectF(0, 0, 200, 60), parent)
+        self.setBrush(QtGui.QColor(255, 255, 200))  # Light yellow color for methods
+
+        # Method Name
+        self.method_name_text = QtWidgets.QGraphicsTextItem(method_name, self)
+        self.method_name_text.setPos(default_margin, default_margin + 160)
+
+        # Parameters List
+        self.parameters = []
+
+        # Parameters Buttons (+ and -)
+        self.add_param_button = QtWidgets.QPushButton("+ Parameter")
+        self.remove_param_button = QtWidgets.QPushButton("- Parameter")
+        self.add_param_button.setStyleSheet("""
+    QPushButton {
+        background-color: #55ffff;   /* Cyan background */
+        color: black;                /* Black text */
+        border-radius: 1px;          /* Rounded corners */
+        padding: 1px;                /* Padding inside the button */
+        border: 1px solid #000000;   /* Black border */
+        min-width: 8px;             /* Minimum width */
+        min-height: 8px;            /* Minimum height */
+        font-size: 10px;             /* Font size */
+    }
+    QPushButton:hover {
+        background-color: #45a049;   /* Darker green when hovered */
+    }
+""")
+
+        # Style for the remove field button
+        self.remove_param_button.setStyleSheet("""
+    QPushButton {
+        background-color: #55ffff;   /* Cyan background */
+        color: black;                /* Black text */
+        border-radius: 1px;          /* Rounded corners */
+        padding: 1px;                /* Padding inside the button */
+        border: 1px solid #000000;   /* Black border */
+        min-width: 8px;             /* Minimum width */
+        min-height: 8px;            /* Minimum height */
+        font-size: 10px;             /* Font size */
+    }
+    QPushButton:hover {
+        background-color: #45a049;   /* Darker green when hovered */
+    }
+""")
+        self.add_param_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        self.add_param_button_proxy.setWidget(self.add_param_button)
+        self.add_param_button_proxy.setPos(10, 30)
+        
+        self.remove_param_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        self.remove_param_button_proxy.setWidget(self.remove_param_button)
+        self.remove_param_button_proxy.setPos(110, 30)
+
+        # Connect Parameter Buttons
+        self.add_param_button.clicked.connect(self.add_parameter)
+        self.remove_param_button.clicked.connect(self.remove_parameter)
+
+    def add_parameter(self):
+        param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
+        if ok and param_name:
+            self.parameters.append(param_name)
+            
+
+    def remove_parameter(self):
+        if self.parameters:
+            # Show list of current parameters for the user to choose which one to delete
+            param_names = [param.toPlainText() for param in self.parameters]
+            param_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Parameter", "Select parameter to remove:", param_names, 0, False)
+            if ok and param_name:
+                # Find the parameter to remove
+                for param in self.parameters:
+                    if param.toPlainText() == param_name:
+                        self.scene().removeItem(param)
+                        self.parameters.remove(param)
+                        break
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to remove.")
+            
+    def update_param_text(self):
+         pass
+
+###################################################################################################
+
 class UMLClassBox(QtWidgets.QGraphicsRectItem):
     """
     A representation of a UML class box with editable sections for class name, fields, and methods.
@@ -30,7 +115,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         
         # Default properties for attributes (fields) and methods if not provided
         self.field: list[str] = field if field is not None else []
-        self.methods: list[dict[str, list[str]]] = methods if methods is not None else [{}]
+        self.methods: list[dict[str, list[str]]] = methods if methods is not None else []
 
         # Default size and margin settings
         self.default_width = 150
@@ -52,6 +137,114 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.fields_label = QtWidgets.QGraphicsTextItem(self)
         self.fields_label.setDefaultTextColor(QtGui.QColor(0, 0, 0))
         self.fields_label.setPlainText("Fields")  # Set fields label text
+        
+        #################################################################
+        
+        # Create button to add field names, method names, and parameter names
+        self.add_field_button = QtWidgets.QPushButton("+")
+        self.remove_field_button = QtWidgets.QPushButton("-")
+        
+        self.add_method_button = QtWidgets.QPushButton("+")
+        self.remove_method_button = QtWidgets.QPushButton("-")
+        
+        # Apply styles to make the buttons rounder and change the colors
+        
+        # Style for the add field button
+        self.add_field_button.setStyleSheet("""
+    QPushButton {
+        background-color: #55ffff;   /* Cyan background */
+        color: black;                /* Black text */
+        border-radius: 1px;          /* Rounded corners */
+        padding: 1px;                /* Padding inside the button */
+        border: 1px solid #000000;   /* Black border */
+        min-width: 8px;             /* Minimum width */
+        min-height: 8px;            /* Minimum height */
+        font-size: 10px;             /* Font size */
+    }
+    QPushButton:hover {
+        background-color: #45a049;   /* Darker green when hovered */
+    }
+""")
+
+        # Style for the remove field button
+        self.remove_field_button.setStyleSheet("""
+    QPushButton {
+        background-color: #55ffff;   /* Cyan background */
+        color: black;                /* Black text */
+        border-radius: 1px;          /* Rounded corners */
+        padding: 1px;                /* Padding inside the button */
+        border: 1px solid #000000;   /* Black border */
+        min-width: 8px;             /* Minimum width */
+        min-height: 8px;            /* Minimum height */
+        font-size: 10px;             /* Font size */
+    }
+    QPushButton:hover {
+        background-color: #45a049;   /* Darker green when hovered */
+    }
+""")
+        self.add_method_button.setStyleSheet("""
+    QPushButton {
+        background-color: #55ffff;   /* Cyan background */
+        color: black;                /* Black text */
+        border-radius: 1px;          /* Rounded corners */
+        padding: 1px;                /* Padding inside the button */
+        border: 1px solid #000000;   /* Black border */
+        min-width: 8px;             /* Minimum width */
+        min-height: 8px;            /* Minimum height */
+        font-size: 10px;             /* Font size */
+    }
+    QPushButton:hover {
+        background-color: #45a049;   /* Darker green when hovered */
+    }
+""")
+
+        # Style for the remove method button
+        self.remove_method_button.setStyleSheet("""
+    QPushButton {
+        background-color: #55ffff;   /* Cyan background */
+        color: black;                /* Black text */
+        border-radius: 1px;          /* Rounded corners */
+        padding: 1px;                /* Padding inside the button */
+        border: 1px solid #000000;   /* Black border */
+        min-width: 8px;             /* Minimum width */
+        min-height: 8px;            /* Minimum height */
+        font-size: 10px;             /* Font size */
+    }
+    QPushButton:hover {
+        background-color: #45a049;   /* Darker green when hovered */
+    }
+""")
+        
+        ##################################
+        
+        self.add_field_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        self.add_field_button_proxy.setWidget(self.add_field_button)
+        self.add_field_button_proxy.setPos(self.default_margin + 34, self.default_margin + 30)
+        
+        self.remove_field_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        self.remove_field_button_proxy.setWidget(self.remove_field_button)
+        self.remove_field_button_proxy.setPos(self.default_margin + 49, self.default_margin + 30)
+        
+        ##################################
+        
+        self.add_method_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        self.add_method_button_proxy.setWidget(self.add_method_button)
+        self.add_method_button_proxy.setPos(self.default_margin + 48, self.default_margin + 105)
+        
+        self.remove_method_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        self.remove_method_button_proxy.setWidget(self.remove_method_button)
+        self.remove_method_button_proxy.setPos(self.default_margin + 63, self.default_margin + 105)
+        
+        ##################################
+        
+        self.add_field_button.clicked.connect(self.add_field)
+        self.remove_field_button.clicked.connect(self.remove_field)
+        
+        # Connect Method Buttons
+        self.add_method_button.clicked.connect(self.add_method)
+        self.remove_method_button.clicked.connect(self.remove_method)
+        
+        #################################################################
 
         self.methods_label = QtWidgets.QGraphicsTextItem(self)
         self.methods_label.setDefaultTextColor(QtGui.QColor(0, 0, 0))
@@ -85,6 +278,61 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Update positions of all elements based on the current box size
         self.update_positions()
 
+    #################################################################
+    
+    def add_field(self):
+        field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
+        if ok and field_name:
+            self.field.append(field_name)  # Append the new field name
+            self.update_field_text()  # Update the graphical representation of fields
+
+    def remove_field(self):
+        if self.field:
+            # Show list of current fields for the user to choose which one to delete
+            field_names_list = self.field  # Use plain field names
+            field_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Field", "Select field to remove:", field_names_list, 0, False)
+            if ok and field_name:
+                # Remove the field name directly
+                self.field.remove(field_name)
+                self.update_field_text()  # Update the graphical representation of fields
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No fields to remove.")
+
+    def add_method(self):
+        method_name, ok = QtWidgets.QInputDialog.getText(None, "Add Method", "Enter method name:")
+        if ok and method_name:
+            self.methods.append({method_name + "()" : []})
+            self.update_method_text()
+
+    def remove_method(self):
+        if len(self.methods) > 0:
+            # Extract method names from the methods list
+            method_name_list = [list(method.keys())[0] for method in self.methods if method]
+            method_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Field", "Select field to remove:", method_name_list, 0, False)
+            if ok and method_name:
+                # Remove the method name directly
+                for each_pair in self.methods:
+                    if method_name in each_pair:
+                        self.methods.remove(each_pair)
+                        break
+            self.update_method_text()
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No methods to remove.")
+    
+    def update_method_text(self):
+        """
+        Update the displayed text for the method based on the current list of method names.
+        """
+        self.methods_text.setPlainText(self.format_methods())
+        self.update_positions()  # Ensure the positions of all items are updated
+        
+    def update_field_text(self):
+        """
+        Update the displayed text for the fields based on the current list of field names.
+        """
+        self.field_text.setPlainText("\n".join(self.field))  # Update the field text display
+        self.update_positions()  # Ensure the positions of all items are updated
+            
     #################################################################
     ### MEMBER FUNCTIONS ###
 
@@ -147,7 +395,11 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.field_text.setPos(self.default_margin + 10, class_name_height + fields_label_height + 3 * self.default_margin)
         self.methods_label.setPos(self.default_margin, class_name_height + fields_label_height + fields_text_height + 4 * self.default_margin)
         self.methods_text.setPos(self.default_margin + 10, class_name_height + fields_label_height + fields_text_height + methods_label_height + 5 * self.default_margin)
-
+        self.add_field_button_proxy.setPos(self.default_margin + 34, class_name_height + 21)
+        self.remove_field_button_proxy.setPos(self.default_margin + 49, class_name_height + 21)
+        self.add_method_button_proxy.setPos(self.default_margin + 48, class_name_height + fields_text_height + 62)
+        self.remove_method_button_proxy.setPos(self.default_margin + 63, class_name_height + fields_text_height + 62)
+        
         # Calculate total height of the box
         total_height = (
             class_name_height + fields_label_height + fields_text_height + methods_label_height + methods_text_height + 6 * self.default_margin
@@ -160,7 +412,8 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             self.fields_label.boundingRect().width() + 2 * self.default_margin,
             self.field_text.boundingRect().width() + 2 * self.default_margin + 10,
             self.methods_label.boundingRect().width() + 2 * self.default_margin,
-            self.methods_text.boundingRect().width() + 2 * self.default_margin + 10
+            self.methods_text.boundingRect().width() + 2 * self.default_margin + 10,
+            self.remove_method_button_proxy.boundingRect().width() + 2 * self.default_margin + 10
         )
 
         # Update the box size only if not being resized manually
