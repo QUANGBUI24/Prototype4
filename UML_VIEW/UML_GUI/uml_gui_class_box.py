@@ -4,91 +4,6 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 
 ###################################################################################################
 
-class MethodItem(QtWidgets.QGraphicsRectItem):
-    def __init__(self, method_name, default_margin=None, parent=None):
-        super().__init__(QtCore.QRectF(0, 0, 200, 60), parent)
-        self.setBrush(QtGui.QColor(255, 255, 200))  # Light yellow color for methods
-
-        # Method Name
-        self.method_name_text = QtWidgets.QGraphicsTextItem(method_name, self)
-        self.method_name_text.setPos(default_margin, default_margin + 160)
-
-        # Parameters List
-        self.parameters = []
-
-        # Parameters Buttons (+ and -)
-        self.add_param_button = QtWidgets.QPushButton("+ Parameter")
-        self.remove_param_button = QtWidgets.QPushButton("- Parameter")
-        self.add_param_button.setStyleSheet("""
-    QPushButton {
-        background-color: #55ffff;   /* Cyan background */
-        color: black;                /* Black text */
-        border-radius: 1px;          /* Rounded corners */
-        padding: 1px;                /* Padding inside the button */
-        border: 1px solid #000000;   /* Black border */
-        min-width: 8px;             /* Minimum width */
-        min-height: 8px;            /* Minimum height */
-        font-size: 10px;             /* Font size */
-    }
-    QPushButton:hover {
-        background-color: #45a049;   /* Darker green when hovered */
-    }
-""")
-
-        # Style for the remove field button
-        self.remove_param_button.setStyleSheet("""
-    QPushButton {
-        background-color: #55ffff;   /* Cyan background */
-        color: black;                /* Black text */
-        border-radius: 1px;          /* Rounded corners */
-        padding: 1px;                /* Padding inside the button */
-        border: 1px solid #000000;   /* Black border */
-        min-width: 8px;             /* Minimum width */
-        min-height: 8px;            /* Minimum height */
-        font-size: 10px;             /* Font size */
-    }
-    QPushButton:hover {
-        background-color: #45a049;   /* Darker green when hovered */
-    }
-""")
-        self.add_param_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
-        self.add_param_button_proxy.setWidget(self.add_param_button)
-        self.add_param_button_proxy.setPos(10, 30)
-        
-        self.remove_param_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
-        self.remove_param_button_proxy.setWidget(self.remove_param_button)
-        self.remove_param_button_proxy.setPos(110, 30)
-
-        # Connect Parameter Buttons
-        self.add_param_button.clicked.connect(self.add_parameter)
-        self.remove_param_button.clicked.connect(self.remove_parameter)
-
-    def add_parameter(self):
-        param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
-        if ok and param_name:
-            self.parameters.append(param_name)
-            
-
-    def remove_parameter(self):
-        if self.parameters:
-            # Show list of current parameters for the user to choose which one to delete
-            param_names = [param.toPlainText() for param in self.parameters]
-            param_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Parameter", "Select parameter to remove:", param_names, 0, False)
-            if ok and param_name:
-                # Find the parameter to remove
-                for param in self.parameters:
-                    if param.toPlainText() == param_name:
-                        self.scene().removeItem(param)
-                        self.parameters.remove(param)
-                        break
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to remove.")
-            
-    def update_param_text(self):
-         pass
-
-###################################################################################################
-
 class UMLClassBox(QtWidgets.QGraphicsRectItem):
     """
     A representation of a UML class box with editable sections for class name, fields, and methods.
@@ -149,71 +64,13 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         
         # Apply styles to make the buttons rounder and change the colors
         
-        # Style for the add field button
-        self.add_field_button.setStyleSheet("""
-    QPushButton {
-        background-color: #55ffff;   /* Cyan background */
-        color: black;                /* Black text */
-        border-radius: 1px;          /* Rounded corners */
-        padding: 1px;                /* Padding inside the button */
-        border: 1px solid #000000;   /* Black border */
-        min-width: 8px;             /* Minimum width */
-        min-height: 8px;            /* Minimum height */
-        font-size: 10px;             /* Font size */
-    }
-    QPushButton:hover {
-        background-color: #45a049;   /* Darker green when hovered */
-    }
-""")
+        # Style for the add/remove field button
+        self.add_field_button.setStyleSheet(self.button_style())
+        self.remove_field_button.setStyleSheet(self.button_style())
 
-        # Style for the remove field button
-        self.remove_field_button.setStyleSheet("""
-    QPushButton {
-        background-color: #55ffff;   /* Cyan background */
-        color: black;                /* Black text */
-        border-radius: 1px;          /* Rounded corners */
-        padding: 1px;                /* Padding inside the button */
-        border: 1px solid #000000;   /* Black border */
-        min-width: 8px;             /* Minimum width */
-        min-height: 8px;            /* Minimum height */
-        font-size: 10px;             /* Font size */
-    }
-    QPushButton:hover {
-        background-color: #45a049;   /* Darker green when hovered */
-    }
-""")
-        self.add_method_button.setStyleSheet("""
-    QPushButton {
-        background-color: #55ffff;   /* Cyan background */
-        color: black;                /* Black text */
-        border-radius: 1px;          /* Rounded corners */
-        padding: 1px;                /* Padding inside the button */
-        border: 1px solid #000000;   /* Black border */
-        min-width: 8px;             /* Minimum width */
-        min-height: 8px;            /* Minimum height */
-        font-size: 10px;             /* Font size */
-    }
-    QPushButton:hover {
-        background-color: #45a049;   /* Darker green when hovered */
-    }
-""")
-
-        # Style for the remove method button
-        self.remove_method_button.setStyleSheet("""
-    QPushButton {
-        background-color: #55ffff;   /* Cyan background */
-        color: black;                /* Black text */
-        border-radius: 1px;          /* Rounded corners */
-        padding: 1px;                /* Padding inside the button */
-        border: 1px solid #000000;   /* Black border */
-        min-width: 8px;             /* Minimum width */
-        min-height: 8px;            /* Minimum height */
-        font-size: 10px;             /* Font size */
-    }
-    QPushButton:hover {
-        background-color: #45a049;   /* Darker green when hovered */
-    }
-""")
+        # Style for the add/remove method button
+        self.add_method_button.setStyleSheet(self.button_style())
+        self.remove_method_button.setStyleSheet(self.button_style())
         
         ##################################
         
@@ -280,6 +137,24 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
     #################################################################
     
+    def button_style(self):
+        """ Return button style for uniformity. """
+        return """
+        QPushButton {
+            background-color: #55ffff;
+            color: black;
+            border-radius: 1px;
+            padding: 1px;
+            border: 1px solid #000000;
+            min-width: 8px;
+            min-height: 8px;
+            font-size: 10px;
+        }
+        QPushButton:hover {
+            background-color: #45a049;
+        }
+        """
+    
     def add_field(self):
         field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
         if ok and field_name:
@@ -318,6 +193,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             self.update_method_text()
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to remove.")
+            
+    def create_button_to_add_param(self):
+        if self.methods:
+            
     
     def update_method_text(self):
         """
