@@ -3,6 +3,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_VIEW.UML_GUI.uml_gui_class_box import UMLClassBox
 from UML_VIEW.UML_GUI.uml_gui_arrow_line import Arrow
+from UML_VIEW.UML_GUI.uml_gui_class_box import Method
 
 ###################################################################################################
 
@@ -351,8 +352,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     def delete_selected_item(self):
         """
         Delete the selected class or arrow from the scene.
-        """
+        """  
         if self.selected_class:
+            # Remove all methods and its parameter buttons
+            self.selected_class.remove_all_method()
             # Remove connected arrows first
             for arrow in self.selected_class.arrows[:]:
                 arrow.startItem.removeArrow(arrow)

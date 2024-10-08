@@ -5,19 +5,33 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 ###################################################################################################
 
 class Method(QtWidgets.QGraphicsRectItem):
-    def __init__(self, name, button_style=None):
+    def __init__(self, name):
         super().__init__()
         
-        self.name = name
+        self.parameter_name = name
         self.parameters = []  # List to hold parameters for the method
+        
+        self.param_text = QtWidgets.QGraphicsTextItem(self)
+        self.param_text.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.param_text.setDefaultTextColor(QtGui.QColor(0, 0, 0))
+        self.param_text.setPlainText("\n".join(self.parameters))  # Format and set methods text
+        # self.param_text.document().contentsChanged.connect(self.update_positions)
 
         # Create buttons for adding/removing parameters
         self.add_param_button = QtWidgets.QPushButton("+")
         self.remove_param_button = QtWidgets.QPushButton("-")
-
+        
         # Style buttons
-        self.add_param_button.setStyleSheet(button_style)
-        self.remove_param_button.setStyleSheet(button_style)
+        self.add_param_button.setStyleSheet(self.param_button_style())
+        self.remove_param_button.setStyleSheet(self.param_button_style())
+        
+        # Initialize the proxy widgets
+        self.add_param_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        self.remove_param_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        
+        # Create proxies after the buttons are set up
+        self.add_param_button_proxy.setWidget(self.add_param_button)
+        self.remove_param_button_proxy.setWidget(self.remove_param_button)
 
         # Connect buttons to their respective functions
         self.add_param_button.clicked.connect(self.add_parameter)
@@ -27,14 +41,42 @@ class Method(QtWidgets.QGraphicsRectItem):
         param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
         if ok and param_name:
             self.parameters.append(param_name)
+            self.update_param_text()
 
     def remove_parameter(self):
         if self.parameters:
             param_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Parameter", "Select parameter to remove:", self.parameters, 0, False)
             if ok and param_name:
                 self.parameters.remove(param_name)
+                self.update_param_text()
+                return
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to remove.")
+    
+    def update_param_text(self):
+        """
+        Update the displayed text for the method based on the current list of method names.
+        """
+        self.param_text.setPlainText("\n".join(self.parameters))
+        # self.update_positions()  # Ensure the positions of all items are updated
+            
+    def param_button_style(self):
+        """ Return button style for uniformity. """
+        return """
+        QPushButton {
+            background-color: #55ffff;
+            color: black;
+            border-radius: 1px;
+            padding: 1px;
+            border: 1px solid #000000;
+            min-width: 7px;
+            min-height: 7px;
+            font-size: 7px;
+        }
+        QPushButton:hover {
+            background-color: #45a049;
+        }
+        """
 
 ###################################################################################################
 
@@ -188,23 +230,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             background-color: #45a049;
         }
         """
-    def param_button_style(self):
-        """ Return button style for uniformity. """
-        return """
-        QPushButton {
-            background-color: #55ffff;
-            color: black;
-            border-radius: 1px;
-            padding: 1px;
-            border: 1px solid #000000;
-            min-width: 5px;
-            min-height: 5px;
-            font-size: 5px;
-        }
-        QPushButton:hover {
-            background-color: #45a049;
-        }
-        """
     
     def add_field(self):
         field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
@@ -227,42 +252,54 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     def add_method(self):
         method_name, ok = QtWidgets.QInputDialog.getText(None, "Add Method", "Enter method name:")
         if ok and method_name:
-            new_method = Method(method_name + "()", self.button_style())  # Create a Method instance
+            new_method = Method(method_name + "()")  # Create a Method instance
             self.methods.append(new_method)
-            self.add_method_buttons(new_method)
+
+            # Add the Method's buttons (add/remove parameter) to the scene and position them
+            self.add_method_buttons_to_scene(new_method)
             self.update_method_text()
 
-    def add_method_buttons(self, method):
-        """Add buttons for the given method and position them."""
-        button_y_pos = self.method_y_position(len(self.methods) - 1)
-
-        # Create proxy widgets for the buttons
-        add_param_proxy = QtWidgets.QGraphicsProxyWidget(self)
-        add_param_proxy.setWidget(method.add_param_button)
-        add_param_proxy.setPos(self.methods_text.boundingRect().width() + self.default_margin + 60, button_y_pos)
-
-        remove_param_proxy = QtWidgets.QGraphicsProxyWidget(self)
-        remove_param_proxy.setWidget(method.remove_param_button)
-        remove_param_proxy.setPos(self.methods_text.boundingRect().width() + self.default_margin + 75, button_y_pos)
+    def add_method_buttons_to_scene(self, method: Method):
+        """ Add the buttons from the Method object to the UMLClassBox scene. """
+        # Add the proxy widgets (buttons) to the scene
+        self.scene().addItem(method.add_param_button_proxy)
+        self.scene().addItem(method.remove_param_button_proxy)
 
     def method_y_position(self, index):
         """Calculate the Y position for the method based on its index."""
-        return (index * 15) + self.default_margin + 125 
+        return (index * 13) + self.default_margin + 125
 
     def remove_method(self):
         if len(self.methods) > 0:
             # Extract method names from the methods list
-            method_name_list = [method.name for method in self.methods if method]
+            method_name_list = [method.parameter_name for method in self.methods if method]
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Field", "Select field to remove:", method_name_list, 0, False)
             if ok and method_name:
                 # Remove the method name directly
                 for each_method in self.methods:
-                    if each_method.name == method_name:
+                    if each_method.parameter_name == method_name:
+                        # Remove the button proxies from the scene
+                        self.scene().removeItem(each_method.add_param_button_proxy)
+                        self.scene().removeItem(each_method.remove_param_button_proxy)
                         self.methods.remove(each_method)
                         self.update_method_text()
                         return
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to remove.")
+            
+    def remove_all_method(self):
+        if len(self.methods) > 0:
+            # Create a copy of the methods list to avoid modifying the list while iterating
+            for each_method in self.methods[:]:  # Using slicing [:] to create a copy
+                # Remove the button proxies from the scene
+                self.scene().removeItem(each_method.add_param_button_proxy)
+                self.scene().removeItem(each_method.remove_param_button_proxy)
+                # Remove the method from the list
+                self.methods.remove(each_method)
+            self.update_method_text()  # Update the graphical representation of methods
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No methods to remove.")
+
             
     def update_method_text(self):
         """
@@ -286,14 +323,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         - str: Formatted methods as a string.
         """
         method_lines = []
-        # for each_pair in self.methods:
-        #     for method_name, param_list in each_pair.items():
-        #         line = method_name
-        #         method_lines.append(line)
-        #         for each_param in param_list:
-        #             method_lines.append(f"    {each_param}")  # Indent parameters
         for method_obj in self.methods:
-            method_lines.append(method_obj.name)
+            method_lines.append(method_obj.parameter_name)
+            for each_param in method_obj.parameters:
+                method_lines.append(f"    {each_param}")  # Indent parameters
         return "\n".join(method_lines)  # Return formatted methods as a string
             
     #################################################################
@@ -339,13 +372,26 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.remove_field_button_proxy.setPos(self.default_margin + 49, class_name_height + 21)
         self.add_method_button_proxy.setPos(self.default_margin + 48, class_name_height + fields_text_height + 62)
         self.remove_method_button_proxy.setPos(self.default_margin + 63, class_name_height + fields_text_height + 62)
+
+        # Update positions for each method's buttons
+        for i, method in enumerate(self.methods):
+            button_y_pos = self.method_y_position(i)
+            method.add_param_button_proxy.setPos(self.methods_text.boundingRect().width() + self.pos().x() + self.default_margin + 20, self.pos().y() + button_y_pos)
+            method.remove_param_button_proxy.setPos(self.methods_text.boundingRect().width() + self.pos().x() + self.default_margin + 33, self.pos().y() + button_y_pos)
+        
+        # Get param button's height
+        param_button_height = 0
+        if len(self.methods) > 0:
+            param_button_height = self.methods[0].add_param_button_proxy.boundingRect().height() + 20
         
         # Calculate total height of the box
         total_height = (
-            class_name_height + fields_label_height + fields_text_height + methods_label_height + methods_text_height + 6 * self.default_margin
+            class_name_height + fields_label_height + fields_text_height + methods_label_height + methods_text_height + 6 * self.default_margin + param_button_height
         )
 
         # Calculate maximum width based on content
+        max_width_button = self.get_longest_button_width() + 30
+        
         max_width = max(
             self.default_width,
             self.class_name_text.boundingRect().width() + 2 * self.default_margin,
@@ -353,6 +399,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             self.field_text.boundingRect().width() + 2 * self.default_margin + 10,
             self.methods_label.boundingRect().width() + 2 * self.default_margin,
             self.methods_text.boundingRect().width() + 2 * self.default_margin + 10,
+            max_width_button
         )
 
         # Update the box size only if not being resized manually
@@ -372,6 +419,17 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Update positions of connection points
         self.update_connection_point_positions()
+        
+    def get_longest_button_width(self):
+        # Initialize variables to track the maximum width and corresponding method
+        max_width_button = 0
+
+        # Iterate through each method to find the one with the maximum button width
+        for method in self.methods:
+            button_width = method.remove_param_button_proxy.boundingRect().width() + self.methods_text.boundingRect().width() + 2 * self.default_margin + 10  # Get the button and its position width
+            if button_width > max_width_button:  # Check if this button is wider than the current max
+                max_width_button = button_width  # Update max width 
+        return max_width_button
 
     def update_separators(self):
         """
@@ -549,20 +607,22 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 + self.methods_text.boundingRect().height()
                 + 6 * self.default_margin
             )
-           # Calculate the maximum width needed based on the longest text in each section
-            button_size = self.remove_method_button.size()
-            button_width = button_size.width() + self.methods_label.boundingRect().width() + self.default_margin + 100 # Only testing, adjust later
+            
+           # Calculate the maximum width needed based on the longest text in each section #
+    
+            # Calculate maximum width based on content
+            max_width_button = self.get_longest_button_width() + 10
+            
             longest_string_width = max(
                 self.class_name_text.boundingRect().width(),
                 self.fields_label.boundingRect().width(),
                 self.field_text.boundingRect().width(),
                 self.methods_label.boundingRect().width(),
                 self.methods_text.boundingRect().width(),
-                button_width
+                max_width_button
             ) + 20  # Add some padding
-            
-            print(f"Longest string: {button_width}")
 
+            
             # Ensure the box does not overlap with text (min_width now depends on text length)
             if new_width >= longest_string_width:
                 new_rect.setWidth(new_width)
