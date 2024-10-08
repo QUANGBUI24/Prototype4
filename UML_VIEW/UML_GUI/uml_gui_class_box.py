@@ -4,6 +4,40 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 
 ###################################################################################################
 
+class Method(QtWidgets.QGraphicsRectItem):
+    def __init__(self, name, button_style=None):
+        super().__init__()
+        
+        self.name = name
+        self.parameters = []  # List to hold parameters for the method
+
+        # Create buttons for adding/removing parameters
+        self.add_param_button = QtWidgets.QPushButton("+")
+        self.remove_param_button = QtWidgets.QPushButton("-")
+
+        # Style buttons
+        self.add_param_button.setStyleSheet(button_style)
+        self.remove_param_button.setStyleSheet(button_style)
+
+        # Connect buttons to their respective functions
+        self.add_param_button.clicked.connect(self.add_parameter)
+        self.remove_param_button.clicked.connect(self.remove_parameter)
+
+    def add_parameter(self):
+        param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
+        if ok and param_name:
+            self.parameters.append(param_name)
+
+    def remove_parameter(self):
+        if self.parameters:
+            param_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Parameter", "Select parameter to remove:", self.parameters, 0, False)
+            if ok and param_name:
+                self.parameters.remove(param_name)
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to remove.")
+
+###################################################################################################
+
 class UMLClassBox(QtWidgets.QGraphicsRectItem):
     """
     A representation of a UML class box with editable sections for class name, fields, and methods.
@@ -30,7 +64,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         
         # Default properties for attributes (fields) and methods if not provided
         self.field: list[str] = field if field is not None else []
-        self.methods: list[dict[str, list[str]]] = methods if methods is not None else []
+        self.methods: list[Method] = methods if methods is not None else []
 
         # Default size and margin settings
         self.default_width = 150
@@ -52,6 +86,35 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.fields_label = QtWidgets.QGraphicsTextItem(self)
         self.fields_label.setDefaultTextColor(QtGui.QColor(0, 0, 0))
         self.fields_label.setPlainText("Fields")  # Set fields label text
+
+        self.methods_label = QtWidgets.QGraphicsTextItem(self)
+        self.methods_label.setDefaultTextColor(QtGui.QColor(0, 0, 0))
+        self.methods_label.setPlainText("Methods")  # Set methods label text
+
+        # Create text items for fields and methods
+        self.field_text = QtWidgets.QGraphicsTextItem(self)
+        self.field_text.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.field_text.setDefaultTextColor(QtGui.QColor(0, 0, 0))
+        self.field_text.setPlainText("\n".join(self.field))  # Join fields with newline
+        self.field_text.document().contentsChanged.connect(self.update_positions)
+
+        self.methods_text = QtWidgets.QGraphicsTextItem(self)
+        self.methods_text.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+        self.methods_text.setDefaultTextColor(QtGui.QColor(0, 0, 0))
+        self.methods_text.setPlainText(self.format_methods())  # Format and set methods text
+        self.methods_text.document().contentsChanged.connect(self.update_positions)
+
+        # Resizing attributes
+        self.is_box_dragged = False  # Flag to indicate if the box is being dragged
+        self.is_resizing = False  # Flag to indicate if the box is being resized
+        self.current_handle = None  # Currently active resize handle
+        self.handle_size = 12  # Size of the resize handle
+        self.is_typing = False # Typing flag
+        self.create_resize_handles()  # Create resize handle
+
+        # Arrows (connections to other class boxes)
+        self.arrows = []  # List to keep track of connected arrows
+        self.create_connection_points()  # Create connection points for arrows
         
         #################################################################
         
@@ -97,41 +160,12 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.add_field_button.clicked.connect(self.add_field)
         self.remove_field_button.clicked.connect(self.remove_field)
         
-        # Connect Method Buttons
+        # Connect method buttons
         self.add_method_button.clicked.connect(self.add_method)
         self.remove_method_button.clicked.connect(self.remove_method)
         
         #################################################################
-
-        self.methods_label = QtWidgets.QGraphicsTextItem(self)
-        self.methods_label.setDefaultTextColor(QtGui.QColor(0, 0, 0))
-        self.methods_label.setPlainText("Methods")  # Set methods label text
-
-        # Create text items for fields and methods
-        self.field_text = QtWidgets.QGraphicsTextItem(self)
-        self.field_text.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-        self.field_text.setDefaultTextColor(QtGui.QColor(0, 0, 0))
-        self.field_text.setPlainText("\n".join(self.field))  # Join fields with newline
-        self.field_text.document().contentsChanged.connect(self.update_positions)
-
-        self.methods_text = QtWidgets.QGraphicsTextItem(self)
-        self.methods_text.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-        self.methods_text.setDefaultTextColor(QtGui.QColor(0, 0, 0))
-        self.methods_text.setPlainText(self.format_methods())  # Format and set methods text
-        self.methods_text.document().contentsChanged.connect(self.update_positions)
-
-        # Resizing attributes
-        self.is_box_dragged = False  # Flag to indicate if the box is being dragged
-        self.is_resizing = False  # Flag to indicate if the box is being resized
-        self.current_handle = None  # Currently active resize handle
-        self.handle_size = 12  # Size of the resize handle
-        self.is_typing = False # Typing flag
-        self.create_resize_handles()  # Create resize handle
-
-        # Arrows (connections to other class boxes)
-        self.arrows = []  # List to keep track of connected arrows
-        self.create_connection_points()  # Create connection points for arrows
-
+        
         # Update positions of all elements based on the current box size
         self.update_positions()
 
@@ -149,6 +183,23 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             min-width: 8px;
             min-height: 8px;
             font-size: 10px;
+        }
+        QPushButton:hover {
+            background-color: #45a049;
+        }
+        """
+    def param_button_style(self):
+        """ Return button style for uniformity. """
+        return """
+        QPushButton {
+            background-color: #55ffff;
+            color: black;
+            border-radius: 1px;
+            padding: 1px;
+            border: 1px solid #000000;
+            min-width: 5px;
+            min-height: 5px;
+            font-size: 5px;
         }
         QPushButton:hover {
             background-color: #45a049;
@@ -176,28 +227,43 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     def add_method(self):
         method_name, ok = QtWidgets.QInputDialog.getText(None, "Add Method", "Enter method name:")
         if ok and method_name:
-            self.methods.append({method_name + "()" : []})
+            new_method = Method(method_name + "()", self.button_style())  # Create a Method instance
+            self.methods.append(new_method)
+            self.add_method_buttons(new_method)
             self.update_method_text()
+
+    def add_method_buttons(self, method):
+        """Add buttons for the given method and position them."""
+        button_y_pos = self.method_y_position(len(self.methods) - 1)
+
+        # Create proxy widgets for the buttons
+        add_param_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        add_param_proxy.setWidget(method.add_param_button)
+        add_param_proxy.setPos(self.methods_text.boundingRect().width() + self.default_margin + 60, button_y_pos)
+
+        remove_param_proxy = QtWidgets.QGraphicsProxyWidget(self)
+        remove_param_proxy.setWidget(method.remove_param_button)
+        remove_param_proxy.setPos(self.methods_text.boundingRect().width() + self.default_margin + 75, button_y_pos)
+
+    def method_y_position(self, index):
+        """Calculate the Y position for the method based on its index."""
+        return (index * 15) + self.default_margin + 125 
 
     def remove_method(self):
         if len(self.methods) > 0:
             # Extract method names from the methods list
-            method_name_list = [list(method.keys())[0] for method in self.methods if method]
+            method_name_list = [method.name for method in self.methods if method]
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Field", "Select field to remove:", method_name_list, 0, False)
             if ok and method_name:
                 # Remove the method name directly
-                for each_pair in self.methods:
-                    if method_name in each_pair:
-                        self.methods.remove(each_pair)
-                        break
-            self.update_method_text()
+                for each_method in self.methods:
+                    if each_method.name == method_name:
+                        self.methods.remove(each_method)
+                        self.update_method_text()
+                        return
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to remove.")
             
-    def create_button_to_add_param(self):
-        if self.methods:
-            
-    
     def update_method_text(self):
         """
         Update the displayed text for the method based on the current list of method names.
@@ -211,18 +277,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         """
         self.field_text.setPlainText("\n".join(self.field))  # Update the field text display
         self.update_positions()  # Ensure the positions of all items are updated
-            
-    #################################################################
-    ### MEMBER FUNCTIONS ###
-
-    ## BOX RELATED ##
-    
-    def start_typing(self):
-        """
-        Set the flag to indicate typing has started.
-        """
-        self.is_typing = True
-
+        
     def format_methods(self):
         """
         Format the methods for display with parameters.
@@ -231,14 +286,20 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         - str: Formatted methods as a string.
         """
         method_lines = []
-        for each_pair in self.methods:
-            for method_name, param_list in each_pair.items():
-                line = method_name
-                method_lines.append(line)
-                for each_param in param_list:
-                    method_lines.append(f"    {each_param}")  # Indent parameters
-
+        # for each_pair in self.methods:
+        #     for method_name, param_list in each_pair.items():
+        #         line = method_name
+        #         method_lines.append(line)
+        #         for each_param in param_list:
+        #             method_lines.append(f"    {each_param}")  # Indent parameters
+        for method_obj in self.methods:
+            method_lines.append(method_obj.name)
         return "\n".join(method_lines)  # Return formatted methods as a string
+            
+    #################################################################
+    ### MEMBER FUNCTIONS ###
+
+    ## BOX RELATED ##
 
     def create_resize_handles(self):
         """
@@ -292,7 +353,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             self.field_text.boundingRect().width() + 2 * self.default_margin + 10,
             self.methods_label.boundingRect().width() + 2 * self.default_margin,
             self.methods_text.boundingRect().width() + 2 * self.default_margin + 10,
-            self.remove_method_button_proxy.boundingRect().width() + 2 * self.default_margin + 10
         )
 
         # Update the box size only if not being resized manually
@@ -490,13 +550,18 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 + 6 * self.default_margin
             )
            # Calculate the maximum width needed based on the longest text in each section
+            button_size = self.remove_method_button.size()
+            button_width = button_size.width() + self.methods_label.boundingRect().width() + self.default_margin + 100 # Only testing, adjust later
             longest_string_width = max(
                 self.class_name_text.boundingRect().width(),
                 self.fields_label.boundingRect().width(),
                 self.field_text.boundingRect().width(),
                 self.methods_label.boundingRect().width(),
-                self.methods_text.boundingRect().width()
+                self.methods_text.boundingRect().width(),
+                button_width
             ) + 20  # Add some padding
+            
+            print(f"Longest string: {button_width}")
 
             # Ensure the box does not overlap with text (min_width now depends on text length)
             if new_width >= longest_string_width:
