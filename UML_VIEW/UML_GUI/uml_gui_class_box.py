@@ -15,7 +15,7 @@ class Method(QtWidgets.QGraphicsRectItem):
         self.param_text.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
         self.param_text.setDefaultTextColor(QtGui.QColor(0, 0, 0))
         self.param_text.setPlainText("\n".join(self.parameters))  # Format and set methods text
-        # self.param_text.document().contentsChanged.connect(self.update_positions)
+        self.param_text.document().contentsChanged.connect(self.update_param_position)
 
         # Create buttons for adding/removing parameters
         self.add_param_button = QtWidgets.QPushButton("+")
@@ -55,11 +55,30 @@ class Method(QtWidgets.QGraphicsRectItem):
     
     def update_param_text(self):
         """
-        Update the displayed text for the method based on the current list of method names.
+        Update the displayed text for the method based on the current list of parameters.
         """
-        self.param_text.setPlainText("\n".join(self.parameters))
-        # self.update_positions()  # Ensure the positions of all items are updated
-            
+        self.param_text.setPlainText("\n".join(self.parameters))  # Update the text for parameters
+        # Update parameter position based on button locations
+        self.update_param_position()
+        # Notify the UMLClassBox to update its size
+        if self.scene():
+            # Assuming the parent is UMLClassBox, call update_positions
+            for item in self.scene().items():
+                if isinstance(item, UMLClassBox):
+                    item.update_positions()
+                    break
+
+    def update_param_position(self):
+        """
+        Update the position of the parameter text based on the location of the buttons.
+        """
+        # Calculate the Y position relative to the button
+        button_y = self.add_param_button_proxy.pos().y()  # Get the Y position of the add button
+        param_y = button_y + self.add_param_button_proxy.boundingRect().height()  # Place the text below the button
+
+        # Set the position of the parameter text relative to the button
+        self.param_text.setPos(self.add_param_button_proxy.pos().x() - 50, param_y)
+   
     def param_button_style(self):
         """ Return button style for uniformity. """
         return """
@@ -257,6 +276,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
             # Add the Method's buttons (add/remove parameter) to the scene and position them
             self.add_method_buttons_to_scene(new_method)
+            self.scene().addItem(new_method)  # Add the actual method (and its param text) to the scene
             self.update_method_text()
 
     def add_method_buttons_to_scene(self, method: Method):
@@ -264,6 +284,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Add the proxy widgets (buttons) to the scene
         self.scene().addItem(method.add_param_button_proxy)
         self.scene().addItem(method.remove_param_button_proxy)
+        # Position the method inside the UMLClassBox (adjust positions as needed)
 
     def method_y_position(self, index):
         """Calculate the Y position for the method based on its index."""
@@ -362,8 +383,16 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         methods_label_height = self.methods_label.boundingRect().height()
         methods_text_height = self.methods_text.boundingRect().height()
 
-        # Set positions of text items relative to each other
-        self.class_name_text.setPos(self.default_margin, self.default_margin)
+        # Set positions of text items relative to each other #
+        
+
+        # Get the width of the class name text then center class name
+        # Get the width of the class box
+        box_width = self.rect().width()
+        class_name_width = self.class_name_text.boundingRect().width()
+        class_name_x_pos = (box_width - class_name_width) / 2
+        self.class_name_text.setPos(class_name_x_pos, self.default_margin)
+        
         self.fields_label.setPos(self.default_margin, class_name_height + 2 * self.default_margin)
         self.field_text.setPos(self.default_margin + 10, class_name_height + fields_label_height + 3 * self.default_margin)
         self.methods_label.setPos(self.default_margin, class_name_height + fields_label_height + fields_text_height + 4 * self.default_margin)
@@ -378,11 +407,12 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             button_y_pos = self.method_y_position(i)
             method.add_param_button_proxy.setPos(self.methods_text.boundingRect().width() + self.pos().x() + self.default_margin + 20, self.pos().y() + button_y_pos)
             method.remove_param_button_proxy.setPos(self.methods_text.boundingRect().width() + self.pos().x() + self.default_margin + 33, self.pos().y() + button_y_pos)
-        
+            method.update_param_position()
+            
         # Get param button's height
         param_button_height = 0
         if len(self.methods) > 0:
-            param_button_height = self.methods[0].add_param_button_proxy.boundingRect().height() + 20
+            param_button_height = self.get_param_text_height(len(self.methods) - 1)
         
         # Calculate total height of the box
         total_height = (
@@ -391,6 +421,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Calculate maximum width based on content
         max_width_button = self.get_longest_button_width() + 30
+        max_param_length = self.get_longest_param_text() + 30
         
         max_width = max(
             self.default_width,
@@ -399,8 +430,11 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             self.field_text.boundingRect().width() + 2 * self.default_margin + 10,
             self.methods_label.boundingRect().width() + 2 * self.default_margin,
             self.methods_text.boundingRect().width() + 2 * self.default_margin + 10,
-            max_width_button
+            max_width_button, 
+            max_param_length
         )
+        
+        print(f"Max width: {max_width}\nMax param: {max_param_length}")
 
         # Update the box size only if not being resized manually
         if not self.is_resizing and not self.is_box_dragged:
@@ -420,6 +454,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Update positions of connection points
         self.update_connection_point_positions()
         
+    def get_param_text_height(self, index: int):
+        return self.methods[index].param_text.boundingRect().height()
+        
     def get_longest_button_width(self):
         # Initialize variables to track the maximum width and corresponding method
         max_width_button = 0
@@ -430,6 +467,17 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             if button_width > max_width_button:  # Check if this button is wider than the current max
                 max_width_button = button_width  # Update max width 
         return max_width_button
+    
+    def get_longest_param_text(self):
+        # Initialize variables to track the maximum length
+        max_param_length = 0
+        # Iterate through each method to find the longest parameter
+        for method in self.methods:
+            for each_param in method.parameters:
+                current_length = len(each_param) + method.add_param_button_proxy.boundingRect().width() + method.param_text.boundingRect().width() + 2 * self.default_margin + 100
+                if current_length >= max_param_length:
+                    max_param_length = current_length
+        return max_param_length
 
     def update_separators(self):
         """
@@ -597,6 +645,11 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             # Calculate new width and height based on mouse position
             new_width = event.pos().x() - new_rect.x()
             new_height = event.pos().y() - new_rect.y()
+            
+            # Get param button's height
+            param_button_height = 0
+            if len(self.methods) > 0:
+                param_button_height = self.get_param_text_height(len(self.methods) - 1)
 
             # Set minimum width and height
             min_height = (
@@ -606,12 +659,14 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 + self.methods_label.boundingRect().height()
                 + self.methods_text.boundingRect().height()
                 + 6 * self.default_margin
+                + param_button_height
             )
             
            # Calculate the maximum width needed based on the longest text in each section #
     
             # Calculate maximum width based on content
             max_width_button = self.get_longest_button_width() + 10
+            max_param_length = self.get_longest_param_text()
             
             longest_string_width = max(
                 self.class_name_text.boundingRect().width(),
@@ -619,7 +674,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 self.field_text.boundingRect().width(),
                 self.methods_label.boundingRect().width(),
                 self.methods_text.boundingRect().width(),
-                max_width_button
+                max_width_button, max_param_length
             ) + 20  # Add some padding
 
             
