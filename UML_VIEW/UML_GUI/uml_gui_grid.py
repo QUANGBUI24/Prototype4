@@ -403,11 +403,11 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Reset the zoom and position to the initial state.
         """
-        for item in self.scene().items():
-            if isinstance(item, UMLClassBox):
-                item.centering_class_name()
-                item.setRect(0, 0, item.max_width, item.min_height )
-                item.update_positions()
+        # for item in self.scene().items():
+        #     if isinstance(item, UMLClassBox):
+        #         item.centering_class_name()
+        #         item.setRect(0, 0, item.max_width, item.min_height )
+        #         item.update_positions()
         self.grid_size = 20
         self.resetTransform()
         self.centerOn(0, 0)
