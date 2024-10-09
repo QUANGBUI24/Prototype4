@@ -405,7 +405,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         for item in self.scene().items():
             if isinstance(item, UMLClassBox):
-                item.setRect(0, 0, 150, 250)
+                item.centering_class_name()
+                item.setRect(0, 0, item.max_width, item.min_height )
                 item.update_positions()
         self.grid_size = 20
         self.resetTransform()
