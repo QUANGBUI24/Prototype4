@@ -11,9 +11,9 @@ methods, parameters, and relationships.
 # Import necessary libraries and modules for console interaction, typing, and model/view handling.
 from rich.console import Console
 from typing import List
-from UML_CONTROLLER.uml_storage_manager import UMLStorageManager as Storage
-from UML_MODEL.uml_model import UMLModel as Model
-from UML_ENUM_CLASS.uml_interface_enum import InterfaceOptions
+from UML_MVC.UML_CONTROLLER.uml_storage_manager import UMLStorageManager as Storage
+from UML_MVC.UML_MODEL.uml_model import UMLModel as Model
+from UML_ENUM_CLASS.uml_enum import InterfaceOptions
 
 ###################################################################################################
    
@@ -254,3 +254,5 @@ class UMLController:
         # Handle unknown command
         else:
             self.__console.print(f"\n[bold red]Unknown command [bold white]'{command}'[/bold white]. Type 'help' for a list of commands.[/bold red]")
+
+###################################################################################################

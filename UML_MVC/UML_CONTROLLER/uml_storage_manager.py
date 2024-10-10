@@ -9,9 +9,21 @@ from typing import List, Dict
 
 class UMLStorageManager:
     
-    # This function load the saved file name at the beginning #
+    """
+    A class to manage the storage of UML data by saving, loading, and updating JSON files.
+    It handles the management of saved UML diagram files and their associated metadata.
+    """
+
+    # This function loads the saved file name list at the beginning of the program #
     @staticmethod
     def load_name():
+        """
+        Load the list of saved file names from 'NAME_LIST.json' at the start of the program.
+        
+        Returns:
+            list: A list of dictionaries containing saved file names and their status ('on'/'off').
+            None: If there is a file not found error or JSON decoding error.
+        """
         file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST.json"
         try:
             # Check if the file is empty
@@ -30,14 +42,23 @@ class UMLStorageManager:
             print(f"\nError decoding JSON from {file_path}.")
             return None
         
-    
     #################################################################
     
-     # UML class storage manager constructor #
+    # UML storage manager constructor #
     def __init__(self):
+        """
+        Initializes the UMLStorageManager by loading the saved file name list into memory.
+        """
         self.__saved_file_name_list: List[Dict] = self.load_name()
         
+    # Getter to retrieve the list of saved file names #
     def _get_saved_list(self) -> List[Dict]:
+        """
+        Retrieve the current list of saved file names and their statuses ('on'/'off').
+
+        Returns:
+            List[Dict]: A list of dictionaries with file names and their statuses.
+        """
         return self.__saved_file_name_list
         
     #################################################################
@@ -45,62 +66,86 @@ class UMLStorageManager:
     
     ## SAVE/LOAD RELATED ##
     
-    # Save the current data to a JSON file #
+    # Save the current UML data to a JSON file #
     def _save_data_to_json(self, file_name: str, main_data: Dict):
+        """
+        Save the current UML data (main_data) to a specified JSON file.
+
+        Args:
+            file_name (str): The name of the file to save.
+            main_data (Dict): The UML data to be saved in JSON format.
+
+        Returns:
+            None
+        """
         file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
         try:
-            # Check if the file exists
+            # If the file does not exist, create and write the data
             if not os.path.exists(file_path):
-                # If the file doesn't exist, create it and write the data list
                 with open(file_path, "w") as json_file:
                     json.dump(main_data, json_file, indent=4)
                     return
-            # If the file exists and the file name is in the saved list, update the data
+            # If file exists, update its data if the file name is in the saved list
             for dictionary in self.__saved_file_name_list:
                 if file_name in dictionary:
-                    # Open the file and load its current data
+                    # Open the file and overwrite the current data with the new data
                     with open(file_path, "r") as json_file:
                         data = json.load(json_file)
-                        # Overwrite the loaded data with the current data list
-                        data = main_data
-                    # Save the updated data to the file
+                        data = main_data  # Overwrite with new data
                     with open(file_path, "w") as json_file:
                         json.dump(data, json_file, indent=4)
         except json.JSONDecodeError:
-            # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
+            # Handle JSON decoding errors
             print(f"\nError decoding JSON from {file_path}.")
             return None
     
-    # Save data for GUI #
+    # Save data specifically for GUI-based interactions #
     def _save_data_to_json_gui(self, file_name: str, file_path: str, main_data: Dict):
+        """
+        Save the UML data (main_data) to a specified file path for GUI operations.
+
+        Args:
+            file_name (str): The name of the file to save.
+            file_path (str): The file path where the data will be saved.
+            main_data (Dict): The UML data to be saved in JSON format.
+
+        Returns:
+            None
+        """
         try:
-            # Check if the file exists
+            # If the file does not exist, create and write the data
             if not os.path.exists(file_path):
-                # If the file doesn't exist, create it and write the data list
                 with open(file_path, "w") as json_file:
                     json.dump(main_data, json_file, indent=4)
                     return
-            # If the file exists and the file name is in the saved list, update the data
+            # If file exists, update its data if the file name is in the saved list
             for dictionary in self.__saved_file_name_list:
                 if file_name in dictionary:
-                    # Open the file and load its current data
+                    # Open the file and overwrite the current data with the new data
                     with open(file_path, "r") as json_file:
                         data = json.load(json_file)
-                        # Overwrite the loaded data with the current data list
-                        data = main_data
-                    # Save the updated data to the file
+                        data = main_data  # Overwrite with new data
                     with open(file_path, "w") as json_file:
                         json.dump(data, json_file, indent=4)
         except json.JSONDecodeError:
-            # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
+            # Handle JSON decoding errors
             print(f"\nError decoding JSON from {file_path}.")
             return None
         
-    # Load data from the specified JSON file
+    # Load UML data from a specified JSON file #
     def _load_data_from_json(self, file_name: str):
+        """
+        Load UML data from a specified JSON file.
+
+        Args:
+            file_name (str): The name of the file to load data from.
+
+        Returns:
+            dict: The UML data loaded from the JSON file.
+            None: If there is a file not found error or JSON decoding error.
+        """
         file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
         try:
-            # Open the file and load the data from JSON
             with open(file_path, "r") as file:
                 data = json.load(file)
                 return data
@@ -109,44 +154,60 @@ class UMLStorageManager:
             print(f"File {file_path} not found.")
             return None
         except json.JSONDecodeError:
-            # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
+            # Handle JSON decoding errors
             print(f"\nError decoding JSON from {file_path}.")
             return None
         
-    # Save the new file name to the saved file list #
+    # Add a new file name to the saved file list #
     def _add_name_to_saved_file(self, file_name: str):
+        """
+        Add a new file name to the saved file name list and store it in 'NAME_LIST.json'.
+
+        Args:
+            file_name (str): The name of the file to be added to the saved list.
+
+        Returns:
+            None
+        """
         file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST.json"
         saved_list = self.__saved_file_name_list
+        # Avoid duplicate file names
         for pair in saved_list:
             if file_name in pair:
                 return
-        saved_list.append({file_name : "off"})
+        saved_list.append({file_name: "off"})
         try:
-            # Open the file and save the name list in JSON format
+            # Write the updated saved list to the file
             with open(file_path, "w") as file:
                 json.dump(saved_list, file, indent=4)
         except FileNotFoundError:
-                # Handle the case where the file is not found
             print(f"\nFile {file_path} not found.")
             return None
         except json.JSONDecodeError:
-            # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
             print(f"\nError decoding JSON from {file_path}.")
             return None
         
-    # Update saved file list #
+    # Update the saved file list with new information #
     def _update_saved_list(self, saved_list: List[Dict]):
+        """
+        Update the saved file name list and store it in 'NAME_LIST.json'.
+
+        Args:
+            saved_list (List[Dict]): The updated list of saved files.
+
+        Returns:
+            None
+        """
         file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST.json"
         try:
-            # Open the file and save the name list in JSON format
+            # Write the updated saved list to the file
             with open(file_path, "w") as file:
                 json.dump(saved_list, file, indent=4)
         except FileNotFoundError:
-                # Handle the case where the file is not found
             print(f"\nFile {file_path} not found.")
             return None
         except json.JSONDecodeError:
-            # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
             print(f"\nError decoding JSON from {file_path}.")
             return None
+
 ###################################################################################################

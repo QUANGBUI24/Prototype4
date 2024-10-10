@@ -10,8 +10,8 @@ testing, and saving/loading UML diagrams.
 
 from rich.console import Console
 from typing import List, Dict
-from UML_MODEL.uml_model import UMLModel as Model
-from UML_CONTROLLER.uml_controller import UMLController as Controller, InterfaceOptions
+from UML_MVC.UML_MODEL.uml_model import UMLModel as Model
+from UML_MVC.UML_CONTROLLER.uml_controller import UMLController as Controller, InterfaceOptions
 
 ###################################################################################################
 
@@ -600,3 +600,5 @@ class UMLInterface:
         
         # Exit the program after the loop ends
         self.exit()
+
+###################################################################################################

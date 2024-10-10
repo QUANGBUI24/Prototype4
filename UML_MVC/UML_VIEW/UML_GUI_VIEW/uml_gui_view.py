@@ -2,9 +2,9 @@
 
 from PyQt5 import uic
 from PyQt5 import QtWidgets
-from UML_VIEW.UML_GUI.uml_gui_grid import GridGraphicsView
-from UML_VIEW.UML_GUI.uml_gui_class_box import UMLClassBox
-from UML_VIEW.uml_observer import UMLObserver as Observer
+from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_grid import GridGraphicsView
+from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
+from UML_MVC.uml_observer import UMLObserver as Observer
 
 ###################################################################################################
 

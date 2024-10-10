@@ -14,24 +14,11 @@ from rich.tree import Tree
 from rich.table import Table
 from rich.panel import Panel
 from rich.box import SQUARE
-from enum import Enum
 from typing import List, Dict
-from UML_VIEW.uml_observer import UMLObserver as Observer
-from UML_ENUM_CLASS.uml_interface_enum import InterfaceOptions
+from UML_MVC.uml_observer import UMLObserver as Observer
+from UML_ENUM_CLASS.uml_enum import InterfaceOptions, RelationshipType
 
 ###################################################################################################
-### ENUM FOR RELATIONSHIP TYPE ###
-
-class RelationshipType(Enum):
-    """
-    Enum for specifying different types of UML relationships.
-    The values represent the kind of relationship between classes in a UML diagram.
-    """
-    AGGREGATION = "aggregation"
-    COMPOSITION = "composition"
-    INHERITANCE = "inheritance"
-    REALIZATION = "realization"
-
 
 class UMLView(Observer):
     """
@@ -163,12 +150,6 @@ class UMLView(Observer):
             destination_class = data["dest"]
             new_type = data["new_type"]
             self.console.print(f"\n[bold green]Successfully changed the relationship type between class [bold white]'{source_class}'[/bold white] and class [bold white]'{destination_class}' to [bold white]'{new_type}'[/bold white]![/bold green]")
-    
-    def _get_enum_list(self):
-        """
-        Returns the list of relationship types available.
-        """
-        return RelationshipType
     
     def _prompt_menu(self):
         """
@@ -418,3 +399,5 @@ class UMLView(Observer):
                 return False
             else:
                 print("Invalid input. Please enter 'Yes' or 'No'.")
+
+###################################################################################################
