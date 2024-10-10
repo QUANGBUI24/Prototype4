@@ -367,7 +367,7 @@ class UMLModel:
         self.__user_view._display_type_enum()
         self.__user_view._display_class_names(self.__main_data)
         self.__user_view._display_relationships(self.__main_data)
-        print("\n[bold yellow]==>[/bold yellow] ", end="")
+        self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
         user_input: str = input()
         if user_input == "quit":
             self.__console.print("\n[bold green]Canceled adding relationship[/bold green]")

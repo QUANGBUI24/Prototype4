@@ -1,5 +1,14 @@
 ###################################################################################################
+"""
+Module: UMLView
+This module contains the UMLView class that inherits from UMLObserver (an observer in the Observer 
+pattern). It displays UML class data, relationships, and user commands using Rich for console output.
+It listens to updates from the UML model and displays appropriate messages for changes such as 
+adding, deleting, or modifying classes, fields, methods, parameters, and relationships.
+"""
+###################################################################################################
 
+# Import necessary libraries for rich text, tables, and tree displays
 from rich.console import Console
 from rich.tree import Tree
 from rich.table import Table
@@ -14,129 +23,165 @@ from UML_ENUM_CLASS.uml_interface_enum import InterfaceOptions
 ### ENUM FOR RELATIONSHIP TYPE ###
 
 class RelationshipType(Enum):
+    """
+    Enum for specifying different types of UML relationships.
+    The values represent the kind of relationship between classes in a UML diagram.
+    """
     AGGREGATION = "aggregation"
     COMPOSITION = "composition"
     INHERITANCE = "inheritance"
     REALIZATION = "realization"
 
-# UMLView class for displaying UML data
+
 class UMLView(Observer):
-    
+    """
+    The UMLView class is responsible for handling the presentation logic for the UML diagram.
+    It updates the console output whenever there is a change to the UML model such as adding, 
+    renaming, or deleting classes, methods, fields, or relationships.
+    It implements the Observer pattern to receive updates from the UML model.
+    """
+
     def __init__(self):
+        """
+        Initializes the UMLView with a Rich console for formatted output.
+        """
         self.console = Console()
     
-    # UMLView class (the observer) updates data when user make changes
-    def _update(self, event_type, data, is_loading: bool):
-        # Add class #
+    def _update(self, event_type: str, data: Dict, is_loading: bool):
+        """
+        Handles updates to the UML data based on the event type and displays a message to the user.
+        
+        Args:
+            event_type (str): The type of event (e.g., adding a class, deleting a field).
+            data (Dict): The data related to the event (e.g., class name, field name).
+            is_loading (bool): A flag to indicate whether the event is part of a loading process.
+        """
+        # Add class
         if event_type == InterfaceOptions.ADD_CLASS.value:
             class_name = data["class_name"]
             if not is_loading:
                 self.console.print(f"\n[bold green]Class [bold white]'{class_name}'[/bold white] has been added.[/bold green]")
-        # Delete class #
+        
+        # Delete class
         elif event_type == InterfaceOptions.DELETE_CLASS.value:
             class_name = data.get('class_name', 'Unknown')
             self.console.print(f"\n[bold green]Class [bold white]'{class_name}'[/bold white] has been deleted.[/bold green]")
-        # Rename class #
+        
+        # Rename class
         elif event_type == InterfaceOptions.RENAME_CLASS.value:
             old_name = data["old_name"]
             new_name = data["new_name"]
             self.console.print(f"\n[bold green]Class [bold white]'{old_name}'[/bold white] has been renamed to [bold white]'{new_name}'[/bold white].[/bold green]")
-        # Add field #
+        
+        # Add field
         elif event_type == InterfaceOptions.ADD_FIELD.value:
             class_name = data["class_name"]
             field_name = data["field_name"]
             if not is_loading:
                 self.console.print(f"\n[bold green]Field [bold white]'{field_name}'[/bold white] has been added to class [bold white]'{class_name}'[/bold white].[/bold green]")
-        # Delete field #
+        
+        # Delete field
         elif event_type == InterfaceOptions.DELETE_FIELD.value:
             class_name = data["class_name"]
             field_name = data["field_name"]
             self.console.print(f"\n[bold green]Field [bold white]'{field_name}'[/bold white] has been deleted from class [bold white]'{class_name}'[/bold white].[/bold green]")
-        # Rename field #
+        
+        # Rename field
         elif event_type == InterfaceOptions.RENAME_FIELD.value:
             class_name = data["class_name"]
             old_field_name = data["old_field_name"]
             new_field_name = data["new_field_name"]
             self.console.print(f"\n[bold green]Field [bold white]'{old_field_name}'[/bold white] in class [bold white]'{class_name}'[/bold white] has been renamed to [bold white]'{new_field_name}'[/bold white].[/bold green]")
-        # Add method #
+        
+        # Add method
         elif event_type == InterfaceOptions.ADD_METHOD.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
             if not is_loading:
                 self.console.print(f"\n[bold green]Successfully added method [bold white]'{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
-        # Delete method #
+        
+        # Delete method
         elif event_type == InterfaceOptions.DELETE_METHOD.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
             self.console.print(f"\n[bold green]Successfully removed method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
-        # Rename method #
+        
+        # Rename method
         elif event_type == InterfaceOptions.RENAME_METHOD.value:
             class_name = data["class_name"]
             old_method_name = data["old_method_name"]
             new_method_name = data["new_method_name"]
-            self.console.print(f"\n[bold green]Successfully renamed from method [bold white]'{old_method_name}'[/bold white] to method [bold white]'{new_method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
-        # Add parameter #
+            self.console.print(f"\n[bold green]Successfully renamed method [bold white]'{old_method_name}'[/bold white] to method [bold white]'{new_method_name}' from class [bold white]'{class_name}'[/bold white]![/bold green]")
+        
+        # Add parameter
         elif event_type == InterfaceOptions.ADD_PARAM.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
             param_name = data["param_name"]
             if not is_loading:
-                self.console.print(f"\n[bold green]Successfully added parameter [bold white]'{param_name}'[/bold white] to method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
-        # Delete parameter #
+                self.console.print(f"\n[bold green]Successfully added parameter [bold white]'{param_name}'[/bold white] to method [bold white]'{method_name}' from class [bold white]'{class_name}'[/bold white]![/bold green]")
+        
+        # Delete parameter
         elif event_type == InterfaceOptions.DELETE_PARAM.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
             param_name = data["param_name"]
-            self.console.print(f"\n[bold green]Successfully removed parameter [bold white]'{param_name}'[/bold white] from method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
-        # Rename parameter #
+            self.console.print(f"\n[bold green]Successfully removed parameter [bold white]'{param_name}'[/bold white] from method [bold white]'{method_name}' from class [bold white]'{class_name}'[/bold white]![/bold green]")
+        
+        # Rename parameter
         elif event_type == InterfaceOptions.RENAME_PARAM.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
             old_param_name = data["old_param_name"]
             new_param_name = data["new_param_name"]
-            self.console.print(f"\n[bold green]Successfully renamed from parameter [bold white]'{old_param_name}'[/bold white] to parameter [bold white]'{new_param_name}'[/bold white]![/bold green]")
-        # Replace parameter #
+            self.console.print(f"\n[bold green]Successfully renamed parameter [bold white]'{old_param_name}'[/bold white] to [bold white]'{new_param_name}'[/bold white]![/bold green]")
+        
+        # Replace parameter list
         elif event_type == InterfaceOptions.REPLACE_PARAM.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
             new_list = data["new_list"]
             self.console.print(f"\n[bold green]Successfully replaced parameter list for method [bold white]'{method_name}'[/bold white]![/bold green]")
-        # Add relationship # 
+        
+        # Add relationship
         elif event_type == InterfaceOptions.ADD_REL.value:
             source_class = data["source"]
             destination_class = data["dest"]
             rel_type = data["type"]
             if not is_loading:
-                self.console.print(f"\n[bold green]Successfully added relationship from class [bold white]'{source_class}'[/bold white] to class [bold white]'{destination_class}'[/bold white] of type '{rel_type}'![/bold green]")
-        # Delete relationship # 
+                self.console.print(f"\n[bold green]Successfully added relationship from class [bold white]'{source_class}'[/bold white] to class [bold white]'{destination_class}' of type '{rel_type}'![/bold green]")
+        
+        # Delete relationship
         elif event_type == InterfaceOptions.DELETE_REL.value:
             source_class = data["source"]
             destination_class = data["dest"]
-            self.console.print(f"\n[bold green]Successfully removed relationship between class [bold white]'{source_class}'[/bold white] to class [bold white]'{destination_class}'[/bold white][/bold green]!") 
-        # Change relationship type # 
+            self.console.print(f"\n[bold green]Successfully removed relationship between class [bold white]'{source_class}'[/bold white] and class [bold white]'{destination_class}'[/bold green]!") 
+        
+        # Modify relationship type
         elif event_type == InterfaceOptions.TYPE_MOD.value:
             source_class = data["source"]
             destination_class = data["dest"]
             new_type = data["new_type"]
-            self.console.print(f"\n[bold green]Successfully changed the type between class [bold white]'{source_class}'[/bold white] and class [bold white]'{destination_class}'[/bold white] to [bold white]'{new_type}'[/bold white]![/bold green]")
+            self.console.print(f"\n[bold green]Successfully changed the relationship type between class [bold white]'{source_class}'[/bold white] and class [bold white]'{destination_class}' to [bold white]'{new_type}'[/bold white]![/bold green]")
     
-    # Get relationship type
     def _get_enum_list(self):
+        """
+        Returns the list of relationship types available.
+        """
         return RelationshipType
-        
-    # Display the menu
+    
     def _prompt_menu(self):
+        """
+        Displays a formatted menu with available commands using the Rich library.
+        Provides command instructions such as adding, deleting, or renaming classes, fields, methods, 
+        parameters, and relationships.
+        """
+        # ASCII banner for UML Management Interface
         banner = r"""[bold yellow]
-    ▗▖ ▗▖▗▖  ▗▖▗▖       ▗▄▄▄▖▗▄▄▄ ▗▄▄▄▖▗▄▄▄▖▗▄▖ ▗▄▄▖ 
-    ▐▌ ▐▌▐▛▚▞▜▌▐▌       ▐▌   ▐▌  █  █    █ ▐▌ ▐▌▐▌ ▐▌
-    ▐▌ ▐▌▐▌  ▐▌▐▌       ▐▛▀▀▘▐▌  █  █    █ ▐▌ ▐▌▐▛▀▚▖
-    ▝▚▄▞▘▐▌  ▐▌▐▙▄▄▖    ▐▙▄▄▖▐▙▄▄▀▗▄█▄▖  █ ▝▚▄▞▘▐▌ ▐▌
-                                             
-        
-        Welcome to the UML Management Interface!
-    For more information on commands, type "help" for the manual.
-        [bold yellow]"""
-        # Create a list of commands with their descriptions
+        ...
+        """
+
+        # List of commands with descriptions
         commands = [
             ["[bold yellow]Class Commands[/bold yellow]", ""],
             ["add_class [bright_white]<class_name>[bright_white]", "Add a new class"],
@@ -182,136 +227,188 @@ class UMLView(Observer):
             ["help", "View instructions"],
             ["exit", "Exit the program"]
         ]
-        # Create a table to organize commands and descriptions
+
+        # Creating a table for organizing commands and descriptions
         table = Table(title=banner, show_header=True, header_style="bold yellow", border_style="bold dodger_blue2", box=SQUARE)
         table.add_column(f"{'Command':^75}", style="bold dodger_blue2", justify="left", no_wrap=True)
         table.add_column(f"{'Description':^45}", style="bold bold white")
-        # Add rows to the table
+
+        # Add rows for each command
         for command, description in commands:
             table.add_row(command, description)
-        # Create a panel to wrap the table with a welcome message
+
+        # Wrap the table in a panel
         panel = Panel.fit(table, border_style="bold dodger_blue2")
-        # Print the panel with the commands
         self.console.print(panel)
-        
+
     def _display_wrapper(self, main_data: Dict):
+        """
+        Displays either all class details or only class names based on user input.
+
+        Args:
+            main_data (Dict): The main data structure containing UML classes and relationships.
+        """
         if len(main_data["classes"]) == 0:
             self.console.print("\n[bold red]No class to display![/bold red]")
             return
+
         is_detail = self._ask_user_choices("print all class detail")
         if is_detail:
             self._display_uml_data(main_data)
         else:
             self._display_class_names(main_data)
-
-    # Display all class detail
+    
     def _display_uml_data(self, main_data: Dict):
-        # Main tree to hold UML structure
+        """
+        Displays detailed UML class data, including class names, fields, methods, and relationships.
+        
+        Args:
+            main_data (Dict): The main data structure containing UML classes and relationships.
+        """
         tree = Tree("\nUML Classes and Relationships")
-        # Add classes to the tree
         classes_tree = tree.add("Classes")
+
+        # Add each class to the tree with fields and methods
         for cls in main_data["classes"]:
             class_branch = classes_tree.add(f'[bold green]{cls["name"]}[/bold green]')
             self._display_class(class_branch, cls)
+
         # Add relationships to the tree
         relationships_tree = tree.add("Relationships")
         for relation in main_data["relationships"]:
             relationships_tree.add(
-                f'[bold dodger_blue2]{relation["source"]}[/bold dodger_blue2] [bold white]--{relation["type"]}-->[bold white] [bold dodger_blue2]{relation["destination"]}[/bold dodger_blue2]'
+                f'[bold dodger_blue2]{relation["source"]}[/bold dodger_blue2] [bold white]--{relation["type"]}--> [bold dodger_blue2]{relation["destination"]}[/bold dodger_blue2]'
             )
-        # Print the complete tree
+
+        # Print the full UML data tree
         self.console.print(tree)
 
-    # Structure the class detail into branches
     def _display_class(self, class_branch, cls):
-        # Add fields of the class
+        """
+        Adds fields and methods to a class branch in the Rich tree display.
+        
+        Args:
+            class_branch (Tree): The tree branch representing the class.
+            cls (Dict): The dictionary representing the class structure.
+        """
         fields_branch = class_branch.add("[bold yellow]Fields[/bold yellow]")
         for field in cls["fields"]:
             fields_branch.add(f'[bold dark_slate_gray2]{field["name"]}[/bold dark_slate_gray2]')
-        # Add methods of the class
+
         methods_branch = class_branch.add("[bold yellow]Methods[/bold yellow]")
         for method in cls["methods"]:
-            # Extract the names of the parameters
             params = ', '.join(param["name"] for param in method["params"])
             methods_branch.add(f'[bold dark_orange]{method["name"]}([bold slate_blue1]{params}[/bold slate_blue1])[/bold dark_orange]')
     
-    # Display class names
     def _display_class_names(self, main_data: Dict):
-        # Create a table to display all class names
+        """
+        Displays a table of class names in the UML data.
+        
+        Args:
+            main_data (Dict): The main data structure containing UML classes.
+        """
         table = Table(title="\n[bold white]Class Names[/bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
         table.add_column("Class Name", justify="center", style="bold white")
-        # Iterate through all classes and add their names to the table
+
         for cls in main_data["classes"]:
             table.add_row(cls["name"])
-        # Print the table with the class names
+
+        # Print the class names table
         self.console.print(table)
-        
-    # Display single class detail
+    
     def _display_single_class(self, class_name: str, main_data: Dict):
-        # Main tree to hold UML structure
+        """
+        Displays details for a single UML class and its relationships.
+        
+        Args:
+            class_name (str): The name of the class to display.
+            main_data (Dict): The main data structure containing UML classes and relationships.
+        """
         tree = Tree("\nUML Classes and Relationships")
-        # Add classes to the tree
         classes_tree = tree.add("Class")
+
+        # Find and display the class with the given name
         for cls in main_data["classes"]:
             if cls["name"] == class_name:
                 class_branch = classes_tree.add(f'[bold green]{cls["name"]}[/bold green]')
                 self._display_class(class_branch, cls)
-        # Add relationships to the tree
+
+        # Display relationships related to this class
         relationships_tree = tree.add("Relationships")
         for relation in main_data["relationships"]:
             if relation["source"] == class_name or relation["destination"] == class_name:
                 relationships_tree.add(
-                    f'[bold dodger_blue2]{relation["source"]}[/bold dodger_blue2] [bold white]--{relation["type"]}-->[/bold white] [bold dodger_blue2]{relation["destination"]}[/bold dodger_blue2]'
+                    f'[bold dodger_blue2]{relation["source"]}[/bold dodger_blue2] [bold white]--{relation["type"]}--> [bold dodger_blue2]{relation["destination"]}[/bold dodger_blue2]'
                 )
-        # Print the complete tree
+
         self.console.print(tree)
-        
-    # Display relationship
+    
     def _display_relationships(self, main_data):
-        # Create a table to display all relationships
+        """
+        Displays all UML relationships in a formatted table.
+        
+        Args:
+            main_data (Dict): The main data structure containing UML relationships.
+        """
         table = Table(title="\n[bold white]Relationships[/bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
         table.add_column("Source Class", style="bold white")
         table.add_column("Relationship Type", style="bold green")
         table.add_column("Destination Class", style="bold white")
-        # Iterate through all relationships and add them to the table
+
         for relation in main_data["relationships"]:
             table.add_row(
                 relation["source"],
                 relation["type"],
                 relation["destination"]
             )
-        # Print the table with relationships
+
+        # Print the relationships table
         self.console.print(table)
     
-    # Display type for relationship
     def _display_type_enum(self):
-        # Create a table to display relationship types
+        """
+        Displays the available types of relationships using the Rich library.
+        """
         table = Table(title="\n[bold white]Relationship Types[/bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
         table.add_column("Type", justify="center", style="bold white")
-        # Iterate through the RelationshipType enum and add each type to the table
+
         for type_ in RelationshipType:
             table.add_row(type_.value)
-        # Print the table with the relationship types
+
+        # Print the relationship types table
         self.console.print(table)
-        
-    # Display saved file's names using Rich
+    
     def _display_saved_list(self, saved_list: List):
-        # Check if there are any saved files
+        """
+        Displays the list of saved UML diagrams using a table format.
+        
+        Args:
+            saved_list (List): A list of saved UML diagrams (file names).
+        """
         if len(saved_list) == 0:
             self.console.print("\n[bold red]No saved file exists![/bold red]")
             return
-        # Create a table to display saved file names
+
         table = Table(title="\n[bold white]Saved Files[bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
         table.add_column("File Name", justify="center", style="bold white")
-        # Iterate through saved_list and add each file name to the table
+
         for dictionary in saved_list:
             for key in dictionary:
                 table.add_row(key)
-        # Print the table with saved file names
+
+        # Print the saved files table
         self.console.print(table)
-            
-    # Ask For User Choices #
+    
     def _ask_user_choices(self, action: str) -> bool:
+        """
+        Asks the user a yes/no question and returns their response.
+
+        Args:
+            action (str): The action to ask the user about (e.g., "print all class detail").
+
+        Returns:
+            bool: True if the user answers "Yes" or "y", False if they answer "No" or "n".
+        """
         while True:
             self.console.print(f"\n[bold yellow]Do you want to {action}? (Yes/No): [bold yellow]")
             user_input = input().lower()
@@ -321,6 +418,3 @@ class UMLView(Observer):
                 return False
             else:
                 print("Invalid input. Please enter 'Yes' or 'No'.")
-                
-################################################################################################### 
-            
