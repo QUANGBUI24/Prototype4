@@ -46,4 +46,11 @@ class RelationshipType(Enum):
     INHERITANCE = "inheritance"
     REALIZATION = "realization"
     
+class BoxDefaultStat(Enum):
+    BOX_DEFAULT_WIDTH = 150
+    BOX_DEFAULT_HEIGHT = 50
+    BOX_DEFAULT_X = 0
+    BOX_DEFAULT_Y = 0
+    BOX_DEFAULT_MARGIN = 10
+    
 ###################################################################################################
