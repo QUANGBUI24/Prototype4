@@ -2,63 +2,30 @@
 
 import os
 from rich.console import Console
-from enum import Enum
 from typing import Dict, List
 from UML_CORE.UML_CLASS.uml_class import UMLClass as Class
 from UML_CORE.UML_FIELD.uml_field import UMLField as Field
 from UML_CORE.UML_METHOD.uml_method import UMLMethod as Method
-from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relationship
 from UML_CORE.UML_PARAMETER.uml_parameter import UMLParameter as Parameter
-from UML_MANAGER.uml_storage_manager import UMLStorageManager as Storage
-
-###################################################################################################
-### ENUM VALUES FOR THE INTERFACE ###
-
-class InterfaceOptions(Enum):
-    ADD_CLASS = "add_class"
-    DELETE_CLASS = "delete_class"
-    RENAME_CLASS = "rename_class"
-    ADD_FIELD = "add_field"
-    DELETE_FIELD = "delete_field"
-    RENAME_FIELD = "rename_field"
-    ADD_METHOD = "add_method"
-    DELETE_METHOD = "delete_method"
-    RENAME_METHOD = "rename_method"
-    ADD_PARAM = "add_param"
-    DELETE_PARAM = "delete_param"
-    RENAME_PARAM = "rename_param"
-    REPLACE_PARAM = "replace_param"
-    ADD_REL = "add_rel"
-    DELETE_REL = "delete_rel"
-    TYPE_MOD = "type_mod"
-    LIST_CLASS = "list_class"
-    CLASS_DETAIL = "class_detail"
-    CLASS_REL = "class_rel"
-    SAVED_LIST = "saved_list"
-    SAVE = "save"
-    LOAD = "load"
-    DELETE_SAVED = "delete_saved"
-    CLEAR_DATA = "clear_data"
-    DEFAULT = "default"
-    SORT = "sort"
-    HELP = "help"
-    EXIT = "exit"    
+from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relationship
+from UML_CONTROLLER.uml_storage_manager import UMLStorageManager as Storage
+from UML_ENUM_CLASS.uml_interface_enum import InterfaceOptions
 
 ###################################################################################################
 
-class UMLCoreManager:
+class UMLModel:
     
     #################################################################
     
     # UML Class Manager Constructor #
     
-    def __init__(self, view):    
-        self.__console = Console()    
+    def __init__(self, view, console):    
+        self.__console = console   
+        self.__user_view = view
         self.__class_list: Dict[str, Class] = {}
         self.__storage_manager: Storage = Storage()
         self.__relationship_list: List[Relationship] = []
         self.__main_data: Dict = {"classes":[], "relationships":[]}
-        self.__user_view = view
         self._observers = [] # For observer design pattern
             
     #################################################################
@@ -1060,185 +1027,6 @@ class UMLCoreManager:
         self.__main_data: Dict = {}
     
     #################################################################
-    ### INTERFACE ###
-    
-    ## HANDLE USER INPUT FOR INTERFACE ##
-
-    # Processing main program including user input #
-    def _process_command(self, command: str, parameters: List[str]):
-        # Paremeter
-        first_param = parameters[0] if len(parameters) > 0 else None
-        second_param = parameters[1] if len(parameters) > 1 else None
-        third_param = parameters[2] if len(parameters) > 2 else None
-        fourth_param = parameters[3] if len(parameters) > 3 else None
-        # Start the logic
-        #######################################################
-        
-        # Add class
-        if command == InterfaceOptions.ADD_CLASS.value and first_param:
-            self._add_class(first_param, is_loading=False)
-        # Delete class
-        elif command == InterfaceOptions.DELETE_CLASS.value and first_param:
-            self._delete_class(first_param)
-        # Rename class
-        elif (
-            command == InterfaceOptions.RENAME_CLASS.value
-            and first_param
-            and second_param
-        ):
-            self._rename_class(first_param, second_param)
-
-        #######################################################
-
-        # Add parameter #
-        elif (
-            command == InterfaceOptions.ADD_FIELD.value
-            and first_param
-            and second_param
-        ):
-            self._add_field(first_param, second_param, is_loading=False)
-        # Delete parameter #
-        elif (
-            command == InterfaceOptions.DELETE_FIELD.value
-            and first_param
-            and second_param
-        ):
-            self._delete_field(first_param, second_param)
-        # Rename parameter #
-        elif (
-            command == InterfaceOptions.RENAME_FIELD.value
-            and first_param
-            and second_param
-            and third_param
-        ):
-            self._rename_field(first_param, second_param, third_param)
-
-        #######################################################
-            
-        # Add method #
-        elif (
-            command == InterfaceOptions.ADD_METHOD.value
-            and first_param
-            and second_param
-        ):
-            self._add_method(first_param, second_param, is_loading=False)
-        # Delete method #
-        elif (
-            command == InterfaceOptions.DELETE_METHOD.value
-            and first_param
-            and second_param
-        ):
-            self._delete_method(first_param, second_param)
-        # Rename method #
-        elif (
-            command == InterfaceOptions.RENAME_METHOD.value
-            and first_param
-            and second_param
-            and third_param
-        ):
-            self._rename_method(first_param, second_param, third_param)
-            
-        #######################################################
-            
-        # Add parameter #
-        elif (
-            command == InterfaceOptions.ADD_PARAM.value
-            and first_param
-            and second_param
-            and third_param
-        ):
-            self._add_parameter(first_param, second_param, third_param, is_loading=False)
-        # Delete parameter #
-        elif (
-            command == InterfaceOptions.DELETE_PARAM.value
-            and first_param
-            and second_param
-            and third_param
-        ):
-            self._delete_parameter(first_param, second_param, third_param)
-        # Rename parameter #
-        elif (
-            command == InterfaceOptions.RENAME_PARAM.value
-            and first_param
-            and second_param
-            and third_param
-            and fourth_param
-        ):
-            self._rename_parameter(first_param, second_param, third_param, fourth_param)
-        # Replace parameter list #
-        elif command == InterfaceOptions.REPLACE_PARAM.value and first_param and second_param:
-            self._replace_param_list(first_param, second_param)
-            
-        #######################################################
-
-        # Add relationship
-        elif (
-            command == InterfaceOptions.ADD_REL.value
-        ):
-            self._add_relationship_wrapper(is_loading=False)
-        # Delete relationship #
-        elif (
-            command == InterfaceOptions.DELETE_REL.value
-            and first_param
-            and second_param
-        ):
-            self._delete_relationship(first_param, second_param)
-        # Chang relationship type #
-        elif (
-            command == InterfaceOptions.TYPE_MOD.value 
-            and first_param
-            and second_param
-            and third_param
-        ):
-            self._change_type(first_param, second_param, third_param)
-                
-        #######################################################
-                
-        # List all the created class names or all class detail #
-        elif command == InterfaceOptions.LIST_CLASS.value:
-            self.__user_view._display_wrapper(self.__main_data) 
-        # Show the details of the chosen class #
-        elif command == InterfaceOptions.CLASS_DETAIL.value and first_param:
-            self.__user_view._display_single_class(first_param, self.__main_data)
-        # Show the relationship of the chosen class with others #
-        elif command == InterfaceOptions.CLASS_REL.value:
-            self.__user_view._display_relationships(self.__main_data)
-        # Show the list of saved files #
-        elif command == InterfaceOptions.SAVED_LIST.value:
-            saved_list = self.__storage_manager._get_saved_list()
-            self.__user_view._display_saved_list(saved_list)
-        # Save the data #
-        elif command == InterfaceOptions.SAVE.value:
-            self._save()
-        # Load the data #
-        elif command == InterfaceOptions.LOAD.value:
-            self._load()
-        # Delete saved file #
-        elif command == InterfaceOptions.DELETE_SAVED.value:
-            self._delete_saved_file()
-        # Clear data in current storage #
-        elif command == InterfaceOptions.CLEAR_DATA.value:
-            self._clear_current_active_data()
-        # Go back to blank program #
-        elif command == InterfaceOptions.DEFAULT.value:
-            self._end_session()
-        # Sort the class list #
-        elif command == InterfaceOptions.SORT.value:
-            self._sort_class_list()
-        else:
-            self.__console.print(f"\n[bold red]Unknown command [bold white]'{command}'[/bold white]. Type 'help' for a list of commands.[/bold red]")
-
-    # Sorting Class List #
-    def _sort_class_list(self):
-        class_list = self.__class_list
-        if len(class_list) == 0:
-            self.__console.print("\n[bold red]No class to sort![/bold red]")
-            return
-        self.__class_list = dict(sorted(self.__class_list.items()))
-        self._update_main_data_for_every_action()
-        self.__user_view._display_uml_data(self.__main_data)
-        
-    #################################################################
     ### UTILITY FUNCTIONS ###  
         
     # Saved file check #
@@ -1310,5 +1098,15 @@ class UMLCoreManager:
                 return False
         # All checks passed
         return True
+    
+    # Sorting Class List #
+    def _sort_class_list(self):
+        class_list = self.__class_list
+        if len(class_list) == 0:
+            self.__console.print("\n[bold red]No class to sort![/bold red]")
+            return
+        self.__class_list = dict(sorted(self.__class_list.items()))
+        self._update_main_data_for_every_action()
+        self.__user_view._display_uml_data(self.__main_data)
                        
 ###################################################################################################

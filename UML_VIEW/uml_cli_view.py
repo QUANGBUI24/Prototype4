@@ -8,7 +8,7 @@ from rich.box import SQUARE
 from enum import Enum
 from typing import List, Dict
 from UML_VIEW.uml_observer import UMLObserver as Observer
-from UML_MANAGER.uml_core_manager import InterfaceOptions 
+from UML_ENUM_CLASS.uml_interface_enum import InterfaceOptions
 
 ###################################################################################################
 ### ENUM FOR RELATIONSHIP TYPE ###
