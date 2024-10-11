@@ -158,13 +158,17 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 self.rect().topRight().x(), y_pos
             )
         if hasattr(self, 'separator_line2'):
-            class_name_height = self.class_name_text.boundingRect().height()
-            field_section_height = self.get_field_text_height()
-            y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + self.default_margin
-            self.separator_line2.setLine(
+            if len(self.method_name_list) > 0:
+                class_name_height = self.class_name_text.boundingRect().height()
+                field_section_height = self.get_field_text_height()
+                y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + self.default_margin
+                self.separator_line2.setLine(
                 self.rect().topLeft().x(), y_pos, 
                 self.rect().topRight().x(), y_pos
-            )
+                )
+            else:
+                pass
+                
             
     def update_handle_positions(self):
         """
@@ -251,15 +255,61 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     #################################
     
     def create_separator(self, is_first=True):
-       if is_first:
+        """
+        Create a separator line between different sections of the UML class box.
+
+        This method is used to visually separate the class name, fields, and methods in the UML class box.
+        It creates a horizontal line that spans the width of the UML box and adjusts its position based on 
+        the content (class name and fields).
+
+        Args:
+            is_first (bool): 
+                - If True, creates the first separator line below the class name.
+                - If False, creates the second separator line below the fields.
+
+        Steps:
+        1. Determine the height of the class name using boundingRect().
+        2. For the first separator, place it below the class name with some margin.
+        3. For the second separator, place it below the fields section.
+        4. Use QGraphicsLineItem to draw the line across the box width.
+        """
+        
+        # Check if it's the first separator (placed below the class name)
+        if is_first:
+            # Calculate the height of the class name text item to determine where the separator should be positioned.
             class_name_height = self.class_name_text.boundingRect().height()
+
+            # Set the y-position for the separator line just below the class name, leaving a small margin.
             y_pos = self.rect().topLeft().y() + class_name_height + self.default_margin
-            self.separator_line1 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), y_pos, self.rect().topRight().x(), y_pos, self)
-       else:
+
+            # Create the first separator as a horizontal line (QGraphicsLineItem) spanning the entire width of the UML box.
+            self.separator_line1 = QtWidgets.QGraphicsLineItem(
+                self.rect().topLeft().x(),  # Starting x-coordinate (left side of the box)
+                y_pos,                      # Y-coordinate (below the class name)
+                self.rect().topRight().x(),  # Ending x-coordinate (right side of the box)
+                y_pos,                      # Keep the same y-coordinate to make the line horizontal
+                self  # Set the UML class box as the parent for this line item.
+            )
+
+        # If it's not the first separator, create the second separator (placed below the fields section)
+        else:
+            # Calculate the height of the class name to start the separator calculation.
             class_name_height = self.class_name_text.boundingRect().height()
+
+            # Calculate the total height of all the field text items to place the separator correctly.
             field_section_height = self.get_field_text_height()
+
+            # Set the y-position for the second separator line just below the fields, with some margin.
             y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + self.default_margin
-            self.separator_line2 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), y_pos, self.rect().topRight().x(), y_pos, self)
+
+            # Create the second separator as a horizontal line (QGraphicsLineItem) spanning the entire width of the UML box.
+            self.separator_line2 = QtWidgets.QGraphicsLineItem(
+                self.rect().topLeft().x(),  # Starting x-coordinate (left side of the box)
+                y_pos,                      # Y-coordinate (below the fields section)
+                self.rect().topRight().x(),  # Ending x-coordinate (right side of the box)
+                y_pos,                      # Keep the same y-coordinate to make the line horizontal
+                self  # Set the UML class box as the parent for this line item.
+            )
            
             
     def create_resize_handles(self):
@@ -383,147 +433,245 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     
     ## CLASS OPERATION ##
     def rename_class(self):
-        """Rename class."""
+        """
+        Rename the class displayed in the UML box.
+
+        This method prompts the user to input a new name for the class. 
+        If the user confirms and enters a valid name, the class name is updated 
+        and the box is refreshed to reflect the new name.
+        """
+        # Display a dialog asking the user for the new class name
         class_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Class", f"Enter new name for class '{self.class_name_text.toPlainText()}'")
-        if ok and class_name:
-            self.class_name_text.setPlainText(class_name)
-            self.update_box()
         
+        # If the user confirms and provides a valid name, update the class name
+        if ok and class_name:
+            self.class_name_text.setPlainText(class_name)  # Set the new name in the UML box
+            self.update_box()  # Update the box layout to reflect the change
+
     ## FIELD OPERATION ##
     def add_field(self):
-        """Add a new field to the UML class."""
+        """
+        Add a new field to the UML class.
+
+        This method prompts the user to input a new field name. 
+        If confirmed, the field is added to the class, and the box layout is updated.
+        """
+        # Display a dialog asking the user for the new field name
         field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
+
+        # If the user confirms and provides a valid name, create and add the field
         if ok and field_name:
+            # Create a text item for the field and add it to the list
             field_text = self.create_text_item(field_name, is_field=True, selectable=True)
-            self.field_list[field_name] = field_text
-            self.field_name_list.append(field_name)
-            self.update_box()
-            
+            self.field_list[field_name] = field_text  # Add the field to the internal list
+            self.field_name_list.append(field_name)  # Track the field name in the name list
+            self.update_box()  # Update the box to reflect the changes
+
     def delete_field(self):
-        """Remove an existing field from the UML class."""
+        """
+        Remove an existing field from the UML class.
+
+        This method allows the user to select a field from a list of existing fields to remove. 
+        The field is removed from the class, and the UML box is updated.
+        """
         if self.field_name_list:
+            # Display a dialog asking the user to select a field to remove
             field_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Field", "Select field to remove:", self.field_name_list, 0, False)
+
+            # If the user confirms, remove the selected field from the class
             if ok and field_name:
-                self.field_name_list.remove(field_name)
-                self.scene().removeItem(self.field_list.pop(field_name))
-                self.update_box()
+                self.field_name_list.remove(field_name)  # Remove from the name list
+                self.scene().removeItem(self.field_list.pop(field_name))  # Remove the text item from the scene
+                self.update_box()  # Update the box to reflect the changes
         else:
+            # Show a warning if there are no fields to remove
             QtWidgets.QMessageBox.warning(None, "Warning", "No fields to remove.")
-            
+
     def rename_field(self):
-        """Chang field name."""
+        """
+        Rename an existing field in the UML class.
+
+        The user selects a field to rename, then provides a new name for that field.
+        The field name is updated, and the UML box is refreshed.
+        """
         if self.field_name_list:
+            # Display a dialog to choose the field to rename
             field_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Field Name", "Select field to change:", self.field_name_list, 0, False)
+
             if ok and field_name:
-                # Step 2: Show another pop-up to allow renaming of the selected field
+                # Ask for the new name for the selected field
                 new_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Field", f"Enter new name for the field '{field_name}':")
+                
                 if ok and new_name:
-                    # Step 3: Find the field in the list, rename it, and update the UI or data structure
-                        if field_name in self.field_list:
-                            # Update the dictionary with the new name
-                            self.field_list[new_name] = self.field_list.pop(field_name)
-                            self.field_list[new_name].setPlainText(new_name)
-                            self.field_name_list[self.field_name_list.index(field_name)] = new_name
-                            self.update_box()
+                    # Update the field name in the list and refresh the display
+                    if field_name in self.field_list:
+                        self.field_list[new_name] = self.field_list.pop(field_name)  # Rename the field in the internal list
+                        self.field_list[new_name].setPlainText(new_name)  # Set the new field name
+                        self.field_name_list[self.field_name_list.index(field_name)] = new_name  # Update the name list
+                        self.update_box()  # Refresh the box display
         else:
+            # Show a warning if there are no fields to rename
             QtWidgets.QMessageBox.warning(None, "Warning", "No fields to change.")
 
     ## METHOD OPERATIONS ##
     def add_method(self):
-        """Add a new method to the UML class."""
+        """
+        Add a new method to the UML class.
+
+        The user is prompted to input the method name. The method is then added to the class,
+        and the UML box is updated.
+        """
+        # Display a dialog asking for the new method name
         method_name, ok = QtWidgets.QInputDialog.getText(None, "Add Method", "Enter method name:")
+
+        # If the user confirms and provides a valid method name, add it to the UML box
         if ok and method_name:
             method_text = self.create_text_item(method_name + "()", is_method=True, selectable=True)
-            self.method_list[method_name] = method_text
-            self.method_name_list[method_name] = []
-            if len(self.method_name_list) == 1:
+            self.method_list[method_name] = method_text  # Store the method text
+            self.method_name_list[method_name] = []  # Track the method's parameters
+            if len(self.method_name_list) == 1:  # If this is the first method, create a separator
                 self.create_separator(is_first=False)
-            self.update_box()
-            
+            self.update_box()  # Update the UML box
+
     def delete_method(self):
-        """Remove an existing method from the UML class."""
+        """
+        Remove an existing method from the UML class.
+
+        The user selects a method to remove from a list. If confirmed, the method and its parameters 
+        are deleted from the class, and the UML box is updated.
+        """
         if self.method_list:
+            # Ask the user to select a method to remove
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Method", "Select method to remove:", self.method_name_list, 0, False)
+
             if ok and method_name:
+                # Remove associated parameters and the method itself
                 for param_name in self.method_name_list[method_name]:
-                    self.scene().removeItem(self.parameter_list.pop(param_name))
-                self.method_name_list.pop(method_name)
-                self.scene().removeItem(self.method_list.pop(method_name))
-                self.update_box()
+                    self.scene().removeItem(self.parameter_list.pop(param_name))  # Remove parameter
+                self.method_name_list.pop(method_name)  # Remove from method list
+                self.scene().removeItem(self.method_list.pop(method_name))  # Remove the method text
+                self.update_box()  # Refresh the UML box
         else:
+            # Show a warning if there are no methods to remove
             QtWidgets.QMessageBox.warning(None, "Warning", "No method to remove.")
-            
+
     def rename_method(self):
-        """Chang method name."""
+        """
+        Rename an existing method in the UML class.
+
+        The user selects a method to rename and provides a new name. The method name is updated,
+        and the UML box is refreshed.
+        """
         if self.method_name_list:
+            # Prompt the user to select the method to rename
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Method Name", "Select method to change:", self.method_name_list, 0, False)
+
             if ok and method_name:
-                # Step 2: Show another pop-up to allow renaming of the selected method
+                # Prompt for the new name
                 new_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Method", f"Enter new name for the method '{method_name}':")
+                
                 if ok and new_name:
-                    # Step 3: Find the method in the list, rename it, and update the UI or data structure
-                        if method_name in self.method_list:
-                            # Update the dictionary with the new name
-                            self.method_list[new_name] = self.method_list.pop(method_name)
-                            self.method_list[new_name].setPlainText(new_name + "()")
-                            self.method_name_list[new_name] = self.method_name_list.pop(method_name)
-                            self.update_box()
+                    # Update the method name and refresh the UI
+                    if method_name in self.method_list:
+                        self.method_list[new_name] = self.method_list.pop(method_name)  # Update the method name in the list
+                        self.method_list[new_name].setPlainText(new_name + "()")  # Set the new name in the UML box
+                        self.method_name_list[new_name] = self.method_name_list.pop(method_name)  # Track the change
+                        self.update_box()  # Refresh the UML box display
         else:
+            # Show a warning if there are no methods to rename
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to change.")
-            
+
+    ## PARAMETER OPERATIONS ##
     def add_param(self):
-        """Add a new parameter to the UML class."""
+        """
+        Add a new parameter to a method in the UML class.
+
+        The user selects a method and provides a parameter name, which is then added to the method.
+        The UML box is updated to reflect the new parameter.
+        """
         if self.method_name_list:
+            # Ask the user to choose a method to add a parameter to
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method to add parameter:", list(self.method_name_list.keys()), 0, False)
+
             if ok and method_name:
+                # Ask for the parameter name
                 param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
+
                 if ok and param_name:
+                    # Add the parameter to the selected method and update the UML box
                     param_text = self.create_text_item(param_name , is_parameter=True, selectable=True)
-                    self.method_name_list[method_name].append(param_name)
-                    self.parameter_list[param_name] = param_text
-                    self.parameter_name_list.append(param_name)
-                    self.update_box()
+                    self.method_name_list[method_name].append(param_name)  # Track the parameter
+                    self.parameter_list[param_name] = param_text  # Store the parameter text
+                    self.parameter_name_list.append(param_name)  # Add to the list of parameter names
+                    self.update_box()  # Update the UML box
         else:
+            # Show a warning if there are no methods available
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose.")
-    
+
     def delete_param(self):
-        """Delete a parameter from the UML class."""
+        """
+        Remove a parameter from a method in the UML class.
+
+        The user selects a method and parameter to remove, and if confirmed, the parameter is deleted 
+        from the method. The UML box is updated.
+        """
         if self.method_name_list:
+            # Ask the user to choose a method to remove a parameter from
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method to remove parameter:", list(self.method_name_list.keys()), 0, False)
+
             if ok and method_name:
-                # Ensure there are parameters for this method
+                # Check if the selected method has parameters
                 if self.method_name_list[method_name]:
+                    # Ask the user to choose the parameter to remove
                     param_name, ok = QtWidgets.QInputDialog.getItem(None, "Delete Parameter", "Choose parameter name to remove:", self.method_name_list[method_name], 0, False)
+
                     if ok and param_name:
-                        self.scene().removeItem(self.parameter_list.pop(param_name))
-                        self.method_name_list[method_name].remove(param_name)
-                        self.parameter_name_list.remove(param_name)
-                        self.update_box()
+                        # Remove the parameter and update the UML box
+                        self.scene().removeItem(self.parameter_list.pop(param_name))  # Remove from the scene
+                        self.method_name_list[method_name].remove(param_name)  # Remove from method's parameter list
+                        self.parameter_name_list.remove(param_name)  # Remove from the global parameter list
+                        self.update_box()  # Refresh the UML box
                 else:
+                    # Show a warning if there are no parameters to remove
                     QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to choose.")
         else:
+            # Show a warning if there are no methods available
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose.")
-    
+
     def rename_param(self):
-        """Rename a parameter from the UML class."""
+        """
+        Rename a parameter in the UML class.
+
+        The user selects a method and a parameter to rename, then provides a new name for the parameter.
+        The parameter name is updated, and the UML box is refreshed.
+        """
         if self.method_name_list:
+            # Ask the user to choose a method containing the parameter
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method:", list(self.method_name_list.keys()), 0, False)
+
             if ok and method_name:
-                # Ensure there are parameters for this method
+                # Check if the selected method has parameters
                 if self.method_name_list[method_name]:
+                    # Ask the user to choose the parameter to rename
                     param_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Parameter", "Choose parameter name to rename:", self.method_name_list[method_name], 0, False)
+
                     if ok and param_name:
+                        # Ask for the new parameter name
                         new_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Parameter", "Enter new parameter name:")
+
                         if ok and new_name:
+                            # Update the parameter name and refresh the UML box
                             param_list = self.method_name_list[method_name]
-                            param_list[param_list.index(param_name)] = new_name
-                            self.parameter_list[new_name] = self.parameter_list.pop(param_name)
-                            self.parameter_list[new_name].setPlainText(new_name)
-                            self.parameter_name_list[self.parameter_name_list.index(param_name)] = new_name
-                            self.update_box()
+                            param_list[param_list.index(param_name)] = new_name  # Update in the method's parameter list
+                            self.parameter_list[new_name] = self.parameter_list.pop(param_name)  # Update the parameter list
+                            self.parameter_list[new_name].setPlainText(new_name)  # Set the new name in the UI
+                            self.parameter_name_list[self.parameter_name_list.index(param_name)] = new_name  # Track the change
+                            self.update_box()  # Refresh the UML box
                 else:
+                    # Show a warning if there are no parameters to rename
                     QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to choose.")
         else:
+            # Show a warning if there are no methods available
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose.")
                         
     #################################
