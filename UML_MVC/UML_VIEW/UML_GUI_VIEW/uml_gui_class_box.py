@@ -75,7 +75,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         #################################
         
         # Define bounding rectangle of the class box
-        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width, self.default_box_height)
+        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width + self.default_margin * 2, self.default_box_height)
         # Set border color (Dodger Blue)
         self.setPen(QtGui.QPen(QtGui.QColor(30,144,255)))  
         # Set background color (cyan)
@@ -97,8 +97,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Connect the text change callback to ensure it re-centers when the text changes.
         self.class_name_text.document().contentsChanged.connect(self.centering_class_name)
         # Create separator below class name
-        self.separator_line1 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), self.class_name_text.boundingRect().height() + self.default_margin, self.rect().width(), 
-                                                           self.class_name_text.boundingRect().height() + self.default_margin, self)
+        self.create_separator()
         # Draw first separator
         self.separator_line1.setPen(QtGui.QPen(QtCore.Qt.black))
         # Centering class name initially.
@@ -113,6 +112,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     #################################################################
     ### MEMBER FUNCTIONS ###
     
+    #################################
     ## UPDATE BOX AND IS COMPONENTS ##
     
     def update_box(self):
@@ -149,12 +149,85 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         if hasattr(self, 'separator_line1'):
             # Update the separator line based on the current size of the UML box
             class_name_height = self.class_name_text.boundingRect().height()
-            separator_y = self.rect().topLeft().y() + class_name_height + self.default_margin
-
+            y_pos = self.rect().topLeft().y() + class_name_height + self.default_margin
             # Set the new position of the separator line
             self.separator_line1.setLine(
-                self.rect().topLeft().x(), separator_y, self.rect().topRight().x(), separator_y
+                self.rect().topLeft().x(), y_pos, self.rect().topRight().x(), y_pos
             )
+            
+    def update_handle_positions(self):
+        """
+        Update the positions of the resize handles based on the current size of the UML box.
+        This ensures the handles remain at the corners of the box.
+        """
+        rect = self.rect()
+        self.handles_list['top_left'].setPos(rect.topLeft())
+        self.handles_list['top_right'].setPos(rect.topRight())
+        self.handles_list['bottom_left'].setPos(rect.bottomLeft())
+        self.handles_list['bottom_right'].setPos(rect.bottomRight())
+
+    def update_connection_point_positions(self):
+        """
+        Update the positions of the connection points based on the size of the UML box.
+        Connection points are positioned at the center of the edges (top, bottom, left, right).
+        """
+        rect = self.rect()
+        self.connection_points_list['top'].setPos(rect.center().x(), rect.top())
+        self.connection_points_list['bottom'].setPos(rect.center().x(), rect.bottom())
+        self.connection_points_list['left'].setPos(rect.left(), rect.center().y())
+        self.connection_points_list['right'].setPos(rect.right(), rect.center().y())
+        
+    def update_field_alignment(self):
+        """
+        Align field text items in the UML class box row by row.
+
+        Each field will be displayed on a new line, aligned to the left of the box.
+        """
+        # Starting y-position for the first field (below the class name)
+        y_offset = self.class_name_text.boundingRect().height() + self.default_margin
+
+        for field_name in self.field_name_list:
+            # Get the text item for the field
+            field_text = self.field_list[field_name]
+        
+            # Calculate the x-position to center the field text horizontally
+            field_x_pos = self.rect().topLeft().x() + self.default_margin
+        
+            # Set the position of the field text, each field below the previous one
+            field_text.setPos(field_x_pos, self.rect().topLeft().y() + y_offset)
+        
+            # Increment y_offset for the next field (adding field height and margin)
+            y_offset += field_text.boundingRect().height()
+            
+    def update_method_alignment(self):
+        """
+        Align method text items in the UML class box row by row.
+
+        Each method will be displayed on a new line, aligned to the left of the box.
+        """
+        # Starting y-position for the first field (below the class name)
+        y_offset = self.class_name_text.boundingRect().height() + self.get_field_text_height() + self.default_margin * 2
+
+        for method_name in self.method_name_list:
+            # Get the text item for the field
+            method_text = self.method_list[method_name]
+        
+            # Calculate the x-position to center the field text horizontally
+            method_x_pos = self.rect().topLeft().x() + self.default_margin
+        
+            # Set the position of the field text, each field below the previous one
+            method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset)
+        
+            # Increment y_offset for the next field (adding field height and margin)
+            y_offset += method_text.boundingRect().height()
+            
+    #################################
+    
+    def create_separator(self, is_first=True):
+       if is_first:
+            class_name_height = self.class_name_text.boundingRect().height()
+            y_pos = self.rect().topLeft().y() + class_name_height + self.default_margin
+            self.separator_line1 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), y_pos, self.rect().topRight().x(), y_pos, self)
             
     def create_resize_handles(self):
         """
@@ -220,28 +293,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Update the positions of the connection points based on the size of the box
         self.update_connection_point_positions()
 
-    def update_handle_positions(self):
-        """
-        Update the positions of the resize handles based on the current size of the UML box.
-        This ensures the handles remain at the corners of the box.
-        """
-        rect = self.rect()
-        self.handles_list['top_left'].setPos(rect.topLeft())
-        self.handles_list['top_right'].setPos(rect.topRight())
-        self.handles_list['bottom_left'].setPos(rect.bottomLeft())
-        self.handles_list['bottom_right'].setPos(rect.bottomRight())
-
-    def update_connection_point_positions(self):
-        """
-        Update the positions of the connection points based on the size of the UML box.
-        Connection points are positioned at the center of the edges (top, bottom, left, right).
-        """
-        rect = self.rect()
-        self.connection_points_list['top'].setPos(rect.center().x(), rect.top())
-        self.connection_points_list['bottom'].setPos(rect.center().x(), rect.bottom())
-        self.connection_points_list['left'].setPos(rect.left(), rect.center().y())
-        self.connection_points_list['right'].setPos(rect.right(), rect.center().y())
-
     #################################
     ## CLASS NAME TEXT RELATED ##
     
@@ -292,7 +343,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Set the class name's position at the top, ensuring it stays horizontally centered
         # The y-position remains fixed at a margin from the top
-        self.class_name_text.setPos(class_name_x_pos, self.rect().topLeft().y() + self.default_margin)
+        self.class_name_text.setPos(class_name_x_pos, self.rect().topLeft().y() + self.default_margin / 2)
 
     #################################
     ### UML CLASS OPERATIONS ###
@@ -336,28 +387,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                             self.update_box()
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No fields to change.")
-            
-    def update_field_alignment(self):
-        """
-        Align field text items in the UML class box row by row.
-
-        Each field will be displayed on a new line, aligned to the left of the box.
-        """
-        # Starting y-position for the first field (below the class name)
-        y_offset = self.class_name_text.boundingRect().height() + self.default_margin
-
-        for field_name in self.field_name_list:
-            # Get the text item for the field
-            field_text = self.field_list[field_name]
-        
-            # Calculate the x-position to center the field text horizontally
-            field_x_pos = self.rect().topLeft().x() + self.default_margin
-        
-            # Set the position of the field text, each field below the previous one
-            field_text.setPos(field_x_pos, self.rect().topLeft().y() + y_offset)
-        
-            # Increment y_offset for the next field (adding field height and margin)
-            y_offset += field_text.boundingRect().height()
 
     ## METHOD OPERATIONS ##
     def add_method(self):
@@ -367,6 +396,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             method_text = self.create_text_item(method_name + "()", is_method=True, selectable=True)
             self.method_list[method_name] = method_text
             self.method_name_list.append(method_name)
+            # Create separator below field section
+            self.separator_line1 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), self.class_name_text.boundingRect().height() + self.default_margin, self.rect().width(), 
+                                                           self.class_name_text.boundingRect().height() + self.default_margin, self)
             self.update_box()
             
     def delete_method(self):
@@ -397,28 +429,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                             self.update_box()
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to change.")
-            
-    def update_method_alignment(self):
-        """
-        Align method text items in the UML class box row by row.
-
-        Each method will be displayed on a new line, aligned to the left of the box.
-        """
-        # Starting y-position for the first field (below the class name)
-        y_offset = self.class_name_text.boundingRect().height() + self.get_field_text_height() + self.default_margin * 2
-
-        for method_name in self.method_name_list:
-            # Get the text item for the field
-            method_text = self.method_list[method_name]
-        
-            # Calculate the x-position to center the field text horizontally
-            method_x_pos = self.rect().topLeft().x() + self.default_margin
-        
-            # Set the position of the field text, each field below the previous one
-            method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset)
-        
-            # Increment y_offset for the next field (adding field height and margin)
-            y_offset += method_text.boundingRect().height()
     
     #################################
     ## MOUSE EVENT RELATED ##
@@ -455,6 +465,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Execute the context menu and get the selected action
         action = contextMenu.exec_(event.screenPos())
+        self.update_box()
 
     def handle_hoverEnterEvent(self, event, handle_name):
         """
@@ -499,14 +510,15 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                     if handle.isUnderMouse():
                         self.current_handle = handle_name
                         self.is_resizing = True
-                        break
+                        self.update_box()
+                        return
         super().mousePressEvent(event)
         
     def mouseMoveEvent(self, event):
         """
         Handle the mouse movement event for resizing the UML box.
 
-        This function updates the size of the UML box based on the handle being dragged during resizing. 
+        This function updates the size of the UML box based on the handle being dragged during resizing.
         It ensures that the box maintains a minimum width and height based on the longest string (class name)
         to prevent content from being cut off. The handle being dragged determines which part of the box 
         (top-left, top-right, bottom-left, or bottom-right) is adjusted. The new dimensions are calculated 
@@ -519,42 +531,61 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Check if the box is being resized and if a specific handle is active
         if self.is_resizing and self.current_handle:
             new_rect = self.rect()  # Get the current rectangle (box) dimensions
-            # self.mapFromScene(): Converts the mouse’s global position to the local coordinate system of the UML box. 
-            # This ensures that resizing is accurate relative to the box’s local position.
+            
+            # This line converts the global mouse position (from the scene) to the local coordinate system of the box. 
+            # This is important because you need the mouse's position relative to the box, not to the entire screen or canvas.
             pos = self.mapFromScene(event.scenePos())
 
             # Height of current field text
             class_name_height = self.class_name_text.boundingRect().height()
             fields_text_height = self.get_field_text_height()
             method_text_height = self.get_method_text_height()
-            total_height = class_name_height + fields_text_height + method_text_height + + self.default_margin * 2
+            total_height = class_name_height + fields_text_height + method_text_height + self.default_margin * 2
             
-            max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
+            min_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
             min_string_height = total_height
 
-            # Update the size of the box based on the specific handle being dragged
+            # Adjust size based on the specific handle being dragged
             if self.current_handle == 'top_left':
-                new_rect.setTopLeft(pos)  # Adjust the top-left corner based on the new mouse position
+                new_width = self.rect().right() - pos.x()  # Calculate the new width
+                new_height = self.rect().bottom() - pos.y()  # Calculate the new height
+
+                # If width and height are valid (positive values), resize the box and fix bottom-right corner
+                if new_width > min_width:
+                    new_rect.setWidth(new_width)  # Update width
+                    new_rect.moveLeft(pos.x())  # Move the left side to follow the mouse
+                if new_height > min_string_height:
+                    new_rect.setHeight(new_height)  # Update height
+                    new_rect.moveTop(pos.y())  # Move the top side to follow the mouse
+
             elif self.current_handle == 'top_right':
-                new_rect.setTopRight(pos)  # Adjust the top-right corner based on the new mouse position
+                new_width = pos.x() - self.rect().left()  # Calculate the new width
+                new_height = self.rect().bottom() - pos.y()  # Calculate the new height
+
+                if new_width > min_width:
+                    new_rect.setWidth(new_width)
+                if new_height > min_string_height:
+                    new_rect.setHeight(new_height)
+                    new_rect.moveTop(pos.y())  # Move the top side to follow the mouse
+
             elif self.current_handle == 'bottom_left':
-                new_rect.setBottomLeft(pos)  # Adjust the bottom-left corner based on the new mouse position
+                new_width = self.rect().right() - pos.x()  # Calculate the new width
+                new_height = pos.y() - self.rect().top()  # Calculate the new height
+
+                if new_width > min_width:
+                    new_rect.setWidth(new_width)
+                    new_rect.moveLeft(pos.x())  # Move the left side to follow the mouse
+                if new_height > min_string_height:
+                    new_rect.setHeight(new_height)
+
             elif self.current_handle == 'bottom_right':
-                new_rect.setBottomRight(pos)  # Adjust the bottom-right corner based on the new mouse position
+                new_width = pos.x() - self.rect().left()  # Calculate the new width
+                new_height = pos.y() - self.rect().top()  # Calculate the new height
 
-            # Calculate the new width and height of the box based on the mouse movement
-            new_width = new_rect.width()
-            new_height = new_rect.height()
-
-            if new_width >= max_width:
-                new_rect.setWidth(new_width)
-            else:
-                new_rect.setWidth(max_width)  
-
-            if new_height >= min_string_height:
-                new_rect.setHeight(new_height)
-            else:
-                new_rect.setHeight(min_string_height)  # Apply minimum height
+                if new_width > min_width:
+                    new_rect.setWidth(new_width)  # Update width
+                if new_height > min_string_height:
+                    new_rect.setHeight(new_height)  # Update height
 
             # Apply the new rectangle dimensions to the UML box
             self.setRect(new_rect)
@@ -578,7 +609,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         elif self.is_resizing:
             self.is_resizing = False  # Reset resizing flag
             self.current_handle = None  # Reset current handle
-
         super().mouseReleaseEvent(event)
 
     #################################################################
