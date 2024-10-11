@@ -546,13 +546,11 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             new_width = new_rect.width()
             new_height = new_rect.height()
 
-            # Ensure the box does not shrink smaller than the minimum width based on text
             if new_width >= max_width:
                 new_rect.setWidth(new_width)
             else:
-                new_rect.setWidth(max_width)  # Apply minimum width
+                new_rect.setWidth(max_width)  
 
-            # Ensure the box does not shrink smaller than the minimum height based on text
             if new_height >= min_string_height:
                 new_rect.setHeight(new_height)
             else:
