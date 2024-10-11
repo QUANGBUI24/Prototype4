@@ -89,9 +89,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
         # Enable hover events
         self.setAcceptHoverEvents(True)
-        
-        #################################
-        
         # Class name text box and make it appear at the center of the box.
         self.class_name_text = self.create_text_item(class_name, selectable=True)
         # Connect the text change callback to ensure it re-centers when the text changes.
@@ -107,8 +104,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Create connection point for arrow line.
         self.create_connection_points()
 
-        #################################
-
     #################################################################
     ### MEMBER FUNCTIONS ###
     
@@ -116,31 +111,79 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     ## UPDATE BOX AND IS COMPONENTS ##
     
     def update_box(self):
-        # Set positions of text items relative to each other #
+        """
+        Update the dimensions and layout of the UML box.
+
+        This method recalculates and updates all aspects of the UML box, including:
+        - Repositioning the class name.
+        - Adjusting the box height and width.
+        - Updating the positions of resize handles.
+        - Adjusting connection points for relationships.
+        - Aligning fields, methods, and parameters.
+        - Updating the separators between different sections (class name, fields, methods).
+
+        This ensures that all elements in the UML box are correctly positioned and scaled 
+        based on the current content of the box.
+        """
+        # Reposition the class name in the center of the UML box
         self.centering_class_name()
-        # Update box height and width
+
+        # Adjust the box's height and width based on its contents
         self.update_box_dimension()
-        # Update handles
+
+        # Update the position of the resize handles at the corners of the UML box
         self.update_handle_positions()
-        # Update connection points
+
+        # Update the connection points (e.g., for relationships) around the box
         self.update_connection_point_positions()
-        # Update field alignment
+
+        # Align the fields within the UML box
         self.update_field_alignment()
-        # Update method and parameter alignment
+
+        # Align the methods and parameters within the UML box
         self.update_method_and_param_alignment()
-        # Update separator
+
+        # Update the separators between the class name, fields, and methods
         self.update_separators()
-    
+
     def update_box_dimension(self):
+        """
+        Recalculate and update the dimensions of the UML box.
+
+        This function calculates the total height of the UML box based on the height of the class name,
+        fields, methods, and parameters. The width is set to the larger of the default width or the maximum width 
+        required by the text contents (fields, methods, or parameters). If the box is not being manually resized 
+        or dragged, it adjusts the box dimensions to fit the content.
+
+        Steps:
+        1. Get the height of the class name, fields, methods, and parameters.
+        2. Calculate the total height and maximum width required.
+        3. Update the box size if it is not currently being resized or dragged.
+        """
+        # Get the height of the class name text
         class_name_height = self.class_name_text.boundingRect().height()
+
+        # Get the total height of the fields section
         fields_text_height = self.get_field_text_height()
+
+        # Get the total height of the methods section
         method_text_height = self.get_method_text_height()
+
+        # Get the total height of the parameters section
         parameter_text_height = self.get_total_param_text_height()
-        total_height = class_name_height + fields_text_height + method_text_height + parameter_text_height + self.default_margin * 2
+
+        # Calculate the total height required for the box, including margins
+        total_height = (class_name_height + fields_text_height + method_text_height 
+                        + parameter_text_height + self.default_margin * 2)
+
+        # Calculate the maximum width required by the content
         max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 3
-        print(f"Max Width = {max_width}")
-        # Update the box size only if not being resized manually
+        print(f"Max Width = {max_width}")  # Debugging print statement to show the calculated width
+
+        # If the box is not being resized manually or dragged, adjust the size of the box
+        # Ensure the total height is greater than the current height before resizing
         if not self.is_resizing and not self.is_box_dragged and total_height >= self.rect().height():
+            # Update the rectangle (box) size with the new width and height
             self.setRect(0, 0, max_width, total_height)
         
     def update_separators(self):
@@ -169,7 +212,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             else:
                 pass
                 
-            
     def update_handle_positions(self):
         """
         Update the positions of the resize handles based on the current size of the UML box.
@@ -311,7 +353,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 self  # Set the UML class box as the parent for this line item.
             )
            
-            
     def create_resize_handles(self):
         """
         Create four resize handles at the corners of the UML box.
