@@ -44,6 +44,8 @@ class UMLTestBox(QtWidgets.QGraphicsRectItem):
         self.field_list = field_list if field_list is not None else []
         self.method_list = method_list if method_list is not None else []
         self.parameter_list = parameter_list if parameter_list is not None else []
+        self.handles_list = []
+        self.connection_points_list = []
 
         #################################################################
         ### UML CLASS BOX DEFAULT SETUP ###
@@ -56,7 +58,7 @@ class UMLTestBox(QtWidgets.QGraphicsRectItem):
         self.default_margin = Default.BOX_DEFAULT_MARGIN.value
         # Handle points and connection points size
         self.handle_size = 10
-        self.connection_point_size = 8
+        self.connection_point_size = 6
         # Initialize resizing and connection properties
         self.is_box_dragged = False
         self.is_resizing = False
@@ -69,7 +71,7 @@ class UMLTestBox(QtWidgets.QGraphicsRectItem):
         # Set border color (black)
         self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0)))  
         # Set background color (cyan)
-        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 255, 255)))  
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0,191,255)))  
         # Set class box selectable
         self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
         # Set class box movable
@@ -101,120 +103,99 @@ class UMLTestBox(QtWidgets.QGraphicsRectItem):
     ## UPDATE BOX AND IS COMPONENTS ##
     
     def update_box(self,):
-        # Calculate heights of all text sections
-        class_name_height = self.class_name_text.boundingRect().height()
-        
         # Set positions of text items relative to each other #
         self.centering_class_name()
-        
+        # Update handles
+        self.update_handle_positions()
+        # Update connection points
+        self.update_connection_point_positions()
+    
     def create_resize_handles(self):
         """
-        Create resize handles at 4 corners of the class box.
+        Create four resize handles at the corners of the UML box.
+        These handles will be used to resize the UML box by dragging.
+        Each QGraphicsEllipseItem(self) creates an ellipse 
+        (a small circular handle) and links it to the current object (self), which is the UML box.
         """
-       # Create the 4 corner handles
-        top_left_handle = QtWidgets.QGraphicsEllipseItem(self)
-        top_left_handle.setRect(self.rect().x() - self.handle_size / 2, self.rect().y() - self.handle_size / 2, self.handle_size, self.handle_size)
-
-        top_right_handle = QtWidgets.QGraphicsEllipseItem(self)
-        top_right_handle.setRect(self.rect().right() - self.handle_size / 2, self.rect().y() - self.handle_size / 2, self.handle_size, self.handle_size)
-
-        bottom_left_handle = QtWidgets.QGraphicsEllipseItem(self)
-        bottom_left_handle.setRect(self.rect().x() - self.handle_size / 2, self.rect().bottom() - self.handle_size / 2, self.handle_size, self.handle_size)
-
-        bottom_right_handle = QtWidgets.QGraphicsEllipseItem(self)
-        bottom_right_handle.setRect(self.rect().right() - self.handle_size / 2, self.rect().bottom() - self.handle_size / 2, self.handle_size, self.handle_size)
-
-        # Store the handles in a dictionary for easy reference
         self.handles_list = {
-            'top_left': top_left_handle,
-            'top_right': top_right_handle,
-            'bottom_left': bottom_left_handle,
-            'bottom_right': bottom_right_handle,
+            'top_left': QtWidgets.QGraphicsEllipseItem(self),
+            'top_right': QtWidgets.QGraphicsEllipseItem(self),
+            'bottom_left': QtWidgets.QGraphicsEllipseItem(self),
+            'bottom_right': QtWidgets.QGraphicsEllipseItem(self),
         }
 
         for handle_name, handle in self.handles_list.items():
-            # Set the pen (border color) for the resize handle to black
-            handle.setPen(QtGui.QPen(QtGui.QColor(0,0,0))) 
+            # Set handle size and position based on the size of the box
+            handle.setRect(-self.handle_size / 2, -self.handle_size / 2, self.handle_size, self.handle_size)
 
-            # Set the brush (fill color) for the resize handle to white
-            handle.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+            # Set the appearance of the handle
+            handle.setPen(QtGui.QPen(QtGui.QColor(0,0,0)))  # Black border
+            handle.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # White fill
 
-            # Enable the handle to send geometry change events.
-            # This allows the handle to notify the parent item (the class box) when it moves or is resized.
+            # Set the handle to be non-movable and send geometry changes to the parent
+            handle.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
             handle.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
-            
-            # Enable hover events for the handle.
-            # This allows the handle to receive hoverEnter and hoverLeave events,
-            # triggering custom actions like changing the cursor when the mouse hovers over the handle.
+
+            # Allow hover events to change the cursor during interaction
             handle.setAcceptHoverEvents(True)
 
-            # Override the default hoverEnterEvent with a custom event handler.
-            # The `partial` function is used to pass the `handle_name` (e.g., 'top_left', 'bottom_right') to the event handler.
-            # This ensures that each handle has its own behavior depending on which one is hovered.
+            # Set hover events to trigger custom cursor change for each handle
             handle.hoverEnterEvent = partial(self.handle_hoverEnterEvent, handle_name=handle_name)
-
-            # Set the hoverLeaveEvent to a custom handler.
-            # When the mouse leaves the handle, this event will reset the cursor to the default state.
             handle.hoverLeaveEvent = self.handle_hoverLeaveEvent
-    
-    def update_handle_positions(self):
-        """Update the handle positions based on the new rectangle."""
-        self.handles_list['top_left'].setRect(self.rect().x() - self.handle_size / 2, self.rect().y() - self.handle_size / 2, self.handle_size, self.handle_size)
-        self.handles_list['top_right'].setRect(self.rect().right() - self.handle_size / 2, self.rect().y() - self.handle_size / 2, self.handle_size, self.handle_size)
-        self.handles_list['bottom_left'].setRect(self.rect().x() - self.handle_size / 2, self.rect().bottom() - self.handle_size / 2, self.handle_size, self.handle_size)
-        self.handles_list['bottom_right'].setRect(self.rect().right() - self.handle_size / 2, self.rect().bottom() - self.handle_size / 2, self.handle_size, self.handle_size)
-    
+
+        # Initial handle positions based on the current size of the box
+        self.update_handle_positions()
+
     def create_connection_points(self):
         """
-        Create resize handles at 4 corners of the class box.
+        Create four connection points (top, bottom, left, right) for linking arrows between UML boxes.
+        Each connection point is represented by a small ellipse at the edge of the UML box.
         """
-       # Define the positions for each connection point
-        top_x = self.rect().width() / 2 - 4
-        top_y = self.pos().y() - 5
-        
-        bot_x = self.rect().width() / 2 - 4
-        bot_y = self.pos().y() + self.rect().height() - 5
-        
-        left_x = self.pos().x() - 5
-        left_y = self.rect().height() / 2
-        
-        right_x = self.rect().width() - 5
-        right_y = self.rect().height() / 2
-
-        self.handles_list = {
-        'top': QtWidgets.QGraphicsEllipseItem(top_x, top_y, self.connection_point_size, self.connection_point_size, self),
-        'bottom': QtWidgets.QGraphicsEllipseItem(bot_x, bot_y, self.connection_point_size, self.connection_point_size, self),
-        'left': QtWidgets.QGraphicsEllipseItem(left_x, left_y, self.connection_point_size, self.connection_point_size, self),
-        'right': QtWidgets.QGraphicsEllipseItem(right_x, right_y, self.connection_point_size, self.connection_point_size, self),
+        self.connection_points_list = {
+            'top': QtWidgets.QGraphicsEllipseItem(self),
+            'bottom': QtWidgets.QGraphicsEllipseItem(self),
+            'left': QtWidgets.QGraphicsEllipseItem(self),
+            'right': QtWidgets.QGraphicsEllipseItem(self),
         }
-        
-        for connection_point_name, point in self.handles_list.items():
-            # Set the pen (border color) for the resize handle to black
-            point.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0))) 
 
-            # Set the brush (fill color) for the resize handle to white
-            point.setBrush(QtGui.QBrush(QtGui.QColor(50,205,50)))
+        # point_name will be used later for 
+        for point_name, cp_item in self.connection_points_list.items():
+            # Set the size and position of the connection point
+            cp_item.setRect(-5, -5, self.connection_point_size, self.connection_point_size)
 
-            # Make the point not movable
-            point.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
-            
-            # Make the point not selectable
-            point.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, False)
+            # Set the appearance of the connection point
+            cp_item.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))  # Black color fill
+            cp_item.setPen(QtGui.QPen(QtCore.Qt.black))  # Black border
 
-            # Enable hover events for the handle.
-            # This allows the handle to receive hoverEnter and hoverLeave events,
-            # triggering custom actions like changing the cursor when the mouse hovers over the handle.
-            point.setAcceptHoverEvents(True)
+            # Disable movement and selection of connection points
+            cp_item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+            cp_item.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, False)
 
-            # Override the default hoverEnterEvent with a custom event handler.
-            # The `partial` function is used to pass the `handle_name` (e.g., 'top_left', 'bottom_right') to the event handler.
-            # This ensures that each handle has its own behavior depending on which one is hovered.
-            point.hoverEnterEvent = partial(self.handle_hoverEnterEvent, handle_name=connection_point_name)
+        # Update the positions of the connection points based on the size of the box
+        self.update_connection_point_positions()
 
-            # Set the hoverLeaveEvent to a custom handler.
-            # When the mouse leaves the handle, this event will reset the cursor to the default state.
-            point.hoverLeaveEvent = self.handle_hoverLeaveEvent
-    
+    def update_handle_positions(self):
+        """
+        Update the positions of the resize handles based on the current size of the UML box.
+        This ensures the handles remain at the corners of the box.
+        """
+        rect = self.rect()
+        self.handles_list['top_left'].setPos(rect.topLeft())
+        self.handles_list['top_right'].setPos(rect.topRight())
+        self.handles_list['bottom_left'].setPos(rect.bottomLeft())
+        self.handles_list['bottom_right'].setPos(rect.bottomRight())
+
+    def update_connection_point_positions(self):
+        """
+        Update the positions of the connection points based on the size of the UML box.
+        Connection points are positioned at the center of the edges (top, bottom, left, right).
+        """
+        rect = self.rect()
+        self.connection_points_list['top'].setPos(rect.center().x(), rect.top())
+        self.connection_points_list['bottom'].setPos(rect.center().x(), rect.bottom())
+        self.connection_points_list['left'].setPos(rect.left(), rect.center().y())
+        self.connection_points_list['right'].setPos(rect.right(), rect.center().y())
+
     #################################
     ## CLASS NAME TEXT RELATED ##
     
@@ -254,19 +235,18 @@ class UMLTestBox(QtWidgets.QGraphicsRectItem):
         Parameters:
         None
         """
-        # Get the current width of the UML class box (the rectangle that represents the class).
+        # Get the current width of the UML class box
         box_width = self.rect().width()
-    
-        # Get the width of the class name text using its bounding rectangle.
+
+        # Get the width of the class name text using its bounding rectangle
         class_name_width = self.class_name_text.boundingRect().width()
-    
-        # Calculate the x-position to center the class name within the box by subtracting the 
-        # text width from the box width and dividing by 2 (horizontal centering).
-        class_name_x_pos = (box_width - class_name_width) / 2
-    
-        # Set the class name's position. The y-position is set to a fixed default margin to 
-        # maintain the vertical alignment, while the x-position is the calculated centered value.
-        self.class_name_text.setPos(class_name_x_pos, self.default_margin)
+
+        # Calculate the x-position to center the class name horizontally
+        class_name_x_pos = self.rect().topLeft().x() + (box_width - class_name_width) / 2
+
+        # Set the class name's position at the top, ensuring it stays horizontally centered
+        # The y-position remains fixed at a margin from the top
+        self.class_name_text.setPos(class_name_x_pos, self.rect().topLeft().y() + self.default_margin)
     
     #################################
     ## MOUSE EVENT RELATED ##
@@ -310,7 +290,7 @@ class UMLTestBox(QtWidgets.QGraphicsRectItem):
                 self.is_box_dragged = True  # Start dragging the box
             elif any(handle.isUnderMouse() for handle in self.handles_list.values()):
                 # Determine which handle is being pressed for resizing
-                for handle_name, handle in self.handles.items():
+                for handle_name, handle in self.handles_list.items():
                     if handle.isUnderMouse():
                         self.current_handle = handle_name
                         self.is_resizing = True
@@ -318,27 +298,63 @@ class UMLTestBox(QtWidgets.QGraphicsRectItem):
         super().mousePressEvent(event)
         
     def mouseMoveEvent(self, event):
-        # If resizing, update the rectangle size based on the handle being dragged
+        """
+        Handle the mouse movement event for resizing the UML box.
+
+        This function updates the size of the UML box based on the handle being dragged during resizing. 
+        It ensures that the box maintains a minimum width and height based on the longest string (class name)
+        to prevent content from being cut off. The handle being dragged determines which part of the box 
+        (top-left, top-right, bottom-left, or bottom-right) is adjusted. The new dimensions are calculated 
+        based on the mouse position, and the box is updated accordingly.
+
+        Parameters:
+            event (QGraphicsSceneMouseEvent): The event that provides the mouse movement data.
+        """
+        
+        # Check if the box is being resized and if a specific handle is active
         if self.is_resizing and self.current_handle:
-            rect = self.rect()
+            new_rect = self.rect()  # Get the current rectangle (box) dimensions
+            # self.mapFromScene(): Converts the mouse’s global position to the local coordinate system of the UML box. 
+            # This ensures that resizing is accurate relative to the box’s local position.
             pos = self.mapFromScene(event.scenePos())
 
-            # Update the size of the box based on which handle is being dragged
-            if self.current_handle == 'top_left':
-                rect.setTopLeft(pos)
-            elif self.current_handle == 'top_right':
-                rect.setTopRight(pos)
-            elif self.current_handle == 'bottom_left':
-                rect.setBottomLeft(pos)
-            elif self.current_handle == 'bottom_right':
-                rect.setBottomRight(pos)
-            # Set the new rectangle dimensions
-            self.setRect(rect)
+            # Calculate the minimum width and height based on the class name text length
+            longest_string_width = max(self.class_name_text.boundingRect().width(), 0) + self.default_margin * 2
+            min_string_height = (self.class_name_text.boundingRect().height()) + self.default_margin * 2
 
-            # Ensure that the handles are repositioned
-            self.update_handle_positions()
+            # Update the size of the box based on the specific handle being dragged
+            if self.current_handle == 'top_left':
+                new_rect.setTopLeft(pos)  # Adjust the top-left corner based on the new mouse position
+            elif self.current_handle == 'top_right':
+                new_rect.setTopRight(pos)  # Adjust the top-right corner based on the new mouse position
+            elif self.current_handle == 'bottom_left':
+                new_rect.setBottomLeft(pos)  # Adjust the bottom-left corner based on the new mouse position
+            elif self.current_handle == 'bottom_right':
+                new_rect.setBottomRight(pos)  # Adjust the bottom-right corner based on the new mouse position
+
+            # Calculate the new width and height of the box based on the mouse movement
+            new_width = new_rect.width()
+            new_height = new_rect.height()
+
+            # Ensure the box does not shrink smaller than the minimum width based on text
+            if new_width >= longest_string_width:
+                new_rect.setWidth(new_width)
+            else:
+                new_rect.setWidth(longest_string_width)  # Apply minimum width
+
+            # Ensure the box does not shrink smaller than the minimum height based on text
+            if new_height >= min_string_height:
+                new_rect.setHeight(new_height)
+            else:
+                new_rect.setHeight(min_string_height)  # Apply minimum height
+
+            # Apply the new rectangle dimensions to the UML box
+            self.setRect(new_rect)
+
+            # Update the internal contents of the box (e.g., class name position)
+            self.update_box()
         else:
-            super().mouseMoveEvent(event)
+            super().mouseMoveEvent(event)  # Call the parent method if not resizing
         
     def mouseReleaseEvent(self, event):
         """
@@ -368,11 +384,12 @@ def main():
     view = QtWidgets.QGraphicsView(scene)
 
     # Create an instance of UMLTestBox
-    uml_box = UMLTestBox()
+    interface = None  # Replace with actual interface object if needed
+    uml_box = UMLTestBox(interface)
     scene.addItem(uml_box)
 
     # Show the view
-    view.setGeometry(100, 100, 600, 400)
+    view.setGeometry(100, 100, 1000, 1000)
     view.show()
 
     sys.exit(app.exec_())
