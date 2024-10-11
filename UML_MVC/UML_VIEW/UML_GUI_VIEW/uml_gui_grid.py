@@ -214,30 +214,30 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
-        """
-        Handle mouse move events for panning or updating the temporary arrow.
+    # def mouseMoveEvent(self, event):
+    #     """
+    #     Handle mouse move events for panning or updating the temporary arrow.
 
-        Parameters:
-        - event (QMouseEvent): The mouse event.
-        """
-        if self.is_panning and self.last_mouse_pos is not None:
-            # Panning the view
-            delta = event.pos() - self.last_mouse_pos
-            self.setTransformationAnchor(QtWidgets.QGraphicsView.NoAnchor)
-            self.translate(delta.x(), delta.y())
-            self.last_mouse_pos = event.pos()
-            self.viewport().update()
-            event.accept()
-        elif self.line:
-            # Update the temporary arrow line during drawing
-            new_end = self.mapToScene(event.pos())
-            if self.startPoint:
-                newLine = QtCore.QLineF(self.startPoint, new_end)
-                self.line.setLine(newLine)
-                event.accept()
-        else:
-            super().mouseMoveEvent(event)
+    #     Parameters:
+    #     - event (QMouseEvent): The mouse event.
+    #     """
+    #     if self.is_panning and self.last_mouse_pos is not None:
+    #         # Panning the view
+    #         delta = event.pos() - self.last_mouse_pos
+    #         self.setTransformationAnchor(QtWidgets.QGraphicsView.NoAnchor)
+    #         self.translate(delta.x(), delta.y())
+    #         self.last_mouse_pos = event.pos()
+    #         self.viewport().update()
+    #         event.accept()
+    #     elif self.line:
+    #         # Update the temporary arrow line during drawing
+    #         new_end = self.mapToScene(event.pos())
+    #         if self.startPoint:
+    #             newLine = QtCore.QLineF(self.startPoint, new_end)
+    #             self.line.setLine(newLine)
+    #             event.accept()
+    #     else:
+    #         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         """

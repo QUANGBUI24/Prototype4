@@ -152,7 +152,16 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             y_pos = self.rect().topLeft().y() + class_name_height + self.default_margin
             # Set the new position of the separator line
             self.separator_line1.setLine(
-                self.rect().topLeft().x(), y_pos, self.rect().topRight().x(), y_pos
+                self.rect().topLeft().x(), y_pos, 
+                self.rect().topRight().x(), y_pos
+            )
+        if hasattr(self, 'separator_line2'):
+            class_name_height = self.class_name_text.boundingRect().height()
+            field_section_height = self.get_field_text_height()
+            y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + self.default_margin
+            self.separator_line2.setLine(
+                self.rect().topLeft().x(), y_pos, 
+                self.rect().topRight().x(), y_pos
             )
             
     def update_handle_positions(self):
@@ -216,10 +225,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             method_x_pos = self.rect().topLeft().x() + self.default_margin
         
             # Set the position of the field text, each field below the previous one
-            method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset)
+            method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset - self.default_margin)
         
             # Increment y_offset for the next field (adding field height and margin)
-            y_offset += method_text.boundingRect().height()
+            y_offset += method_text.boundingRect().height() 
             
     #################################
     
@@ -228,6 +237,12 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             class_name_height = self.class_name_text.boundingRect().height()
             y_pos = self.rect().topLeft().y() + class_name_height + self.default_margin
             self.separator_line1 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), y_pos, self.rect().topRight().x(), y_pos, self)
+       else:
+            class_name_height = self.class_name_text.boundingRect().height()
+            field_section_height = self.get_field_text_height()
+            y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + self.default_margin
+            self.separator_line2 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), y_pos, self.rect().topRight().x(), y_pos, self)
+           
             
     def create_resize_handles(self):
         """
@@ -348,6 +363,14 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     #################################
     ### UML CLASS OPERATIONS ###
     
+    ## CLASS OPERATION ##
+    def rename_class(self):
+        """Rename class."""
+        class_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Class", f"Enter new name for class '{self.class_name_text.toPlainText()}'")
+        if ok and class_name:
+            self.class_name_text.setPlainText(class_name)
+            self.update_box()
+        
     ## FIELD OPERATION ##
         
     def add_field(self):
@@ -370,7 +393,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No fields to remove.")
             
-    def change_field(self):
+    def rename_field(self):
         """Chang field name."""
         if self.field_name_list:
             field_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Field Name", "Select field to change:", self.field_name_list, 0, False)
@@ -396,9 +419,8 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             method_text = self.create_text_item(method_name + "()", is_method=True, selectable=True)
             self.method_list[method_name] = method_text
             self.method_name_list.append(method_name)
-            # Create separator below field section
-            self.separator_line1 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), self.class_name_text.boundingRect().height() + self.default_margin, self.rect().width(), 
-                                                           self.class_name_text.boundingRect().height() + self.default_margin, self)
+            if len(self.method_name_list) == 1:
+                self.create_separator(is_first=False)
             self.update_box()
             
     def delete_method(self):
@@ -412,7 +434,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No method to remove.")
             
-    def change_method(self):
+    def rename_method(self):
         """Chang method name."""
         if self.method_name_list:
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Method Name", "Select method to change:", self.method_name_list, 0, False)
@@ -429,6 +451,15 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                             self.update_box()
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to change.")
+            
+    def add_param(self):
+        pass
+    
+    def delete_param(self):
+        pass
+    
+    def rename_param(self):
+        pass
     
     #################################
     ## MOUSE EVENT RELATED ##
@@ -439,10 +470,16 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Create the context menu
         contextMenu = QtWidgets.QMenu()
         
+        # Class option
+        rename_class_button = contextMenu.addAction("Rename Class")
+        
+        # Add a separator before the field options
+        contextMenu.addSeparator()
+        
         # Add field options
         add_field_button = contextMenu.addAction("Add Field")
         delete_field_button = contextMenu.addAction("Delete Field")
-        change_field_button = contextMenu.addAction("Change Field")
+        rename_field_button = contextMenu.addAction("Rename Field")
         
         # Add a separator before the method options
         contextMenu.addSeparator()
@@ -450,18 +487,21 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Add method options
         add_method_button = contextMenu.addAction("Add Method")
         delete_method_button = contextMenu.addAction("Delete Method")
-        change_method_button = contextMenu.addAction("Change Method")
+        rename_method_button = contextMenu.addAction("Rename Method")
 
         #################################
         # Connect field options to methods
         add_field_button.triggered.connect(self.add_field)
         delete_field_button.triggered.connect(self.delete_field)
-        change_field_button.triggered.connect(self.change_field)
+        rename_field_button.triggered.connect(self.rename_field)
         
         # Connect method options to methods
         add_method_button.triggered.connect(self.add_method)
         delete_method_button.triggered.connect(self.delete_method)
-        change_method_button.triggered.connect(self.change_method)
+        rename_method_button.triggered.connect(self.rename_method)
+        
+        # Connect class option to method
+        rename_class_button.triggered.connect(self.rename_class)
 
         # Execute the context menu and get the selected action
         action = contextMenu.exec_(event.screenPos())
