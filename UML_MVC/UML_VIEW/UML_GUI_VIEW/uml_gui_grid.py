@@ -3,7 +3,7 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
-from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import Method
+# from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import Method
 
 ###################################################################################################
 
@@ -16,7 +16,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     #################################################################
     ### CONSTRUCTOR ###
 
-    def __init__(self, interface, parent=None, grid_size=20, color=QtGui.QColor(200, 200, 200)):
+    def __init__(self, interface, parent=None, grid_size=15, color=QtGui.QColor(200, 200, 200)):
         """
         Initializes a new GridGraphicsView instance.
 
@@ -78,7 +78,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 new_width = current_rect.width() * sx
                 new_height = current_rect.height() * sy
                 item.setRect(0, 0, new_width, new_height)
-                item.update_positions()
+                item.update_box()
 
     def drawBackground(self, painter, rect):
         """
@@ -174,43 +174,43 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             self.last_mouse_pos = event.pos()
             self.setCursor(QtCore.Qt.ClosedHandCursor)
             event.accept()
-        elif event.button() == QtCore.Qt.RightButton:
-            # Start drawing an arrow
-            scene_pos = self.mapToScene(event.pos())
-            items = self.scene().items(scene_pos)
-            items = [item for item in items if isinstance(item, UMLClassBox)]
-            if items:
-                clicked_item = items[0]
-                # Find the closest connection point
-                connectionPoints = clicked_item.getConnectionPoints()
-                if connectionPoints:
-                    min_distance = None
-                    closest_point = None
-                    closest_key = None
-                    for key, point in connectionPoints.items():
-                        distance = QtCore.QLineF(scene_pos, point).length()
-                        if min_distance is None or distance < min_distance:
-                            min_distance = distance
-                            closest_point = point
-                            closest_key = key
+        # elif event.button() == QtCore.Qt.RightButton:
+        #     # Start drawing an arrow
+        #     scene_pos = self.mapToScene(event.pos())
+        #     items = self.scene().items(scene_pos)
+        #     items = [item for item in items if isinstance(item, UMLClassBox)]
+        #     if items:
+        #         clicked_item = items[0]
+        #         # Find the closest connection point
+        #         connectionPoints = clicked_item.getConnectionPoints()
+        #         if connectionPoints:
+        #             min_distance = None
+        #             closest_point = None
+        #             closest_key = None
+        #             for key, point in connectionPoints.items():
+        #                 distance = QtCore.QLineF(scene_pos, point).length()
+        #                 if min_distance is None or distance < min_distance:
+        #                     min_distance = distance
+        #                     closest_point = point
+        #                     closest_key = key
 
-                    if closest_point and closest_key:
-                        self.startItem = clicked_item
-                        self.startPoint = closest_point
-                        self.startKey = closest_key
+        #             if closest_point and closest_key:
+        #                 self.startItem = clicked_item
+        #                 self.startPoint = closest_point
+        #                 self.startKey = closest_key
 
-                        # Create a temporary line for the arrow
-                        self.line = QtWidgets.QGraphicsLineItem(
-                            QtCore.QLineF(self.startPoint, self.startPoint)
-                        )
-                        pen = QtGui.QPen(QtCore.Qt.white) if self.is_dark_mode else QtGui.QPen(QtCore.Qt.black)
-                        pen.setWidth(2)
-                        self.line.setPen(pen)
-                        self.line.setZValue(2)
-                        self.scene().addItem(self.line)
-                        event.accept()
-            else:
-                super().mousePressEvent(event)
+        #                 # Create a temporary line for the arrow
+        #                 self.line = QtWidgets.QGraphicsLineItem(
+        #                     QtCore.QLineF(self.startPoint, self.startPoint)
+        #                 )
+        #                 pen = QtGui.QPen(QtCore.Qt.white) if self.is_dark_mode else QtGui.QPen(QtCore.Qt.black)
+        #                 pen.setWidth(2)
+        #                 self.line.setPen(pen)
+        #                 self.line.setZValue(2)
+        #                 self.scene().addItem(self.line)
+        #                 event.accept()
+        #     else:
+        #         super().mousePressEvent(event)
         else:
             super().mousePressEvent(event)
 
@@ -333,7 +333,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             super().mouseReleaseEvent(event)
             self.viewport().update()
-
+    
     def keyPressEvent(self, event):
         """
         Handle key press events (e.g., Delete key to remove items).
@@ -343,8 +343,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         if event.key() == QtCore.Qt.Key_Delete:
             self.delete_selected_item()
+            event.accept()
         else:
             super().keyPressEvent(event)
+
 
     #################################################################
     ## UTILITY FUNCTIONS ##
@@ -354,22 +356,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Delete the selected class or arrow from the scene.
         """  
         if self.selected_class:
-            # Remove all methods and its parameter buttons
-            self.selected_class.remove_all_method()
-            # Remove connected arrows first
-            for arrow in self.selected_class.arrows[:]:
-                arrow.startItem.removeArrow(arrow)
-                arrow.endItem.removeArrow(arrow)
-                self.scene().removeItem(arrow)
             # Remove the class box
             self.scene().removeItem(self.selected_class)
             self.selected_class = None
-        elif self.selected_arrow:
-            # Remove the arrow
-            self.selected_arrow.startItem.removeArrow(self.selected_arrow)
-            self.selected_arrow.endItem.removeArrow(self.selected_arrow)
-            self.scene().removeItem(self.selected_arrow)
-            self.selected_arrow = None
 
     def update_snap(self):
         """
@@ -403,12 +392,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Reset the zoom and position to the initial state.
         """
-        # for item in self.scene().items():
-        #     if isinstance(item, UMLClassBox):
-        #         item.centering_class_name()
-        #         item.setRect(0, 0, item.max_width, item.min_height )
-        #         item.update_positions()
-        self.grid_size = 20
+        self.grid_size = 15
         self.resetTransform()
         self.centerOn(0, 0)
 
@@ -416,12 +400,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Add a sample UML class box to the scene.
         """
-        field: list[str] = []
-        methods: list[dict[str, list[str]]] = []
-        class_box = UMLClassBox(self.interface, class_name="Class_Name", field=field, methods=methods)
-        class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
-        class_box.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
-        class_box.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        class_box = UMLClassBox(self.interface, class_name="Class_Name")
         self.scene().addItem(class_box)
 
     def setLightMode(self):

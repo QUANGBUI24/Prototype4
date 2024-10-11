@@ -1,468 +1,146 @@
-###################################################################################################
-
+import sys
+import os
 from PyQt5 import QtWidgets, QtGui, QtCore
+from functools import partial
+from typing import Dict, List
 
 ###################################################################################################
-# Method Class: Represents a UML method with the ability to add/remove parameters.
-# Provides UI components such as add/remove parameter buttons and parameter list text field.
-###################################################################################################
-class Method(QtWidgets.QGraphicsRectItem):
-    def __init__(self, name):
-        super().__init__()
-        
-        self.parameter_name = name
-        self.parameters = []  # List to hold parameters for the method
-        
-        # Parameter Text Item - Interactive Text Field for Parameter Names
-        self.param_text = QtWidgets.QGraphicsTextItem(self)
-        self.param_text.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)  # Allow editing text
-        self.param_text.setDefaultTextColor(QtGui.QColor(0, 0, 0))  # Set text color to black
-        self.param_text.setPlainText("\n".join(self.parameters))  # Initialize parameter text
-        self.param_text.document().contentsChanged.connect(self.update_param_position)
+# ADD ROOT PATH #
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+sys.path.append(root_path)
 
-        # Add/Remove Parameter Buttons
-        self.add_param_button = self.create_button("+", self.add_parameter)
-        self.remove_param_button = self.create_button("-", self.remove_parameter)
-        
-        # Proxy Widgets for Buttons
-        self.add_param_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
-        self.add_param_button_proxy.setWidget(self.add_param_button)
-
-        self.remove_param_button_proxy = QtWidgets.QGraphicsProxyWidget(self)
-        self.remove_param_button_proxy.setWidget(self.remove_param_button)
-
-    def create_button(self, label, callback):
-        """
-        Create and style a QPushButton.
-
-        Parameters:
-        - label (str): Button label text.
-        - callback (function): Function to be connected to the button's clicked signal.
-
-        Returns:
-        - QPushButton: Styled button with assigned click callback.
-        """
-        button = QtWidgets.QPushButton(label)
-        button.setStyleSheet(self.param_button_style())
-        button.clicked.connect(callback)
-        return button
-
-    def add_parameter(self):
-        """Add a new parameter to the method."""
-        param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
-        if ok and param_name:
-            self.parameters.append(param_name)
-            self.update_param_text()
-            self.notify_parent_class_box()
-
-    def remove_parameter(self):
-        """Remove an existing parameter from the method."""
-        if self.parameters:
-            param_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Parameter", "Select parameter to remove:", self.parameters, 0, False)
-            if ok and param_name:
-                self.parameters.remove(param_name)
-                self.update_param_text()
-                self.notify_parent_class_box()
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to remove.")
-
-    def update_param_text(self):
-        """Update the displayed text for the method based on the current list of parameters."""
-        self.param_text.setPlainText("\n".join(self.parameters))  # Update the text for parameters
-        self.update_param_position()  # Update position after text change
-
-    def update_param_position(self):
-        """Update the position of the parameter text based on the location of the buttons."""
-        # Position the parameter text below the "add parameter" button
-        button_y = self.add_param_button_proxy.pos().y()
-        param_y = button_y + self.add_param_button_proxy.boundingRect().height()
-        self.param_text.setPos(self.pos().x() + 40, param_y)
-    
-    def notify_parent_class_box(self):
-        """
-        Notify the UMLClassBox parent to update positions, assuming this Method is part of a UMLClassBox.
-        """
-        if self.scene():
-            for item in self.scene().items():
-                if isinstance(item, UMLClassBox):
-                    item.update_positions()
-                    return
-
-    def param_button_style(self):
-        """
-        Return button style for uniformity.
-        
-        Returns:
-        - str: Button stylesheet.
-        """
-        return """
-        QPushButton {
-            background-color: #55ffff;
-            color: black;
-            border-radius: 1px;
-            padding: 1px;
-            border: 1px solid #000000;
-            min-width: 7px;
-            min-height: 7px;
-            font-size: 7px;
-        }
-        QPushButton:hover {
-            background-color: #45a049;
-        }
-        """
+from UML_ENUM_CLASS.uml_enum import BoxDefaultStat as Default
+from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_editable_text_item import UMLEditableTextItem as Text
 
 ###################################################################################################
-# UMLClassBox Class: Represents a UML class box with editable sections for class name, fields, and methods.
-# Inherits from QGraphicsRectItem to allow graphical representation in a QGraphicsScene.
-###################################################################################################
+
 class UMLClassBox(QtWidgets.QGraphicsRectItem):
-    def __init__(self, interface, class_name="ClassName", field=None, methods=None, parent=None):
+    """
+    UMLTestBox represents a resizable, movable UML class box in a UML diagram.
+    It contains attributes like class name, fields, methods, parameters, 
+    and provides handles for resizing the box.
+    """
+    def __init__(self, interface, class_name="ClassName", field_list=None, method_list=None, parameter_list=None, parent=None):
+        """
+        Initialize the UMLTestBox with default settings, including the class name, fields, methods, and handles.
+        
+        Args:
+            interface: The interface for communication with UML components.
+            class_name (str): The initial name of the class. Defaults to "ClassName".
+            field_list (list): A list of fields for the class. Defaults to an empty list if not provided.
+            method_list (list): A list of methods for the class. Defaults to an empty list if not provided.
+            parameter_list (list): A list of parameters for the methods. Defaults to an empty list if not provided.
+            parent: The parent item, usually a QGraphicsScene. Defaults to None.
+        """
+        #################################################################
+        # Calling constructor from parent class
         super().__init__(parent)
+
+        # Interface to communicate with UMLInterface
+        self.interface = interface
+
+        #################################################################
+        ### FIELD, METHOD, PARAMETER, HANDLE AND CONNECT POINT LIST ###
+        # Initialize lists for fields, methods, parameters, and resize handles.
+        self.field_list: Dict = field_list if field_list is not None else {}
+        self.field_name_list = []
         
-        # Interface to communicate with UMLCoreManager
-        self.interface = interface  
+        self.method_list: Dict = method_list if method_list is not None else {}
+        self.method_name_list = []
         
-        # Default properties for attributes (fields) and methods if not provided
-        self.field = field if field is not None else []
-        self.methods = methods if methods is not None else []
+        self.parameter_list: Dict = parameter_list if parameter_list is not None else {}
+        self.parameter_name_list = []
+        
+        self.handles_list = []
+        self.connection_points_list = []
 
-        # Initialize UML Class Box properties
-        self.default_width = 150
-        self.default_margin = 10
-        self.max_width = self.default_width
-        self.min_height = 0
-
-        # Define bounding rectangle of the class box
-        self.setRect(0, 0, self.default_width, 250)
-        self.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0)))  # Set black border
-        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 255, 255)))  # Set cyan background
-
-        # Create editable text items for class name, fields, and methods
-        self.class_name_text = self.create_text_item(class_name, self.update_positions)
-        self.fields_label = self.create_text_item("Fields")
-        self.field_text = self.create_text_item("\n".join(self.field), self.update_positions, True)
-        self.methods_label = self.create_text_item("Methods")
-        self.methods_text = self.create_text_item(self.format_methods(), self.update_positions, True)
-
+        #################################################################
+        ### UML CLASS BOX DEFAULT SETUP ###
+        
+        # Default position, dimensions, handle (for resize), and connect points for the class box.
+        self.default_box_x = Default.BOX_DEFAULT_X.value
+        self.default_box_y = Default.BOX_DEFAULT_Y.value
+        self.default_box_width = Default.BOX_DEFAULT_WIDTH.value
+        self.default_box_height = Default.BOX_DEFAULT_HEIGHT.value
+        self.default_margin = Default.BOX_DEFAULT_MARGIN.value
+        # Handle points and connection points size
+        self.handle_size = 10
+        self.connection_point_size = 6
         # Initialize resizing and connection properties
         self.is_box_dragged = False
         self.is_resizing = False
+        self.is_selected = False
         self.current_handle = None
-        self.handle_size = 12
-        self.is_typing = False
+
+        #################################
+        
+        # Define bounding rectangle of the class box
+        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width, self.default_box_height)
+        # Set border color (Dodger Blue)
+        self.setPen(QtGui.QPen(QtGui.QColor(30,144,255)))  
+        # Set background color (cyan)
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0,255,255)))  
+        # Set class box selectable
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
+        # Set class box movable
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True) 
+        # Enable the box to send geometry change events.
+        # This allows the box to notify the parent item (the class box) when it moves or is resized.
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+        # Enable hover events
+        self.setAcceptHoverEvents(True)
+        
+        #################################
+        
+        # Class name text box and make it appear at the center of the box.
+        self.class_name_text = self.create_text_item(class_name, selectable=True)
+        # Connect the text change callback to ensure it re-centers when the text changes.
+        self.class_name_text.document().contentsChanged.connect(self.centering_class_name)
+        # Create separator below class name
+        self.separator_line1 = QtWidgets.QGraphicsLineItem(self.rect().topLeft().x(), self.class_name_text.boundingRect().height() + self.default_margin, self.rect().width(), 
+                                                           self.class_name_text.boundingRect().height() + self.default_margin, self)
+        # Draw first separator
+        self.separator_line1.setPen(QtGui.QPen(QtCore.Qt.black))
+        # Centering class name initially.
+        self.centering_class_name()
+        # Create handles for resizing the class box.
         self.create_resize_handles()
-        self.arrows = []  # List to keep track of connected arrows
+        # Create connection point for arrow line.
         self.create_connection_points()
 
-        # Create add/remove buttons for fields and methods
-        self.add_field_button = self.create_button("+", self.add_field)
-        self.remove_field_button = self.create_button("-", self.remove_field)
-        self.add_method_button = self.create_button("+", self.add_method)
-        self.remove_method_button = self.create_button("-", self.remove_method)
+        #################################
 
-        # Add button proxies to the scene and position them
-        self.add_field_button_proxy = self.add_button_proxy(self.add_field_button, self.default_margin + 34, self.default_margin + 30)
-        self.remove_field_button_proxy = self.add_button_proxy(self.remove_field_button, self.default_margin + 49, self.default_margin + 30)
-        self.add_method_button_proxy = self.add_button_proxy(self.add_method_button, self.default_margin + 48, self.default_margin + 105)
-        self.remove_method_button_proxy = self.add_button_proxy(self.remove_method_button, self.default_margin + 63, self.default_margin + 105)
-
-        # Update initial positions of all elements based on the current box size
-        self.update_positions()
-
-    def create_text_item(self, text, change_callback=None, editable=False):
-        """
-        Create and return a QGraphicsTextItem.
-
-        Parameters:
-        - text (str): The initial text of the item.
-        - change_callback (function): Optional function to call when text content changes.
-        - editable (bool): Whether the text item is editable.
-
-        Returns:
-        - QGraphicsTextItem: The created text item.
-        """
-        text_item = QtWidgets.QGraphicsTextItem(self)
-        text_item.setDefaultTextColor(QtGui.QColor(0, 0, 0))  # Set text color to black
-        text_item.setPlainText(text)  # Set initial text
-        if editable:
-            text_item.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)  # Allow text editing
-        if change_callback:
-            text_item.document().contentsChanged.connect(change_callback)
-        return text_item
-
-    def create_button(self, label, callback):
-        """
-        Create a QPushButton with a given label and callback function.
-
-        Parameters:
-        - label (str): Text to display on the button.
-        - callback (function): The function to connect to the button's click signal.
-
-        Returns:
-        - QPushButton: The created button.
-        """
-        button = QtWidgets.QPushButton(label)
-        button.setStyleSheet(self.button_style())
-        button.clicked.connect(callback)
-        return button
-
-    def add_button_proxy(self, button, x, y):
-        """
-        Add a QPushButton to the scene via a QGraphicsProxyWidget and set its position.
-
-        Parameters:
-        - button (QPushButton): The button to add.
-        - x (float): X coordinate for the button.
-        - y (float): Y coordinate for the button.
-
-        Returns:
-        - QGraphicsProxyWidget: The proxy widget containing the button.
-        """
-        proxy = QtWidgets.QGraphicsProxyWidget(self)
-        proxy.setWidget(button)
-        proxy.setPos(x, y)
-        return proxy
-
-    def add_field(self):
-        """Add a new field to the UML class."""
-        field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
-        if ok and field_name:
-            self.field.append(field_name)  # Append the new field name
-            self.update_field_text()  # Update the graphical representation of fields
-
-    def remove_field(self):
-        """Remove an existing field from the UML class."""
-        if self.field:
-            field_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Field", "Select field to remove:", self.field, 0, False)
-            if ok and field_name:
-                self.field.remove(field_name)
-                self.update_field_text()  # Update the graphical representation of fields
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No fields to remove.")
-
-    def add_method(self):
-        """Add a new method to the UML class."""
-        method_name, ok = QtWidgets.QInputDialog.getText(None, "Add Method", "Enter method name:")
-        if ok and method_name:
-            new_method = Method(method_name + "()")  # Create a Method instance
-            self.methods.append(new_method)
-            self.add_method_buttons_to_scene(new_method)
-            self.scene().addItem(new_method)  # Add method to the scene
-            self.update_method_text()
-
-    def add_method_buttons_to_scene(self, method: Method):
-        """Add the parameter buttons from the Method object to the UMLClassBox scene."""
-        self.scene().addItem(method.add_param_button_proxy)
-        self.scene().addItem(method.remove_param_button_proxy)
-
-    def update_field_text(self):
-        """Update the displayed text for the fields based on the current list of fields."""
-        self.field_text.setPlainText("\n".join(self.field))
-        self.update_positions()
-
-    def update_method_text(self):
-        """Update the displayed text for the methods based on the current list of methods."""
-        self.methods_text.setPlainText(self.format_methods())
-        self.update_positions()
-
-    def format_methods(self):
-        """
-        Format the methods for display with parameters.
-
-        Returns:
-        - str: Formatted methods as a string.
-        """
-        method_lines = []
-        for method_obj in self.methods:
-            method_lines.append(method_obj.parameter_name)
-            for each_param in method_obj.parameters:
-                method_lines.append(f"    {each_param}")  # Indent parameters
-        return "\n".join(method_lines)  # Return formatted methods as a string
-
-    def button_style(self):
-        """
-        Return button style for uniformity.
-        
-        Returns:
-        - str: Button stylesheet.
-        """
-        return """
-        QPushButton {
-            background-color: #55ffff;
-            color: black;
-            border-radius: 1px;
-            padding: 1px;
-            border: 1px solid #000000;
-            min-width: 8px;
-            min-height: 8px;
-            font-size: 10px;
-        }
-        QPushButton:hover {
-            background-color: #45a049;
-        }
-        """
-
-    def method_y_position(self, index):
-        """Calculate the Y position for the method based on its index."""
-        return (index * 13) + self.default_margin + 125
-
-    def remove_method(self):
-        if len(self.methods) > 0:
-            # Extract method names from the methods list
-            method_name_list = [method.parameter_name for method in self.methods if method]
-            method_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Field", "Select field to remove:", method_name_list, 0, False)
-            if ok and method_name:
-                # Remove the method name directly
-                for each_method in self.methods:
-                    if each_method.parameter_name == method_name:
-                        # Remove the button proxies from the scene
-                        self.scene().removeItem(each_method.add_param_button_proxy)
-                        self.scene().removeItem(each_method.remove_param_button_proxy)
-                        self.methods.remove(each_method)
-                        self.update_method_text()
-                        return
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No methods to remove.")
-            
-    def remove_all_method(self):
-        if len(self.methods) > 0:
-            # Create a copy of the methods list to avoid modifying the list while iterating
-            for each_method in self.methods[:]:  # Using slicing [:] to create a copy
-                # Remove the button proxies from the scene
-                self.scene().removeItem(each_method.add_param_button_proxy)
-                self.scene().removeItem(each_method.remove_param_button_proxy)
-                # Remove the method from the list
-                self.methods.remove(each_method)
-            self.update_method_text()  # Update the graphical representation of methods
-            
     #################################################################
     ### MEMBER FUNCTIONS ###
-
-    ## BOX RELATED ##
-
-    def create_resize_handles(self):
-        """
-        Create resize handles at the bottom-right corner of the class box.
-        """
-        self.handles = {
-            'bottom_right': QtWidgets.QGraphicsEllipseItem(
-                0, 0, self.handle_size, self.handle_size, self
-            )
-        }
-
-        for handle in self.handles.values():
-            handle.setBrush(QtGui.QBrush(QtGui.QColor(0, 255, 255)))  # Set handle color
-            handle.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
-            handle.setAcceptHoverEvents(True)  # Enable hover events
-            handle.hoverEnterEvent = self.handle_hoverEnterEvent
-            handle.hoverLeaveEvent = self.handle_hoverLeaveEvent
-
-    def update_positions(self):
-        """
-        Update the positions of text items, handles, and connection points.
-        """
-        # Calculate heights of all text sections
-        class_name_height = self.class_name_text.boundingRect().height()
-        fields_label_height = self.fields_label.boundingRect().height()
-        fields_text_height = self.field_text.boundingRect().height()
-        methods_label_height = self.methods_label.boundingRect().height()
-        methods_text_height = self.methods_text.boundingRect().height()
-
+    
+    ## UPDATE BOX AND IS COMPONENTS ##
+    
+    def update_box(self):
         # Set positions of text items relative to each other #
         self.centering_class_name()
-        self.fields_label.setPos(self.default_margin, class_name_height + 2 * self.default_margin)
-        self.field_text.setPos(self.default_margin + 10, class_name_height + fields_label_height + 3 * self.default_margin)
-        self.methods_label.setPos(self.default_margin, class_name_height + fields_label_height + fields_text_height + 4 * self.default_margin)
-        self.methods_text.setPos(self.default_margin + 10, class_name_height + fields_label_height + fields_text_height + methods_label_height + 5 * self.default_margin)
-        self.add_field_button_proxy.setPos(self.default_margin + 34, class_name_height + 21)
-        self.remove_field_button_proxy.setPos(self.default_margin + 49, class_name_height + 21)
-        self.add_method_button_proxy.setPos(self.default_margin + 48, class_name_height + fields_text_height + 62)
-        self.remove_method_button_proxy.setPos(self.default_margin + 63, class_name_height + fields_text_height + 62)
-
-        # Update positions for each method's buttons
-        for i, method in enumerate(self.methods):
-            button_y_pos = self.method_y_position(i)
-            method.add_param_button_proxy.setPos(self.methods_text.boundingRect().width() + self.pos().x() + self.default_margin + 20, self.pos().y() + button_y_pos)
-            method.remove_param_button_proxy.setPos(self.methods_text.boundingRect().width() + self.pos().x() + self.default_margin + 33, self.pos().y() + button_y_pos)
-            method.update_param_position()
-            
-        # Get param button's height
-        param_button_height = 0
-        if len(self.methods) > 0:
-            param_button_height = self.get_param_text_height(len(self.methods) - 1)
-        
-        # Calculate total height of the box
-        total_height = (
-            class_name_height + fields_label_height + fields_text_height + methods_label_height + methods_text_height + 6 * self.default_margin + param_button_height
-        )
-
-        # Calculate maximum width based on content
-        max_width_button = self.get_longest_button_width() + 30
-        max_param_length = self.get_longest_param_text() + 30
-        
-        self.max_width = max(
-            self.default_width,
-            self.class_name_text.boundingRect().width() + 2 * self.default_margin,
-            self.fields_label.boundingRect().width() + 2 * self.default_margin,
-            self.field_text.boundingRect().width() + 2 * self.default_margin,
-            self.methods_label.boundingRect().width() + 2 * self.default_margin,
-            self.methods_text.boundingRect().width() + 2 * self.default_margin,
-            max_width_button + 2 * self.default_margin, 
-            max_param_length + 2 * self.default_margin
-        )
-        
-        print(f"Max width = {self.max_width}")
-
-        # Update the box size only if not being resized manually
-        if not self.is_resizing and not self.is_box_dragged:
-            self.setRect(0, 0, self.max_width, total_height)
-            self.user_width = self.max_width  # Keep track of current user-defined width
-            self.user_height = total_height  # Keep track of current user-defined height
-
-        # Update the positions of the separator lines
-        self.update_separators()
-
-        # Position the resize handle
-        self.handles['bottom_right'].setPos(
-            self.rect().width() - self.handle_size // 2,
-            self.rect().height() - self.handle_size // 2
-        )
-
-        # Update positions of connection points
+        # Update box height and width
+        self.update_box_dimension()
+        # Update handles
+        self.update_handle_positions()
+        # Update connection points
         self.update_connection_point_positions()
-        
-    def centering_class_name(self):
-        # Get the width of the class box
-        box_width = self.rect().width()
-        class_name_width = self.class_name_text.boundingRect().width()
-        class_name_x_pos = (box_width - class_name_width) / 2
-        self.class_name_text.setPos(class_name_x_pos, self.default_margin)
-        
-    def get_param_text_height(self, index: int):
-        return self.methods[index].param_text.boundingRect().height()
-        
-    def get_longest_button_width(self):
-        # Initialize variables to track the maximum width and corresponding method
-        max_width_button = 0
-
-        # Iterate through each method to find the one with the maximum button width
-        for method in self.methods:
-            button_width = method.remove_param_button_proxy.boundingRect().width() + self.methods_text.boundingRect().width() + 2 * self.default_margin
-            if button_width > max_width_button:  # Check if this button is wider than the current max
-                max_width_button = button_width  # Update max width 
-        return max_width_button
+        # Update field alignment
+        self.update_field_alignment()
+        # Update method alignment
+        self.update_method_alignment()
+        # Update separator
+        self.update_separators()
     
-    def get_longest_param_text(self):
-        # Initialize variables to track the maximum length
-        max_param_length = 0
-        # Iterate through each method to find the longest parameter
-        for method in self.methods:
-            for each_param in method.parameters:
-                current_length = len(each_param) + method.remove_param_button_proxy.boundingRect().width() + method.param_text.boundingRect().width() + 2 * self.default_margin
-                if current_length >= max_param_length:
-                    max_param_length = current_length
-        return max_param_length
-
+    def update_box_dimension(self):
+        class_name_height = self.class_name_text.boundingRect().height()
+        fields_text_height = self.get_field_text_height()
+        method_text_height = self.get_method_text_height()
+        total_height = class_name_height + fields_text_height + method_text_height + self.default_margin * 2
+        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
+        # Update the box size only if not being resized manually
+        if not self.is_resizing and not self.is_box_dragged and total_height >= self.rect().height():
+            self.setRect(0, 0, max_width, total_height)
+        
     def update_separators(self):
         """
         Update positions of the separator lines based on current box size.
@@ -470,121 +148,324 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         rect = self.rect()
         if hasattr(self, 'separator_line1'):
             # Update existing separator lines
-            self.separator_line1.setLine(0, self.class_name_text.boundingRect().height() + self.default_margin, rect.width(), self.class_name_text.boundingRect().height() + self.default_margin)  # Line below class name
-            self.separator_line2.setLine(0, self.class_name_text.boundingRect().height() + self.fields_label.boundingRect().height() + self.field_text.boundingRect().height() + 3 * self.default_margin, rect.width(), self.class_name_text.boundingRect().height() + self.fields_label.boundingRect().height() + self.field_text.boundingRect().height() + 3 * self.default_margin)  # Line below fields
-        else:
-            # Create separator lines if they don't exist
-            self.separator_line1 = QtWidgets.QGraphicsLineItem(
-                0, self.class_name_text.boundingRect().height() + self.default_margin, rect.width(), self.class_name_text.boundingRect().height() + self.default_margin, self
-            )
-            self.separator_line2 = QtWidgets.QGraphicsLineItem(
-                0, self.class_name_text.boundingRect().height() + self.fields_label.boundingRect().height() + self.field_text.boundingRect().height() + 3 * self.default_margin, rect.width(), self.class_name_text.boundingRect().height() + self.fields_label.boundingRect().height() + self.field_text.boundingRect().height() + 3 * self.default_margin, self
-            )
-            self.separator_line1.setPen(QtGui.QPen(QtCore.Qt.black))
-            self.separator_line2.setPen(QtGui.QPen(QtCore.Qt.black))
+            self.separator_line1.setLine(self.rect().topLeft().x(), self.class_name_text.boundingRect().height() + self.default_margin, rect.width(), 
+                                         self.class_name_text.boundingRect().height() + self.default_margin)  # Line below class name
+            
+    def create_resize_handles(self):
+        """
+        Create four resize handles at the corners of the UML box.
+        These handles will be used to resize the UML box by dragging.
+        Each QGraphicsEllipseItem(self) creates an ellipse 
+        (a small circular handle) and links it to the current object (self), which is the UML box.
+        """
+        self.handles_list = {
+            'top_left': QtWidgets.QGraphicsEllipseItem(self),
+            'top_right': QtWidgets.QGraphicsEllipseItem(self),
+            'bottom_left': QtWidgets.QGraphicsEllipseItem(self),
+            'bottom_right': QtWidgets.QGraphicsEllipseItem(self),
+        }
 
-    #################################################################
-    ### CONNECTION POINTS AND ARROWS ###
+        for handle_name, handle in self.handles_list.items():
+            # Set handle size and position based on the size of the box
+            handle.setRect(-self.handle_size / 2, -self.handle_size / 2, self.handle_size, self.handle_size)
+
+            # Set the appearance of the handle
+            handle.setPen(QtGui.QPen(QtGui.QColor(30,144,255)))  # Dodger Blue border
+            handle.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # White fill
+
+            # Set the handle to be non-movable and send geometry changes to the parent
+            handle.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+            handle.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+
+            # Allow hover events to change the cursor during interaction
+            handle.setAcceptHoverEvents(True)
+
+            # Set hover events to trigger custom cursor change for each handle
+            handle.hoverEnterEvent = partial(self.handle_hoverEnterEvent, handle_name=handle_name)
+            handle.hoverLeaveEvent = self.handle_hoverLeaveEvent
+
+        # Initial handle positions based on the current size of the box
+        self.update_handle_positions()
 
     def create_connection_points(self):
         """
-        Create connection points (dots) for arrow connections.
+        Create four connection points (top, bottom, left, right) for linking arrows between UML boxes.
+        Each connection point is represented by a small ellipse at the edge of the UML box.
         """
-        self.connection_points = {}  # Dictionary to store positions
-        self.connection_point_items = {}  # Dictionary to store the ellipse items
+        self.connection_points_list = {
+            'top': QtWidgets.QGraphicsEllipseItem(self),
+            'bottom': QtWidgets.QGraphicsEllipseItem(self),
+            'left': QtWidgets.QGraphicsEllipseItem(self),
+            'right': QtWidgets.QGraphicsEllipseItem(self),
+        }
 
-        # Create connection points at 'top', 'bottom', 'left', 'right' of the box
-        for key in ['top', 'bottom', 'left', 'right']:
-            cp_item = QtWidgets.QGraphicsEllipseItem(-5, -5, 10, 10, self)
-            cp_item.setBrush(QtGui.QBrush(QtGui.QColor(0, 150, 0)))  # Dark green color
-            cp_item.setPen(QtGui.QPen(QtCore.Qt.black))
+        # point_name will be used later for 
+        for point_name, cp_item in self.connection_points_list.items():
+            # Set the size and position of the connection point
+            cp_item.setRect(-5, -5, self.connection_point_size, self.connection_point_size)
+
+            # Set the appearance of the connection point
+            cp_item.setBrush(QtGui.QBrush(QtGui.QColor(0, 0, 0)))  # Black color fill
+            cp_item.setPen(QtGui.QPen(QtCore.Qt.black))  # Black border
+
+            # Disable movement and selection of connection points
             cp_item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
             cp_item.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, False)
-            self.connection_point_items[key] = cp_item  # Store the item
 
-        self.update_connection_point_positions()  # Position the connection points
+        # Update the positions of the connection points based on the size of the box
+        self.update_connection_point_positions()
+
+    def update_handle_positions(self):
+        """
+        Update the positions of the resize handles based on the current size of the UML box.
+        This ensures the handles remain at the corners of the box.
+        """
+        rect = self.rect()
+        self.handles_list['top_left'].setPos(rect.topLeft())
+        self.handles_list['top_right'].setPos(rect.topRight())
+        self.handles_list['bottom_left'].setPos(rect.bottomLeft())
+        self.handles_list['bottom_right'].setPos(rect.bottomRight())
 
     def update_connection_point_positions(self):
         """
-        Update positions of the connection point items based on box size.
+        Update the positions of the connection points based on the size of the UML box.
+        Connection points are positioned at the center of the edges (top, bottom, left, right).
         """
         rect = self.rect()
+        self.connection_points_list['top'].setPos(rect.center().x(), rect.top())
+        self.connection_points_list['bottom'].setPos(rect.center().x(), rect.bottom())
+        self.connection_points_list['left'].setPos(rect.left(), rect.center().y())
+        self.connection_points_list['right'].setPos(rect.right(), rect.center().y())
 
-        # Calculate positions for 'top', 'bottom', 'left', 'right' points
-        self.connection_points = {
-            'top': QtCore.QPointF(rect.center().x(), rect.top()),
-            'bottom': QtCore.QPointF(rect.center().x(), rect.bottom()),
-            'left': QtCore.QPointF(rect.left(), rect.center().y()),
-            'right': QtCore.QPointF(rect.right(), rect.center().y())
-        }
-
-        # Move the ellipse items to the calculated positions
-        self.connection_point_items['top'].setPos(self.connection_points['top'])
-        self.connection_point_items['bottom'].setPos(self.connection_points['bottom'])
-        self.connection_point_items['left'].setPos(self.connection_points['left'])
-        self.connection_point_items['right'].setPos(self.connection_points['right'])
-
-    def getConnectionPoints(self):
+    #################################
+    ## CLASS NAME TEXT RELATED ##
+    
+    def create_text_item(self, text:str, selectable=False, is_field=None, is_method=None, is_parameter=None):
         """
-        Return the scene positions of the connection points.
+        Create and return a QGraphicsTextItem with editing capabilities.
+
+        Parameters:
+        - text (str): The initial text of the item.
+        - change_callback (function): Optional function to call when text content changes.
+        - editable (bool): Whether the text item is editable.
 
         Returns:
-        - dict: A dictionary with keys as connection point names and values as QPointF positions.
+        - EditableTextItem: The created text item.
         """
-        scenePoints = {}
-        for key, cp_item in self.connection_point_items.items():
-            # Adjust position to center of the ellipse
-            scenePoints[key] = cp_item.scenePos() + QtCore.QPointF(5, 5)
-        return scenePoints
+        text_item = Text(text=text, parent=self)  # Use the custom EditableTextItem
+        if selectable:
+            text_item.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
+            text_item.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable, True)
+        return text_item
+    
+    def centering_class_name(self):
+        """
+        Centers the class name text inside the UML class box horizontally.
 
-    def addArrow(self, arrow):
-        """
-        Add an arrow to the list of connected arrows.
+        This function calculates the position of the class name text based on the width of the UML class box 
+        and the width of the text. It adjusts the position of the text so that it is horizontally centered 
+        within the class box. The vertical position is fixed using a default margin.
+
+        Steps:
+        1. Retrieve the width of the UML class box using self.rect().
+        2. Calculate the width of the class name text using self.class_name_text.boundingRect().width().
+        3. Compute the new x-position for the class name by centering it within the box.
+        4. Set the new position for the class name text at the calculated x-position, with the y-position 
+        remaining fixed at the default margin.
 
         Parameters:
-        - arrow (Arrow): The arrow to add.
+        None
         """
-        self.arrows.append(arrow)
+        # Get the current width of the UML class box
+        box_width = self.rect().width()
 
-    def removeArrow(self, arrow):
+        # Get the width of the class name text using its bounding rectangle
+        class_name_width = self.class_name_text.boundingRect().width()
+
+        # Calculate the x-position to center the class name horizontally
+        class_name_x_pos = self.rect().topLeft().x() + (box_width - class_name_width) / 2
+
+        # Set the class name's position at the top, ensuring it stays horizontally centered
+        # The y-position remains fixed at a margin from the top
+        self.class_name_text.setPos(class_name_x_pos, self.rect().topLeft().y() + self.default_margin)
+
+    #################################
+    ### UML CLASS OPERATIONS ###
+    
+    ## FIELD OPERATION ##
+        
+    def add_field(self):
+        """Add a new field to the UML class."""
+        field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
+        if ok and field_name:
+            field_text = self.create_text_item(field_name, is_field=True, selectable=True)
+            self.field_list[field_name] = field_text
+            self.field_name_list.append(field_name)
+            self.update_box()
+            
+    def delete_field(self):
+        """Remove an existing field from the UML class."""
+        if self.field_name_list:
+            field_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Field", "Select field to remove:", self.field_name_list, 0, False)
+            if ok and field_name:
+                self.field_name_list.remove(field_name)
+                self.scene().removeItem(self.field_list.pop(field_name))
+                self.update_box()
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No fields to remove.")
+            
+    def change_field(self):
+        """Chang field name."""
+        if self.field_name_list:
+            field_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Field Name", "Select field to change:", self.field_name_list, 0, False)
+            if ok and field_name:
+                # Step 2: Show another pop-up to allow renaming of the selected field
+                new_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Field", f"Enter new name for the field '{field_name}':")
+                if ok and new_name:
+                    # Step 3: Find the field in the list, rename it, and update the UI or data structure
+                        if field_name in self.field_list:
+                            # Update the dictionary with the new name
+                            self.field_list[new_name] = self.field_list.pop(field_name)
+                            self.field_list[new_name].setPlainText(new_name)
+                            self.field_name_list[self.field_name_list.index(field_name)] = new_name
+                            self.update_box()
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No fields to change.")
+            
+    def update_field_alignment(self):
         """
-        Remove an arrow from the list of connected arrows.
+        Align field text items in the UML class box row by row.
 
-        Parameters:
-        - arrow (Arrow): The arrow to remove.
+        Each field will be displayed on a new line, aligned to the left of the box.
         """
-        if arrow in self.arrows:
-            self.arrows.remove(arrow)
+        # Starting y-position for the first field (below the class name)
+        y_offset = self.class_name_text.boundingRect().height() + self.default_margin
 
-    def itemChange(self, change, value):
+        for field_name in self.field_name_list:
+            # Get the text item for the field
+            field_text = self.field_list[field_name]
+        
+            # Calculate the x-position to center the field text horizontally
+            field_x_pos = self.rect().topLeft().x() + self.default_margin
+        
+            # Set the position of the field text, each field below the previous one
+            field_text.setPos(field_x_pos, self.rect().topLeft().y() + y_offset)
+        
+            # Increment y_offset for the next field (adding field height and margin)
+            y_offset += field_text.boundingRect().height()
+
+    ## METHOD OPERATIONS ##
+    def add_method(self):
+        """Add a new method to the UML class."""
+        method_name, ok = QtWidgets.QInputDialog.getText(None, "Add Method", "Enter method name:")
+        if ok and method_name:
+            method_text = self.create_text_item(method_name + "()", is_method=True, selectable=True)
+            self.method_list[method_name] = method_text
+            self.method_name_list.append(method_name)
+            self.update_box()
+            
+    def delete_method(self):
+        """Remove an existing method from the UML class."""
+        if self.method_list:
+            method_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Method", "Select method to remove:", self.method_name_list, 0, False)
+            if ok and method_name:
+                self.method_name_list.remove(method_name)
+                self.scene().removeItem(self.method_list.pop(method_name))
+                self.update_box()
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No method to remove.")
+            
+    def change_method(self):
+        """Chang method name."""
+        if self.method_name_list:
+            method_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Method Name", "Select method to change:", self.method_name_list, 0, False)
+            if ok and method_name:
+                # Step 2: Show another pop-up to allow renaming of the selected method
+                new_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Method", f"Enter new name for the method '{method_name}':")
+                if ok and new_name:
+                    # Step 3: Find the method in the list, rename it, and update the UI or data structure
+                        if method_name in self.method_list:
+                            # Update the dictionary with the new name
+                            self.method_list[new_name] = self.method_list.pop(method_name)
+                            self.method_list[new_name].setPlainText(new_name)
+                            self.method_name_list[self.method_name_list.index(method_name)] = new_name
+                            self.update_box()
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No methods to change.")
+            
+    def update_method_alignment(self):
         """
-        Override to update arrows when the class box moves.
+        Align method text items in the UML class box row by row.
 
-        Parameters:
-        - change (GraphicsItemChange): The type of change.
-        - value (Any): The value associated with the change.
-
-        Returns:
-        - Any: The result of the base class itemChange method.
+        Each method will be displayed on a new line, aligned to the left of the box.
         """
-        if change == QtWidgets.QGraphicsItem.ItemPositionHasChanged:
-            for arrow in self.arrows:
-                arrow.updatePosition()
-        return super().itemChange(change, value)
+        # Starting y-position for the first field (below the class name)
+        y_offset = self.class_name_text.boundingRect().height() + self.get_field_text_height() + self.default_margin * 2
 
-    #################################################################
-    ## MOUSE RELATED ##
+        for method_name in self.method_name_list:
+            # Get the text item for the field
+            method_text = self.method_list[method_name]
+        
+            # Calculate the x-position to center the field text horizontally
+            method_x_pos = self.rect().topLeft().x() + self.default_margin
+        
+            # Set the position of the field text, each field below the previous one
+            method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset)
+        
+            # Increment y_offset for the next field (adding field height and margin)
+            y_offset += method_text.boundingRect().height()
+    
+    #################################
+    ## MOUSE EVENT RELATED ##
+    
+    def contextMenuEvent(self, event):
+        """Show context menu when right-clicking on the UMLClassBox"""
+        #################################
+        # Create the context menu
+        contextMenu = QtWidgets.QMenu()
+        
+        # Add field options
+        add_field_button = contextMenu.addAction("Add Field")
+        delete_field_button = contextMenu.addAction("Delete Field")
+        change_field_button = contextMenu.addAction("Change Field")
+        
+        # Add a separator before the method options
+        contextMenu.addSeparator()
+        
+        # Add method options
+        add_method_button = contextMenu.addAction("Add Method")
+        delete_method_button = contextMenu.addAction("Delete Method")
+        change_method_button = contextMenu.addAction("Change Method")
 
-    def handle_hoverEnterEvent(self, event):
+        #################################
+        # Connect field options to methods
+        add_field_button.triggered.connect(self.add_field)
+        delete_field_button.triggered.connect(self.delete_field)
+        change_field_button.triggered.connect(self.change_field)
+        
+        # Connect method options to methods
+        add_method_button.triggered.connect(self.add_method)
+        delete_method_button.triggered.connect(self.delete_method)
+        change_method_button.triggered.connect(self.change_method)
+
+        # Execute the context menu and get the selected action
+        action = contextMenu.exec_(event.screenPos())
+
+    def handle_hoverEnterEvent(self, event, handle_name):
         """
         Change cursor to resize when hovering over the resize handle.
-
+    
         Parameters:
         - event (QGraphicsSceneHoverEvent): The hover event.
-        """
-        self.setCursor(QtCore.Qt.SizeFDiagCursor)  # Set cursor to diagonal resize
+        - handle_name (str): The name of the handle that is hovered over (top_left, top_right, bottom_left, bottom_right).
+        """ 
+        # Change the cursor based on which handle is being hovered
+        if handle_name == 'top_left' or handle_name == 'bottom_right':
+            self.setCursor(QtCore.Qt.SizeFDiagCursor)  # Backward diagonal resize cursor
+        elif handle_name == 'top_right' or handle_name == 'bottom_left':
+            self.setCursor(QtCore.Qt.SizeBDiagCursor)  # Forward diagonal resize cursor
         event.accept()
-
+        
     def handle_hoverLeaveEvent(self, event):
         """
         Reset cursor when leaving the resize handle.
@@ -594,7 +475,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         """
         self.setCursor(QtCore.Qt.ArrowCursor)  # Reset cursor to default arrow
         event.accept()
-
+            
     def mousePressEvent(self, event):
         """
         Handle mouse press events for dragging or resizing.
@@ -604,81 +485,82 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         """
         if event.button() == QtCore.Qt.LeftButton:
             if self.isUnderMouse() and not any(
-                handle.isUnderMouse() for handle in self.handles.values()
+                handle.isUnderMouse() for handle in self.handles_list.values()
             ):
                 self.is_box_dragged = True  # Start dragging the box
-            elif any(handle.isUnderMouse() for handle in self.handles.values()):
+            elif any(handle.isUnderMouse() for handle in self.handles_list.values()):
                 # Determine which handle is being pressed for resizing
-                for handle_name, handle in self.handles.items():
+                for handle_name, handle in self.handles_list.items():
                     if handle.isUnderMouse():
                         self.current_handle = handle_name
                         self.is_resizing = True
                         break
         super().mousePressEvent(event)
-
+        
     def mouseMoveEvent(self, event):
         """
-        Handle mouse move events for dragging or resizing.
+        Handle the mouse movement event for resizing the UML box.
+
+        This function updates the size of the UML box based on the handle being dragged during resizing. 
+        It ensures that the box maintains a minimum width and height based on the longest string (class name)
+        to prevent content from being cut off. The handle being dragged determines which part of the box 
+        (top-left, top-right, bottom-left, or bottom-right) is adjusted. The new dimensions are calculated 
+        based on the mouse position, and the box is updated accordingly.
 
         Parameters:
-        - event (QGraphicsSceneMouseEvent): The mouse event.
+            event (QGraphicsSceneMouseEvent): The event that provides the mouse movement data.
         """
-        if self.is_resizing and self.current_handle is not None:
-            new_rect = self.rect()
+        
+        # Check if the box is being resized and if a specific handle is active
+        if self.is_resizing and self.current_handle:
+            new_rect = self.rect()  # Get the current rectangle (box) dimensions
+            # self.mapFromScene(): Converts the mouse’s global position to the local coordinate system of the UML box. 
+            # This ensures that resizing is accurate relative to the box’s local position.
+            pos = self.mapFromScene(event.scenePos())
 
-            # Calculate new width and height based on mouse position
-            new_width = event.pos().x() - new_rect.x()
-            new_height = event.pos().y() - new_rect.y()
+            # Height of current field text
+            class_name_height = self.class_name_text.boundingRect().height()
+            fields_text_height = self.get_field_text_height()
+            method_text_height = self.get_method_text_height()
+            total_height = class_name_height + fields_text_height + method_text_height + + self.default_margin * 2
             
-            # Get param button's height
-            param_button_height = 0
-            if len(self.methods) > 0:
-                param_button_height = self.get_param_text_height(len(self.methods) - 1)
+            max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
+            min_string_height = total_height
 
-            # Set minimum width and height
-            min_height = (
-                self.class_name_text.boundingRect().height()
-                + self.fields_label.boundingRect().height()
-                + self.field_text.boundingRect().height()
-                + self.methods_label.boundingRect().height()
-                + self.methods_text.boundingRect().height()
-                + 6 * self.default_margin
-                + param_button_height
-            )
-            
-            self.min_height = min_height
-            
-           # Calculate the maximum width needed based on the longest text in each section #
-    
-            # Calculate maximum width based on content
-            max_width_button = self.get_longest_button_width() + 10
-            max_param_length = self.get_longest_param_text()
-            
-            longest_string_width = max(
-                self.class_name_text.boundingRect().width(),
-                self.fields_label.boundingRect().width(),
-                self.field_text.boundingRect().width(),
-                self.methods_label.boundingRect().width(),
-                self.methods_text.boundingRect().width(),
-                max_width_button, max_param_length
-            ) + 20  # Add some padding
+            # Update the size of the box based on the specific handle being dragged
+            if self.current_handle == 'top_left':
+                new_rect.setTopLeft(pos)  # Adjust the top-left corner based on the new mouse position
+            elif self.current_handle == 'top_right':
+                new_rect.setTopRight(pos)  # Adjust the top-right corner based on the new mouse position
+            elif self.current_handle == 'bottom_left':
+                new_rect.setBottomLeft(pos)  # Adjust the bottom-left corner based on the new mouse position
+            elif self.current_handle == 'bottom_right':
+                new_rect.setBottomRight(pos)  # Adjust the bottom-right corner based on the new mouse position
 
-            
-            # Ensure the box does not overlap with text (min_width now depends on text length)
-            if new_width >= longest_string_width:
+            # Calculate the new width and height of the box based on the mouse movement
+            new_width = new_rect.width()
+            new_height = new_rect.height()
+
+            # Ensure the box does not shrink smaller than the minimum width based on text
+            if new_width >= max_width:
                 new_rect.setWidth(new_width)
             else:
-                new_rect.setWidth(longest_string_width)
+                new_rect.setWidth(max_width)  # Apply minimum width
 
-            if new_height >= min_height:
+            # Ensure the box does not shrink smaller than the minimum height based on text
+            if new_height >= min_string_height:
                 new_rect.setHeight(new_height)
-            
-            # Apply new size and update positions
-            self.setRect(new_rect)
-            self.update_positions()
-        else:
-            super().mouseMoveEvent(event)
+            else:
+                new_rect.setHeight(min_string_height)  # Apply minimum height
 
+            # Apply the new rectangle dimensions to the UML box
+            self.setRect(new_rect)
+
+            # Update the internal contents of the box (e.g., class name position)
+            self.update_box()
+        else:
+            super().mouseMoveEvent(event)  # Call the parent method if not resizing
+        
     def mouseReleaseEvent(self, event):
         """
         Handle mouse release events to stop dragging or resizing.
@@ -696,6 +578,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         super().mouseReleaseEvent(event)
 
+    #################################################################
+    ## UTILITY FUNCTIONS ##
+    
     def snap_to_grid(self, current_grid_size=20):
         """
         Snap the class box to the nearest grid position.
@@ -712,4 +597,30 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Set new position and update
         self.setPos(new_x, new_y)
-        self.update_positions()
+        self.update_box()
+        
+    def get_field_text_height(self):
+        field_tex_height = 0
+        for field_name in self.field_name_list:
+            # Get the text item for the field
+            field_text = self.field_list[field_name]
+            field_tex_height += field_text.boundingRect().height()
+        return field_tex_height
+    
+    def get_method_text_height(self):
+        method_tex_height = 0
+        for method_name in self.method_name_list:
+            # Get the text item for the field
+            method_text = self.method_list[method_name]
+            method_tex_height += method_text.boundingRect().height()
+        return method_tex_height
+    
+    def get_maximum_width(self):
+        # Get the maximum width of field text items
+        max_field_width = max([self.field_list[field_name].boundingRect().width() for field_name in self.field_name_list], default=0)
+        # Get the maximum width of method text items
+        max_method_width = max([self.method_list[method_name].boundingRect().width() for method_name in self.method_name_list], default=0)
+        # Return the largest width between fields and methods
+        return max(max_field_width, max_method_width)
+
+###################################################################################################

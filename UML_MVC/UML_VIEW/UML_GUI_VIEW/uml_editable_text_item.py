@@ -27,29 +27,29 @@ class UMLEditableTextItem(QtWidgets.QGraphicsTextItem):
         # Set the default color of the text to black
         self.setDefaultTextColor(QtGui.QColor(0, 0, 0))
         # Disable text editing initially (read-only mode)
-        self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+        self.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         # A flag to track if the text item is currently in editing mode
         self.editing = False
 
-    def mouseDoubleClickEvent(self, event):
-        """
-        Handles the mouse double-click event to enable text editing.
+    # def mouseDoubleClickEvent(self, event):
+    #     """
+    #     Handles the mouse double-click event to enable text editing.
 
-        This method is triggered when the user double-clicks on the text item.
-        It sets the item into editing mode, allowing the text to be modified.
-        Focus is also set on the text item to capture user input immediately.
+    #     This method is triggered when the user double-clicks on the text item.
+    #     It sets the item into editing mode, allowing the text to be modified.
+    #     Focus is also set on the text item to capture user input immediately.
 
-        Args:
-            event: The QMouseEvent representing the double-click event.
-        """
-        # Enable text editing by setting the appropriate interaction flags
-        self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
-        # Ensure the text item gains focus so the user can start typing
-        self.setFocus()
-        # Set the editing mode to True
-        self.editing = True
-        # Call the parent class’s double-click event handler
-        super().mouseDoubleClickEvent(event)
+    #     Args:
+    #         event: The QMouseEvent representing the double-click event.
+    #     """
+    #     # Enable text editing by setting the appropriate interaction flags
+    #     self.setTextInteractionFlags(QtCore.Qt.TextEditorInteraction)
+    #     # Ensure the text item gains focus so the user can start typing
+    #     self.setFocus()
+    #     # Set the editing mode to True
+    #     self.editing = True
+    #     # Call the parent class’s double-click event handler
+    #     super().mouseDoubleClickEvent(event)
 
     def keyPressEvent(self, event):
         """
