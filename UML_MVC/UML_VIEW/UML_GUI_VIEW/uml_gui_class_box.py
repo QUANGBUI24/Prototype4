@@ -200,7 +200,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 self.rect().topLeft().x(), y_pos, 
                 self.rect().topRight().x(), y_pos
             )
-        if hasattr(self, 'separator_line2'):
+        if hasattr(self, 'separator_line2') and self.separator_line2.scene() == self.scene():
             if len(self.method_name_list) > 0:
                 class_name_height = self.class_name_text.boundingRect().height()
                 field_section_height = self.get_field_text_height()
@@ -210,7 +210,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 self.rect().topRight().x(), y_pos
                 )
             else:
-                pass
+                self.scene().removeItem(self.separator_line2)
                 
     def update_handle_positions(self):
         """
