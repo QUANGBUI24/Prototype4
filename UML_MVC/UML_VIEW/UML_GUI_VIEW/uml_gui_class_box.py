@@ -144,12 +144,17 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     def update_separators(self):
         """
         Update positions of the separator lines based on current box size.
+        This function keeps the separator anchored at a fixed y-position relative to the class name.
         """
-        rect = self.rect()
         if hasattr(self, 'separator_line1'):
-            # Update existing separator lines
-            self.separator_line1.setLine(self.rect().topLeft().x(), self.class_name_text.boundingRect().height() + self.default_margin, rect.width(), 
-                                         self.class_name_text.boundingRect().height() + self.default_margin)  # Line below class name
+            # Update the separator line based on the current size of the UML box
+            class_name_height = self.class_name_text.boundingRect().height()
+            separator_y = self.rect().topLeft().y() + class_name_height + self.default_margin
+
+            # Set the new position of the separator line
+            self.separator_line1.setLine(
+                self.rect().topLeft().x(), separator_y, self.rect().topRight().x(), separator_y
+            )
             
     def create_resize_handles(self):
         """
