@@ -43,16 +43,16 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         ### FIELD, METHOD, PARAMETER, HANDLE AND CONNECT POINT LIST ###
         # Initialize lists for fields, methods, parameters, and resize handles.
         self.field_list: Dict = field_list if field_list is not None else {}
-        self.field_name_list = []
+        self.field_name_list: List = []
         
         self.method_list: Dict = method_list if method_list is not None else {}
-        self.method_name_list = []
+        self.method_name_list: Dict = {}
         
         self.parameter_list: Dict = parameter_list if parameter_list is not None else {}
-        self.parameter_name_list = []
+        self.parameter_name_list: List = []
         
-        self.handles_list = []
-        self.connection_points_list = []
+        self.handles_list: List = []
+        self.connection_points_list: List = []
 
         #################################################################
         ### UML CLASS BOX DEFAULT SETUP ###
@@ -75,7 +75,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         #################################
         
         # Define bounding rectangle of the class box
-        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width + self.default_margin * 2, self.default_box_height)
+        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width, self.default_box_height)
         # Set border color (Dodger Blue)
         self.setPen(QtGui.QPen(QtGui.QColor(30,144,255)))  
         # Set background color (cyan)
@@ -126,8 +126,8 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.update_connection_point_positions()
         # Update field alignment
         self.update_field_alignment()
-        # Update method alignment
-        self.update_method_alignment()
+        # Update method and parameter alignment
+        self.update_method_and_param_alignment()
         # Update separator
         self.update_separators()
     
@@ -135,8 +135,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         class_name_height = self.class_name_text.boundingRect().height()
         fields_text_height = self.get_field_text_height()
         method_text_height = self.get_method_text_height()
-        total_height = class_name_height + fields_text_height + method_text_height + self.default_margin * 2
-        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
+        parameter_text_height = self.get_total_param_text_height()
+        total_height = class_name_height + fields_text_height + method_text_height + parameter_text_height + self.default_margin * 2
+        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 3
+        print(f"Max Width = {max_width}")
         # Update the box size only if not being resized manually
         if not self.is_resizing and not self.is_box_dragged and total_height >= self.rect().height():
             self.setRect(0, 0, max_width, total_height)
@@ -208,27 +210,43 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             # Increment y_offset for the next field (adding field height and margin)
             y_offset += field_text.boundingRect().height()
             
-    def update_method_alignment(self):
+    def update_method_and_param_alignment(self):
         """
-        Align method text items in the UML class box row by row.
+        Align methods and parameters in the UML class box row by row.
 
-        Each method will be displayed on a new line, aligned to the left of the box.
+        Each method will be displayed on a new line, with its parameters indented beneath it.
         """
-        # Starting y-position for the first field (below the class name)
-        y_offset = self.class_name_text.boundingRect().height() + self.get_field_text_height() + self.default_margin * 2
+        # Starting y-position for the first method (below the class name and fields)
+        y_offset = self.class_name_text.boundingRect().height() + self.get_field_text_height() + self.default_margin
 
+        # Iterate through each method and align them, along with their parameters
         for method_name in self.method_name_list:
-            # Get the text item for the field
+            # Get the method text item
             method_text = self.method_list[method_name]
-        
-            # Calculate the x-position to center the field text horizontally
+
+            # Calculate the x-position for the method text (aligned to the left)
             method_x_pos = self.rect().topLeft().x() + self.default_margin
-        
-            # Set the position of the field text, each field below the previous one
-            method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset - self.default_margin)
-        
-            # Increment y_offset for the next field (adding field height and margin)
-            y_offset += method_text.boundingRect().height() 
+
+            # Set the position of the method text item
+            method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset)
+
+            # Update y_offset for the next method or parameter (incremented by the height of this method)
+            y_offset += method_text.boundingRect().height()
+
+            # Align parameters under the current method
+            if method_name in self.method_name_list:
+                for param_name in self.method_name_list[method_name]:
+                    # Get the parameter text item
+                    param_text = self.parameter_list[param_name]
+
+                    # Calculate the x-position for the parameter text (indented)
+                    param_x_pos = self.rect().topLeft().x() + self.default_margin * 2
+
+                    # Set the position of the parameter text item
+                    param_text.setPos(param_x_pos, self.rect().topLeft().y() + y_offset)
+
+                    # Update y_offset after positioning the parameter (incremented by the height of the parameter)
+                    y_offset += param_text.boundingRect().height()
             
     #################################
     
@@ -372,7 +390,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             self.update_box()
         
     ## FIELD OPERATION ##
-        
     def add_field(self):
         """Add a new field to the UML class."""
         field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
@@ -418,7 +435,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         if ok and method_name:
             method_text = self.create_text_item(method_name + "()", is_method=True, selectable=True)
             self.method_list[method_name] = method_text
-            self.method_name_list.append(method_name)
+            self.method_name_list[method_name] = []
             if len(self.method_name_list) == 1:
                 self.create_separator(is_first=False)
             self.update_box()
@@ -428,7 +445,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         if self.method_list:
             method_name, ok = QtWidgets.QInputDialog.getItem(None, "Remove Method", "Select method to remove:", self.method_name_list, 0, False)
             if ok and method_name:
-                self.method_name_list.remove(method_name)
+                for param_name in self.method_name_list[method_name]:
+                    self.scene().removeItem(self.parameter_list.pop(param_name))
+                self.method_name_list.pop(method_name)
                 self.scene().removeItem(self.method_list.pop(method_name))
                 self.update_box()
         else:
@@ -446,21 +465,67 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                         if method_name in self.method_list:
                             # Update the dictionary with the new name
                             self.method_list[new_name] = self.method_list.pop(method_name)
-                            self.method_list[new_name].setPlainText(new_name)
-                            self.method_name_list[self.method_name_list.index(method_name)] = new_name
+                            self.method_list[new_name].setPlainText(new_name + "()")
+                            self.method_name_list[new_name] = self.method_name_list.pop(method_name)
                             self.update_box()
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to change.")
             
     def add_param(self):
-        pass
+        """Add a new parameter to the UML class."""
+        if self.method_name_list:
+            method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method to add parameter:", list(self.method_name_list.keys()), 0, False)
+            if ok and method_name:
+                param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
+                if ok and param_name:
+                    param_text = self.create_text_item(param_name , is_parameter=True, selectable=True)
+                    self.method_name_list[method_name].append(param_name)
+                    self.parameter_list[param_name] = param_text
+                    self.parameter_name_list.append(param_name)
+                    self.update_box()
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose.")
     
     def delete_param(self):
-        pass
+        """Delete a parameter from the UML class."""
+        if self.method_name_list:
+            method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method to remove parameter:", list(self.method_name_list.keys()), 0, False)
+            if ok and method_name:
+                # Ensure there are parameters for this method
+                if self.method_name_list[method_name]:
+                    param_name, ok = QtWidgets.QInputDialog.getItem(None, "Delete Parameter", "Choose parameter name to remove:", self.method_name_list[method_name], 0, False)
+                    if ok and param_name:
+                        self.scene().removeItem(self.parameter_list.pop(param_name))
+                        self.method_name_list[method_name].remove(param_name)
+                        self.parameter_name_list.remove(param_name)
+                        self.update_box()
+                else:
+                    QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to choose.")
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose.")
     
     def rename_param(self):
-        pass
-    
+        """Rename a parameter from the UML class."""
+        if self.method_name_list:
+            method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method:", list(self.method_name_list.keys()), 0, False)
+            if ok and method_name:
+                # Ensure there are parameters for this method
+                if self.method_name_list[method_name]:
+                    param_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Parameter", "Choose parameter name to rename:", self.method_name_list[method_name], 0, False)
+                    if ok and param_name:
+                        new_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Parameter", "Enter new parameter name:")
+                        if ok and new_name:
+                            param_list = self.method_name_list[method_name]
+                            param_list[param_list.index(param_name)] = new_name
+                            self.parameter_list[new_name] = self.parameter_list.pop(param_name)
+                            self.parameter_list[new_name].setPlainText(new_name)
+                            self.parameter_name_list[self.parameter_name_list.index(param_name)] = new_name
+                            self.update_box()
+                else:
+                    QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to choose.")
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose.")
+                        
     #################################
     ## MOUSE EVENT RELATED ##
     
@@ -488,9 +553,20 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         add_method_button = contextMenu.addAction("Add Method")
         delete_method_button = contextMenu.addAction("Delete Method")
         rename_method_button = contextMenu.addAction("Rename Method")
+        
+        # Add a separator before the parameter options
+        contextMenu.addSeparator()
+        
+        # Add parameter options
+        add_parameter_button = contextMenu.addAction("Add Parameter")
+        delete_parameter_button = contextMenu.addAction("Delete Parameter")
+        rename_parameter_button = contextMenu.addAction("Rename Parameter")
 
         #################################
-        # Connect field options to methods
+        # Connect class option to method
+        rename_class_button.triggered.connect(self.rename_class)
+        
+        # Connect field options to fields
         add_field_button.triggered.connect(self.add_field)
         delete_field_button.triggered.connect(self.delete_field)
         rename_field_button.triggered.connect(self.rename_field)
@@ -500,11 +576,13 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         delete_method_button.triggered.connect(self.delete_method)
         rename_method_button.triggered.connect(self.rename_method)
         
-        # Connect class option to method
-        rename_class_button.triggered.connect(self.rename_class)
+        # Connect parameter options to parameters
+        add_parameter_button.triggered.connect(self.add_param)
+        delete_parameter_button.triggered.connect(self.delete_param)
+        rename_parameter_button.triggered.connect(self.rename_param)
 
         # Execute the context menu and get the selected action
-        action = contextMenu.exec_(event.screenPos())
+        contextMenu.exec_(event.screenPos())
         self.update_box()
 
     def handle_hoverEnterEvent(self, event, handle_name):
@@ -559,141 +637,215 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         Handle the mouse movement event for resizing the UML box.
 
         This function updates the size of the UML box based on the handle being dragged during resizing.
-        It ensures that the box maintains a minimum width and height based on the longest string (class name)
-        to prevent content from being cut off. The handle being dragged determines which part of the box 
+        It ensures that the box maintains a minimum width and height based on the content (class name, fields, methods, etc.)
+        to prevent them from being cut off. The handle being dragged determines which part of the box 
         (top-left, top-right, bottom-left, or bottom-right) is adjusted. The new dimensions are calculated 
         based on the mouse position, and the box is updated accordingly.
 
         Parameters:
             event (QGraphicsSceneMouseEvent): The event that provides the mouse movement data.
         """
-        
         # Check if the box is being resized and if a specific handle is active
         if self.is_resizing and self.current_handle:
             new_rect = self.rect()  # Get the current rectangle (box) dimensions
             
-            # This line converts the global mouse position (from the scene) to the local coordinate system of the box. 
-            # This is important because you need the mouse's position relative to the box, not to the entire screen or canvas.
+            # Convert the global mouse position to the local coordinate system of the box.
             pos = self.mapFromScene(event.scenePos())
 
-            # Height of current field text
+            # Calculate the total height of all elements (class name, fields, methods, parameters)
             class_name_height = self.class_name_text.boundingRect().height()
             fields_text_height = self.get_field_text_height()
             method_text_height = self.get_method_text_height()
-            total_height = class_name_height + fields_text_height + method_text_height + self.default_margin * 2
+            param_text_height = self.get_total_param_text_height()
+            total_height = class_name_height + fields_text_height + method_text_height + param_text_height + self.default_margin * 2
             
-            min_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
+            # Set the maximum width and minimum height for resizing
+            max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 3
             min_string_height = total_height
 
             # Adjust size based on the specific handle being dragged
             if self.current_handle == 'top_left':
+                # Resize from the top-left corner
                 new_width = self.rect().right() - pos.x()  # Calculate the new width
                 new_height = self.rect().bottom() - pos.y()  # Calculate the new height
 
-                # If width and height are valid (positive values), resize the box and fix bottom-right corner
-                if new_width > min_width:
-                    new_rect.setWidth(new_width)  # Update width
-                    new_rect.moveLeft(pos.x())  # Move the left side to follow the mouse
+                # If width and height are valid, resize the box and adjust the position of the left and top sides
+                if new_width > max_width:
+                    new_rect.setWidth(new_width)
+                    new_rect.moveLeft(pos.x())  # Move the left side
                 if new_height > min_string_height:
-                    new_rect.setHeight(new_height)  # Update height
-                    new_rect.moveTop(pos.y())  # Move the top side to follow the mouse
+                    new_rect.setHeight(new_height)
+                    new_rect.moveTop(pos.y())  # Move the top side
 
             elif self.current_handle == 'top_right':
-                new_width = pos.x() - self.rect().left()  # Calculate the new width
-                new_height = self.rect().bottom() - pos.y()  # Calculate the new height
+                # Resize from the top-right corner
+                new_width = pos.x() - self.rect().left()
+                new_height = self.rect().bottom() - pos.y()
 
-                if new_width > min_width:
+                if new_width > max_width:
                     new_rect.setWidth(new_width)
                 if new_height > min_string_height:
                     new_rect.setHeight(new_height)
-                    new_rect.moveTop(pos.y())  # Move the top side to follow the mouse
+                    new_rect.moveTop(pos.y())  # Move the top side
 
             elif self.current_handle == 'bottom_left':
-                new_width = self.rect().right() - pos.x()  # Calculate the new width
-                new_height = pos.y() - self.rect().top()  # Calculate the new height
+                # Resize from the bottom-left corner
+                new_width = self.rect().right() - pos.x()
+                new_height = pos.y() - self.rect().top()
 
-                if new_width > min_width:
+                if new_width > max_width:
                     new_rect.setWidth(new_width)
-                    new_rect.moveLeft(pos.x())  # Move the left side to follow the mouse
+                    new_rect.moveLeft(pos.x())  # Move the left side
                 if new_height > min_string_height:
                     new_rect.setHeight(new_height)
 
             elif self.current_handle == 'bottom_right':
-                new_width = pos.x() - self.rect().left()  # Calculate the new width
-                new_height = pos.y() - self.rect().top()  # Calculate the new height
+                # Resize from the bottom-right corner
+                new_width = pos.x() - self.rect().left()
+                new_height = pos.y() - self.rect().top()
 
-                if new_width > min_width:
-                    new_rect.setWidth(new_width)  # Update width
+                if new_width > max_width:
+                    new_rect.setWidth(new_width)
                 if new_height > min_string_height:
-                    new_rect.setHeight(new_height)  # Update height
+                    new_rect.setHeight(new_height)
 
             # Apply the new rectangle dimensions to the UML box
             self.setRect(new_rect)
-
-            # Update the internal contents of the box (e.g., class name position)
+            
+            # Update the internal layout and content of the box (e.g., text, handles, connection points)
             self.update_box()
         else:
             super().mouseMoveEvent(event)  # Call the parent method if not resizing
-        
+
     def mouseReleaseEvent(self, event):
         """
-        Handle mouse release events to stop dragging or resizing.
+        Handle mouse release events to stop dragging or resizing the UML box.
+        
+        This method stops the resizing or dragging action once the mouse is released, 
+        and it may snap the box to the nearest grid position if the box is being dragged.
 
         Parameters:
         - event (QGraphicsSceneMouseEvent): The mouse event.
         """
+        # If the box was being dragged, snap it to the nearest grid and stop dragging
         if self.is_box_dragged:
-            self.snap_to_grid()  # Snap box to grid
+            self.snap_to_grid()  # Snap the box to the nearest grid position
             event.accept()
             self.is_box_dragged = False  # Reset dragging flag
+
+        # If the box was being resized, stop the resizing process
         elif self.is_resizing:
             self.is_resizing = False  # Reset resizing flag
-            self.current_handle = None  # Reset current handle
-        super().mouseReleaseEvent(event)
+            self.current_handle = None  # Reset the handle being resized
+
+        super().mouseReleaseEvent(event)  # Call the parent method
 
     #################################################################
-    ## UTILITY FUNCTIONS ##
+    ### UTILITY FUNCTIONS ###
     
     def snap_to_grid(self, current_grid_size=20):
         """
-        Snap the class box to the nearest grid position.
+        Snap the UML box to the nearest grid position.
+
+        This method calculates the nearest grid coordinates based on the current position of the box
+        and adjusts the position to align it with the grid. The grid size can be adjusted using the parameter.
 
         Parameters:
-        - current_grid_size (int): The size of the grid to snap to.
+        - current_grid_size (int): The size of the grid to snap to (default is 20).
         """
-        grid_size = current_grid_size * self.transform().m11()  # Adjust for zoom
-        pos = self.pos()
+        grid_size = current_grid_size * self.transform().m11()  # Adjust for zoom factor
+        pos = self.pos()  # Get the current position of the box
 
-        # Calculate new x and y positions
+        # Calculate new x and y positions by snapping to the nearest grid points
         new_x = round(pos.x() / grid_size) * grid_size
         new_y = round(pos.y() / grid_size) * grid_size
 
-        # Set new position and update
+        # Update the box's position and internal content
         self.setPos(new_x, new_y)
         self.update_box()
-        
+
     def get_field_text_height(self):
+        """
+        Calculate the total height of all field text items in the box.
+        
+        Returns:
+        - field_tex_height (int): The total height of all field text items.
+        """
         field_tex_height = 0
+        # Sum the heights of all field text items
         for field_name in self.field_name_list:
-            # Get the text item for the field
-            field_text = self.field_list[field_name]
+            field_text = self.field_list[field_name]  # Get the text item for each field
             field_tex_height += field_text.boundingRect().height()
         return field_tex_height
-    
+
     def get_method_text_height(self):
+        """
+        Calculate the total height of all method text items in the box.
+        
+        Returns:
+        - method_tex_height (int): The total height of all method text items.
+        """
         method_tex_height = 0
+        # Sum the heights of all method text items
         for method_name in self.method_name_list:
-            # Get the text item for the field
-            method_text = self.method_list[method_name]
+            method_text = self.method_list[method_name]  # Get the text item for each method
             method_tex_height += method_text.boundingRect().height()
         return method_tex_height
-    
+
+    def get_param_text_height_of_single_method(self, method_name):
+        """
+        Calculate the total height of all parameter text items for a specific method.
+        
+        Parameters:
+        - method_name (str): The name of the method to get the parameter heights for.
+        
+        Returns:
+        - param_tex_height (int): The total height of all parameter text items for the method.
+        """
+        param_tex_height = 0
+        # Sum the heights of all parameter text items for the specified method
+        for param_name in self.method_name_list[method_name]:
+            param_text = self.parameter_list[param_name]  # Get the text item for each parameter
+            param_tex_height += param_text.boundingRect().height()
+        return param_tex_height
+
+    def get_total_param_text_height(self):
+        """
+        Calculate the total height of all parameter text items for all methods in the box.
+        
+        Returns:
+        - total_param_tex_height (int): The total height of all parameter text items.
+        """
+        total_param_tex_height = 0
+        # Loop through all methods and sum the heights of their parameter text items
+        for method_name in self.method_name_list:
+            total_param_tex_height += self.get_param_text_height_of_single_method(method_name)
+        return total_param_tex_height
+
     def get_maximum_width(self):
-        # Get the maximum width of field text items
+        """
+        Calculate the maximum width of the UML box based on the widths of its fields, methods, and parameters.
+
+        This function ensures that the box has enough width to display all content without truncation.
+
+        Returns:
+        - max_width (int): The maximum width required for the box based on its contents.
+        """
+        # Get the maximum width of all field text items
         max_field_width = max([self.field_list[field_name].boundingRect().width() for field_name in self.field_name_list], default=0)
-        # Get the maximum width of method text items
+        
+        # Get the maximum width of all method text items
         max_method_width = max([self.method_list[method_name].boundingRect().width() for method_name in self.method_name_list], default=0)
-        # Return the largest width between fields and methods
-        return max(max_field_width, max_method_width)
+        
+        # Get the maximum width of all parameter text items
+        max_param_width = 0
+        for method_name in self.method_name_list:
+            # Check for parameters under the current method and calculate their widths
+            if method_name in self.method_name_list:
+                param_widths = [self.parameter_list[param_name].boundingRect().width() for param_name in self.method_name_list[method_name]]
+                max_param_width = max(max_param_width, max(param_widths, default=0))
+        
+        # Return the largest width between fields, methods, and parameters
+        return max(max_field_width, max_method_width, max_param_width)
 
 ###################################################################################################
