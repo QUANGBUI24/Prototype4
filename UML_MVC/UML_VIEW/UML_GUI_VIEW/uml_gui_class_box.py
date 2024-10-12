@@ -71,7 +71,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.is_resizing = False
         self.is_selected = False
         self.current_handle = None
-
+        # Default text color
+        self.default_text_color = QtGui.QColor("black")
+        
         #################################
         
         # Define bounding rectangle of the class box
@@ -90,7 +92,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Enable hover events
         self.setAcceptHoverEvents(True)
         # Class name text box and make it appear at the center of the box.
-        self.class_name_text = self.create_text_item(class_name, selectable=True)
+        self.class_name_text = self.create_text_item(class_name, selectable=True, color=self.default_text_color)
         # Connect the text change callback to ensure it re-centers when the text changes.
         self.class_name_text.document().contentsChanged.connect(self.centering_class_name)
         # Create separator below class name
@@ -419,7 +421,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     #################################
     ## CLASS NAME TEXT RELATED ##
     
-    def create_text_item(self, text:str, selectable=False, is_field=None, is_method=None, is_parameter=None):
+    def create_text_item(self, text:str, selectable=False, is_field=None, is_method=None, is_parameter=None, color=None):
         """
         Create and return a QGraphicsTextItem with editing capabilities.
 
@@ -431,7 +433,12 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         Returns:
         - EditableTextItem: The created text item.
         """
-        text_item = Text(text=text, parent=self)  # Use the custom EditableTextItem
+        self.default_text_color
+        if color is not None:
+            text_item = Text(text=text, parent=self, color=color)  # Use the custom EditableTextItem
+        else:
+            text_item = Text(text=text, parent=self)  # Use the custom EditableTextItem
+        
         if selectable:
             text_item.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
             text_item.setFlag(QtWidgets.QGraphicsItem.ItemIsFocusable, True)

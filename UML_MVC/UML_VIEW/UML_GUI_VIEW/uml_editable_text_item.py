@@ -15,7 +15,7 @@ class UMLEditableTextItem(QtWidgets.QGraphicsTextItem):
         editing (bool): Tracks whether the text is in editing mode.
     """
 
-    def __init__(self, text="", parent=None):
+    def __init__(self, text="", parent=None, color=None):
         """
         Initialize the UMLEditableTextItem with a default text and an optional parent item.
 
@@ -25,7 +25,10 @@ class UMLEditableTextItem(QtWidgets.QGraphicsTextItem):
         """
         super().__init__(text, parent)
         # Set the default color of the text to black
-        self.setDefaultTextColor(QtGui.QColor(0, 0, 0))
+        if color is not None:
+            self.setDefaultTextColor(QtGui.QColor(color))
+        else:
+            self.setDefaultTextColor(QtGui.QColor(0, 0, 0))
         # Disable text editing initially (read-only mode)
         self.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         # A flag to track if the text item is currently in editing mode

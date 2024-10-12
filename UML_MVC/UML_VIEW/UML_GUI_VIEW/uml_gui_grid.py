@@ -188,7 +188,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 is_field_added = self.interface.add_field(selected_class_name, field_name)
                 if is_field_added:
                     # Create a text item for the field and add it to the list
-                    field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True)
+                    field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True, color=self.selected_class.default_text_color)
                     self.selected_class.field_list[field_name] = field_text  # Add the field to the internal list
                     self.selected_class.field_name_list.append(field_name)  # Track the field name in the name list
                     self.selected_class.update_box()  # Update the box to reflect the changes
@@ -251,7 +251,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 selected_class_name = self.selected_class.class_name_text.toPlainText()
                 is_method_added = self.interface.add_method(selected_class_name, method_name)
                 if is_method_added:
-                    method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True)
+                    method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True, color=self.selected_class.default_text_color)
                     self.selected_class.method_list[method_name] = method_text  # Store the method text
                     self.selected_class.method_name_list[method_name] = []  # Track the method's parameters
                     if len(self.selected_class.method_name_list) == 1:  # If this is the first method, create a separator
@@ -322,7 +322,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
                         if is_param_added:
                             # Add the parameter to the selected method and update the UML box
-                            param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True)
+                            param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
                             self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
                             self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
                             self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
@@ -438,7 +438,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.method_name_list[method_name].clear()
                                 # Add new parameters to the method
                                 for new_param in new_param_list:
-                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True)
+                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
                                     self.selected_class.method_name_list[method_name].append(new_param)
                                     self.selected_class.parameter_list[new_param] = param_text
                                     self.selected_class.parameter_name_list.append(new_param)
@@ -462,13 +462,42 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Open color dialog and pass current color as the initial color
             color = QtWidgets.QColorDialog.getColor(
                 initial=current_color, 
-                parent=None,  # You can set this to your main window if you want it modal
+                parent=None,  # Set this to your main window
                 title="Select Box Color"
             )
         
             # If a valid color is chosen, set the new brush color for the class box
             if color.isValid():
                 self.selected_class.setBrush(QtGui.QBrush(color))
+                
+    def change_text_color(self):
+        """
+        Open a color dialog to select a new text color and apply it to the selected UML class box's text.
+        """
+        if self.selected_class:
+            # Get the current text color, or set a default color if not set
+            current_color = self.selected_class.class_name_text.defaultTextColor() if self.selected_class.class_name_text.defaultTextColor().isValid() else QtGui.QColor("black")
+            # Open color dialog and pass the current color as the initial color
+            color = QtWidgets.QColorDialog.getColor(
+                initial=current_color, 
+                parent=None,  # Optionally set this to your main window for modal behavior
+                title="Select Text Color"
+            )
+            # If a valid color is chosen, set the new color for the text
+            if color.isValid():
+                if self.selected_class.field_list:
+                    for field_text in self.selected_class.field_list.values():
+                        field_text.setDefaultTextColor(color)
+                if self.selected_class.method_list:
+                    for method_text in self.selected_class.method_list.values():
+                        method_text.setDefaultTextColor(color)
+                if self.selected_class.parameter_list:
+                    for param_text in self.selected_class.parameter_list.values():
+                        param_text.setDefaultTextColor(color)
+                self.selected_class.class_name_text.setDefaultTextColor(color)
+                # Ensure later added text will use this color too
+                self.selected_class.default_text_color = color
+                self.selected_class.update_box()
                         
     #################################################################
     ## MOUSE RELATED ##
@@ -482,6 +511,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             
             # Add box color options
             change_box_color_button = contextMenu.addAction("Box Color")
+            
+            # Add text color options
+            change_text_color_button = contextMenu.addAction("Text Color")
             
             # Add a separator before the class options
             contextMenu.addSeparator()
@@ -517,6 +549,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             #################################  
             # Connect box color options to box color functions  
             change_box_color_button.triggered.connect(self.change_box_color)
+            
+            # Connect text color options to box color functions  
+            change_text_color_button.triggered.connect(self.change_text_color)
             
             # Connect class options to class functions
             rename_class_button.triggered.connect(self.rename_class)
