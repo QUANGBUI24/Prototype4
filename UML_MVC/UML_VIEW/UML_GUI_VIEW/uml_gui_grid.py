@@ -460,6 +460,12 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             #################################
             # Create the context menu
             contextMenu = QtWidgets.QMenu()
+            
+            # Add class options
+            rename_class_button = contextMenu.addAction("Rename Class")
+            
+            # Add a separator before the field options
+            contextMenu.addSeparator()
         
             # Add field options
             add_field_button = contextMenu.addAction("Add Field")
@@ -484,17 +490,20 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             replace_parameter_button = contextMenu.addAction("Replace Parameter")
 
             #################################    
-            # Connect field options to fields
+            # Connect class options to class functions
+            rename_class_button.triggered.connect(self.rename_class)
+            
+            # Connect field options to field functions
             add_field_button.triggered.connect(self.add_field)
             delete_field_button.triggered.connect(self.delete_field)
             rename_field_button.triggered.connect(self.rename_field)
         
-            # Connect method options to methods
+            # Connect method options to method functions
             add_method_button.triggered.connect(self.add_method)
             delete_method_button.triggered.connect(self.delete_method)
             rename_method_button.triggered.connect(self.rename_method)
         
-            # Connect parameter options to parameters
+            # Connect parameter options to parameter functions
             add_parameter_button.triggered.connect(self.add_param)
             delete_parameter_button.triggered.connect(self.delete_param)
             rename_parameter_button.triggered.connect(self.rename_param)
