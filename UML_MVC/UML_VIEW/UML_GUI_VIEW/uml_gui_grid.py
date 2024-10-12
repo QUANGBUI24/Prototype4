@@ -185,7 +185,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def add_field(self, loaded_class_name=None, loaded_field_name=None, is_loading=False):
-        """
         Add a field to a UML class box, either during loading or interactively.
 
         This function either loads a field into the UML class during the loading process or allows the user
@@ -298,7 +297,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             # Show a warning if there are no fields to rename
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-    
+            
     def add_method(self, loaded_class_name=None, loaded_method_name=None, is_loading=False):
         """
         Add a method to a UML class box, either during loading or interactively.
@@ -422,8 +421,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-
-    def add_param(self, loaded_class_name=None, loaded_method_name=None, loaded_param_name=None, is_loading=False):
+            
+    def add_param(self,loaded_class_name=None, loaded_method_name=None, loaded_param_name=None, is_loading=False):
         """
         Add a parameter to a method in the UML class, either during loading or interactively.
 
@@ -449,7 +448,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_param_added = self.interface.add_parameter(loaded_class_name, loaded_method_name, loaded_param_name)
                     if is_param_added:
                         # Add the parameter to the selected method and update the UML box
-                        param_text = selected_class_box.create_text_item(loaded_param_name, is_parameter=True, selectable=True, color=selected_class_box.default_text_color)
+                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=True, color=selected_class_box.default_text_color)
                         selected_class_box.method_name_list[loaded_method_name].append(loaded_param_name)  # Track the parameter
                         selected_class_box.parameter_list[loaded_param_name] = param_text  # Store the parameter text
                         selected_class_box.parameter_name_list.append(loaded_param_name)  # Add to the list of parameter names
@@ -467,7 +466,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                             is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
                             if is_param_added:
                                 # Add the parameter to the selected method and update the UML box
-                                param_text = self.selected_class.create_text_item(param_name, is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
+                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
                                 self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
                                 self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
                                 self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
@@ -721,6 +720,48 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         1. Iterate over all items in the scene.
         2. For each item, check if it is an instance of `UMLClassBox`.
         3. Remove any `UMLClassBox` items from the scene.
+        Open a file dialog to select a file.
+        """
+        self.clear_current_scene()
+        # Show an open file dialog and store the selected file path
+        full_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
+        if not full_path.endswith('.json'):
+            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
+            return
+        if full_path:
+            file_base_name = os.path.basename(full_path)
+            file_name_only = os.path.splitext(file_base_name)[0]
+            self.interface.load_gui(file_name_only, full_path, self)
+            
+    def save_as_gui(self):
+        """
+        Open a save file dialog to select a file location for saving.
+        """
+        full_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(),"JSON Files (*.json)")
+        if not full_path.endswith('.json'):
+            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
+            return
+        if full_path:
+            file_base_name = os.path.basename(full_path)
+            file_name_only = os.path.splitext(file_base_name)[0]
+            self.interface.save_gui(file_name_only, full_path)
+
+    def save_gui(self):
+        """
+        Save to current active file, if no active file, prompt user to create new json file
+        """
+        current_active_file_path = self.interface.get_active_file_gui()
+        if current_active_file_path == "No active file!":
+            self.save_as_gui()
+        else:
+            file_base_name = os.path.basename(current_active_file_path)
+            file_name_only = os.path.splitext(file_base_name)[0]
+            self.interface.save_gui(file_name_only, current_active_file_path)
+            
+    
+    def clear_current_scene(self):
+        """
+        Remove all UMLClassBox items from the scene.
         """
         # Iterate through all items in the scene
         for item in self.scene().items():
