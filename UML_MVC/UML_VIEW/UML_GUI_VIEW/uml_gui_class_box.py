@@ -177,7 +177,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                         + parameter_text_height + self.default_margin * 2)
 
         # Calculate the maximum width required by the content
-        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 3
+        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
         print(f"Max Width = {max_width}")  # Debugging print statement to show the calculated width
 
         # If the box is not being resized manually or dragged, adjust the size of the box
@@ -714,6 +714,54 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         else:
             # Show a warning if there are no methods available
             QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose.")
+            
+    def replace_parameter(self):
+        """
+        Replace parameters for a method in the UML class.
+
+        This function allows the user to input multiple parameter names, which are 
+        then added as individual parameters for the selected method. It will replace 
+        all existing parameters for that method with the new ones.
+
+        Steps:
+        1. User selects a method from a list of existing methods.
+        2. User enters multiple parameters as a string, separated by commas.
+        3. Each parameter is created as a text item and added to the method.
+        4. Existing parameters are replaced by the new ones.
+        """
+        # Ensure there are methods to choose from
+        if self.method_name_list:
+            # Select the method to replace parameters for
+            method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", 
+                                                             "Select method to replace parameters:", 
+                                                             list(self.method_name_list.keys()), 0, False)
+            if ok and method_name:
+                # Prompt user to enter the new parameters as a comma-separated string
+                param_string, ok = QtWidgets.QInputDialog.getText(None, "Replace Parameters", 
+                                                                  "Enter new parameters (comma-separated):")
+                if ok and param_string:
+                    # Split the input string by commas to form a list of parameters
+                    new_param_list = [param.strip() for param in param_string.split(",") if param.strip()]
+
+                    # Clear current parameters
+                    for param_name in self.method_name_list[method_name]:
+                        self.scene().removeItem(self.parameter_list.pop(param_name))
+                    
+                    # Clear the method's parameter list
+                    self.method_name_list[method_name].clear()
+                    
+                    # Add new parameters to the method
+                    for new_param in new_param_list:
+                        param_text = self.create_text_item(new_param, is_parameter=True, selectable=True)
+                        self.method_name_list[method_name].append(new_param)
+                        self.parameter_list[new_param] = param_text
+                        self.parameter_name_list.append(new_param)
+                    
+                    # Update the box to reflect changes
+                    self.update_box()
+        else:
+            # Display a warning if no methods are available
+            QtWidgets.QMessageBox.warning(None, "Warning", "No methods available to replace parameters.")
                         
     #################################
     ## MOUSE EVENT RELATED ##
@@ -750,6 +798,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         add_parameter_button = contextMenu.addAction("Add Parameter")
         delete_parameter_button = contextMenu.addAction("Delete Parameter")
         rename_parameter_button = contextMenu.addAction("Rename Parameter")
+        replace_parameter_button = contextMenu.addAction("Replace Parameter")
 
         #################################
         # Connect class option to method
@@ -769,6 +818,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         add_parameter_button.triggered.connect(self.add_param)
         delete_parameter_button.triggered.connect(self.delete_param)
         rename_parameter_button.triggered.connect(self.rename_param)
+        replace_parameter_button.triggered.connect(self.replace_parameter)
 
         # Execute the context menu and get the selected action
         contextMenu.exec_(event.screenPos())
@@ -849,7 +899,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             total_height = class_name_height + fields_text_height + method_text_height + param_text_height + self.default_margin * 2
             
             # Set the maximum width and minimum height for resizing
-            max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 3
+            max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
             min_string_height = total_height
 
             # Adjust size based on the specific handle being dragged
@@ -926,7 +976,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         elif self.is_resizing:
             self.is_resizing = False  # Reset resizing flag
             self.current_handle = None  # Reset the handle being resized
-
         super().mouseReleaseEvent(event)  # Call the parent method
 
     #################################################################

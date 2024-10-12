@@ -47,7 +47,7 @@ class RelationshipType(Enum):
     REALIZATION = "realization"
     
 class BoxDefaultStat(Enum):
-    BOX_DEFAULT_WIDTH = 150
+    BOX_DEFAULT_WIDTH = 170
     BOX_DEFAULT_HEIGHT = 50
     BOX_DEFAULT_X = 0
     BOX_DEFAULT_Y = 0
