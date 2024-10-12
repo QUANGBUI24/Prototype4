@@ -51,9 +51,11 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         ## UML DIAGRAM BUTTONS ##
         # Find QAction objects from the toolbar
         self.add_class_action = self.findChild(QtWidgets.QAction, "add_class")
-        self.add_class_action.triggered.connect(self.add_class_to_diagram)
+        self.rename_class_action = self.findChild(QtWidgets.QAction, "rename_class")
         self.delete_class_action = self.findChild(QtWidgets.QAction, "delete_class")
+        
         self.delete_class_action.triggered.connect(self.delete_selected_item_from_diagram)  # Updated method
+        self.add_class_action.triggered.connect(self.add_class_to_diagram)
 
     #################################################################
     ### EVENT FUNCTIONS ###
@@ -105,6 +107,6 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         """
         Delete the selected class or arrow from the diagram.
         """
-        self.grid_view.delete_selected_item()
+        self.grid_view.delete_class()
         
 #################################################################

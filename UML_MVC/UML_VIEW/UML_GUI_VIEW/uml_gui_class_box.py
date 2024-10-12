@@ -178,7 +178,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Calculate the maximum width required by the content
         max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
-        print(f"Max Width = {max_width}")  # Debugging print statement to show the calculated width
 
         # If the box is not being resized manually or dragged, adjust the size of the box
         # Ensure the total height is greater than the current height before resizing
@@ -471,23 +470,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
     #################################
     ### UML CLASS OPERATIONS ###
-    
-    ## CLASS OPERATION ##
-    def rename_class(self):
-        """
-        Rename the class displayed in the UML box.
-
-        This method prompts the user to input a new name for the class. 
-        If the user confirms and enters a valid name, the class name is updated 
-        and the box is refreshed to reflect the new name.
-        """
-        # Display a dialog asking the user for the new class name
-        class_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Class", f"Enter new name for class '{self.class_name_text.toPlainText()}'")
-        
-        # If the user confirms and provides a valid name, update the class name
-        if ok and class_name:
-            self.class_name_text.setPlainText(class_name)  # Set the new name in the UML box
-            self.update_box()  # Update the box layout to reflect the change
 
     ## FIELD OPERATION ##
     def add_field(self):
@@ -772,12 +754,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Create the context menu
         contextMenu = QtWidgets.QMenu()
         
-        # Class option
-        rename_class_button = contextMenu.addAction("Rename Class")
-        
-        # Add a separator before the field options
-        contextMenu.addSeparator()
-        
         # Add field options
         add_field_button = contextMenu.addAction("Add Field")
         delete_field_button = contextMenu.addAction("Delete Field")
@@ -800,10 +776,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         rename_parameter_button = contextMenu.addAction("Rename Parameter")
         replace_parameter_button = contextMenu.addAction("Replace Parameter")
 
-        #################################
-        # Connect class option to method
-        rename_class_button.triggered.connect(self.rename_class)
-        
+        #################################    
         # Connect field options to fields
         add_field_button.triggered.connect(self.add_field)
         delete_field_button.triggered.connect(self.delete_field)

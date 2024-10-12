@@ -120,6 +120,44 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             painter.drawLine(0, int(rect.top()), 0, int(rect.bottom()))  # Vertical line at x=0
 
             painter.setPen(pen)  # Reset pen
+    
+    #################################################################
+    ## CLASS OPERATION ##
+    def add_class(self):
+        """
+        Add a sample UML class box to the scene.
+        """
+        # Display a dialog asking the user for the new field name
+        input_class_name, ok = QtWidgets.QInputDialog.getText(None, "Add Class", "Enter class name:")
+        if ok and input_class_name:
+            class_box = UMLClassBox(self.interface, class_name=input_class_name)
+            self.scene().addItem(class_box)
+            self.interface.add_class(input_class_name)
+        
+    def rename_class(self):
+        """
+        Rename the class displayed in the UML box.
+
+        This method prompts the user to input a new name for the class. 
+        If the user confirms and enters a valid name, the class name is updated 
+        and the box is refreshed to reflect the new name.
+        """
+        # Display a dialog asking the user for the new class name
+        class_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Class", f"Enter new name for class '{self.class_name_text.toPlainText()}'")
+        
+        # If the user confirms and provides a valid name, update the class name
+        if ok and class_name:
+            self.class_name_text.setPlainText(class_name)  # Set the new name in the UML box
+            self.update_box()  # Update the box layout to reflect the change
+        
+    def delete_class(self):
+        """
+        Delete the selected class or arrow from the scene.
+        """  
+        if self.selected_class:
+            # Remove the class box
+            self.scene().removeItem(self.selected_class)
+            self.selected_class = None
 
     #################################################################
     ## MOUSE RELATED ##
@@ -252,84 +290,84 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             self.last_mouse_pos = None
             self.setCursor(QtCore.Qt.ArrowCursor)
             event.accept()
-        elif event.button() == QtCore.Qt.RightButton and self.line:
-            # Finish drawing the arrow
-            scene_pos = self.mapToScene(event.pos())
-            items = self.scene().items(scene_pos)
-            items = [item for item in items if isinstance(item, UMLClassBox)]
-            if items:
-                released_item = items[0]
-                if released_item and self.startItem and released_item != self.startItem:
-                    try:
-                        # Find the closest connection point on the released item
-                        connectionPoints = released_item.getConnectionPoints()
-                        if connectionPoints:
-                            min_distance = None
-                            closest_point = None
-                            closest_key = None
-                            for key, point in connectionPoints.items():
-                                distance = QtCore.QLineF(scene_pos, point).length()
-                                if min_distance is None or distance < min_distance:
-                                    min_distance = distance
-                                    closest_point = point
-                                    closest_key = key
+        # elif event.button() == QtCore.Qt.RightButton and self.line:
+        #     # Finish drawing the arrow
+        #     scene_pos = self.mapToScene(event.pos())
+        #     items = self.scene().items(scene_pos)
+        #     items = [item for item in items if isinstance(item, UMLClassBox)]
+        #     if items:
+        #         released_item = items[0]
+        #         if released_item and self.startItem and released_item != self.startItem:
+        #             try:
+        #                 # Find the closest connection point on the released item
+        #                 connectionPoints = released_item.getConnectionPoints()
+        #                 if connectionPoints:
+        #                     min_distance = None
+        #                     closest_point = None
+        #                     closest_key = None
+        #                     for key, point in connectionPoints.items():
+        #                         distance = QtCore.QLineF(scene_pos, point).length()
+        #                         if min_distance is None or distance < min_distance:
+        #                             min_distance = distance
+        #                             closest_point = point
+        #                             closest_key = key
 
-                            # Validate the closest point and key
-                            if closest_point and closest_key:
-                                self.endItem = released_item
-                                self.endPoint = closest_point
-                                self.endKey = closest_key
+        #                     # Validate the closest point and key
+        #                     if closest_point and closest_key:
+        #                         self.endItem = released_item
+        #                         self.endPoint = closest_point
+        #                         self.endKey = closest_key
 
-                                # Check if an arrow between these classes already exists
-                                arrow_exists = any(
-                                    arrow.startItem == self.startItem and arrow.endItem == self.endItem
-                                    for arrow in self.startItem.arrows
-                                )
+        #                         # Check if an arrow between these classes already exists
+        #                         arrow_exists = any(
+        #                             arrow.startItem == self.startItem and arrow.endItem == self.endItem
+        #                             for arrow in self.startItem.arrows
+        #                         )
 
-                                if arrow_exists:
-                                    # Don't create a duplicate arrow
-                                    if self.line:
-                                        self.scene().removeItem(self.line)
-                                        self.line = None
-                                    QtWidgets.QMessageBox.warning(
-                                        self, "Duplicate Relationship",
-                                        "An arrow between these classes already exists."
-                                    )
-                                else:
-                                    # Remove the temporary line and create the arrow
-                                    if self.line:
-                                        self.scene().removeItem(self.line)
-                                        self.line = None
-                                    arrow = Arrow(
-                                        self.startItem, self.endItem,
-                                        self.startKey, self.endKey, self.is_dark_mode
-                                    )
-                                    self.scene().addItem(arrow)
-                    except Exception as e:
-                        print(f"Error during arrow creation: {e}")
-                        if self.line:
-                            self.scene().removeItem(self.line)
-                            self.line = None
-                else:
-                    # Same item clicked or invalid start/released item; remove temporary line
-                    if self.line:
-                        self.scene().removeItem(self.line)
-                        self.line = None
-            else:
-                # No valid item under cursor; remove temporary line
-                if self.line:
-                    self.scene().removeItem(self.line)
-                    self.line = None
+        #                         if arrow_exists:
+        #                             # Don't create a duplicate arrow
+        #                             if self.line:
+        #                                 self.scene().removeItem(self.line)
+        #                                 self.line = None
+        #                             QtWidgets.QMessageBox.warning(
+        #                                 self, "Duplicate Relationship",
+        #                                 "An arrow between these classes already exists."
+        #                             )
+        #                         else:
+        #                             # Remove the temporary line and create the arrow
+        #                             if self.line:
+        #                                 self.scene().removeItem(self.line)
+        #                                 self.line = None
+        #                             arrow = Arrow(
+        #                                 self.startItem, self.endItem,
+        #                                 self.startKey, self.endKey, self.is_dark_mode
+        #                             )
+        #                             self.scene().addItem(arrow)
+        #             except Exception as e:
+        #                 print(f"Error during arrow creation: {e}")
+        #                 if self.line:
+        #                     self.scene().removeItem(self.line)
+        #                     self.line = None
+        #         else:
+        #             # Same item clicked or invalid start/released item; remove temporary line
+        #             if self.line:
+        #                 self.scene().removeItem(self.line)
+        #                 self.line = None
+        #     else:
+        #         # No valid item under cursor; remove temporary line
+        #         if self.line:
+        #             self.scene().removeItem(self.line)
+        #             self.line = None
 
-            # Reset variables to avoid inconsistent state
-            self.startItem = None
-            self.endItem = None
-            self.startPoint = None
-            self.endPoint = None
-            self.startKey = None
-            self.endKey = None
-            self.line = None
-            event.accept()
+        #     # Reset variables to avoid inconsistent state
+        #     self.startItem = None
+        #     self.endItem = None
+        #     self.startPoint = None
+        #     self.endPoint = None
+        #     self.startKey = None
+        #     self.endKey = None
+        #     self.line = None
+        #     event.accept()
         else:
             super().mouseReleaseEvent(event)
             self.viewport().update()
@@ -342,7 +380,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         - event (QKeyEvent): The key event.
         """
         if event.key() == QtCore.Qt.Key_Delete:
-            self.delete_selected_item()
+            self.delete_class()
             event.accept()
         else:
             super().keyPressEvent(event)
@@ -350,15 +388,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     #################################################################
     ## UTILITY FUNCTIONS ##
-
-    def delete_selected_item(self):
-        """
-        Delete the selected class or arrow from the scene.
-        """  
-        if self.selected_class:
-            # Remove the class box
-            self.scene().removeItem(self.selected_class)
-            self.selected_class = None
 
     def update_snap(self):
         """
@@ -395,13 +424,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.grid_size = 15
         self.resetTransform()
         self.centerOn(0, 0)
-
-    def add_class(self):
-        """
-        Add a sample UML class box to the scene.
-        """
-        class_box = UMLClassBox(self.interface, class_name="Class_Name")
-        self.scene().addItem(class_box)
 
     def setLightMode(self):
         """

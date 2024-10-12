@@ -74,6 +74,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="add_class"/>
+   <addaction name="rename_class"/>
    <addaction name="delete_class"/>
    <addaction name="separator"/>
    <addaction name="reset_view"/>
@@ -302,6 +303,11 @@
    </property>
    <property name="text">
     <string>Toggle Mode</string>
+   </property>
+  </action>
+  <action name="rename_class">
+   <property name="text">
+    <string>Rename Class</string>
    </property>
   </action>
  </widget>
