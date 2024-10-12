@@ -51,45 +51,45 @@ class UMLEditableTextItem(QtWidgets.QGraphicsTextItem):
     #     # Call the parent class’s double-click event handler
     #     super().mouseDoubleClickEvent(event)
 
-    def keyPressEvent(self, event):
-        """
-        Handles the key press event to capture Enter or Return key presses.
+    # def keyPressEvent(self, event):
+    #     """
+    #     Handles the key press event to capture Enter or Return key presses.
 
-        If the user presses the Enter/Return key while editing, this method saves the changes
-        and exits the editing mode. For other key events, the default behavior is followed.
+    #     If the user presses the Enter/Return key while editing, this method saves the changes
+    #     and exits the editing mode. For other key events, the default behavior is followed.
 
-        Args:
-            event: The QKeyEvent representing the key press event.
-        """
-        if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
-            # Disable text editing when the Enter key is pressed
-            self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
-            # Clear focus from the text item (indicating end of editing)
-            self.clearFocus()
-            # Set the editing mode to False
-            self.editing = False
-            # Optional: Add callback logic here to save the text value or perform other actions
-        else:
-            # Pass other key events to the parent class’s handler
-            super().keyPressEvent(event)
+    #     Args:
+    #         event: The QKeyEvent representing the key press event.
+    #     """
+    #     if event.key() == QtCore.Qt.Key_Return or event.key() == QtCore.Qt.Key_Enter:
+    #         # Disable text editing when the Enter key is pressed
+    #         self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+    #         # Clear focus from the text item (indicating end of editing)
+    #         self.clearFocus()
+    #         # Set the editing mode to False
+    #         self.editing = False
+    #         # Optional: Add callback logic here to save the text value or perform other actions
+    #     else:
+    #         # Pass other key events to the parent class’s handler
+    #         super().keyPressEvent(event)
 
-    def focusOutEvent(self, event):
-        """
-        Handles the focus-out event, stopping editing if the user clicks outside the text item.
+    # def focusOutEvent(self, event):
+    #     """
+    #     Handles the focus-out event, stopping editing if the user clicks outside the text item.
 
-        When the text item loses focus (e.g., when the user clicks elsewhere), this method ensures
-        that the text editing is disabled, and the item returns to read-only mode.
+    #     When the text item loses focus (e.g., when the user clicks elsewhere), this method ensures
+    #     that the text editing is disabled, and the item returns to read-only mode.
 
-        Args:
-            event: The QFocusEvent representing the focus-out event.
-        """
-        # If the item was in editing mode and focus is lost, stop editing
-        if self.editing:
-            # Disable text editing when focus is lost
-            self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
-            # Set the editing mode to False
-            self.editing = False
-        # Call the parent class’s focus-out event handler
-        super().focusOutEvent(event)
+    #     Args:
+    #         event: The QFocusEvent representing the focus-out event.
+    #     """
+    #     # If the item was in editing mode and focus is lost, stop editing
+    #     if self.editing:
+    #         # Disable text editing when focus is lost
+    #         self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
+    #         # Set the editing mode to False
+    #         self.editing = False
+    #     # Call the parent class’s focus-out event handler
+    #     super().focusOutEvent(event)
 
 ###################################################################################################
