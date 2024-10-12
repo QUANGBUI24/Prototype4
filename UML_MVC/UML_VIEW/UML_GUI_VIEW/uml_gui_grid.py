@@ -450,6 +450,25 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+            
+    def change_box_color(self):
+        """
+        Open a color dialog to select a new box color.
+        """
+        if self.selected_class:
+            # Get the current brush color, or set a default color if not set
+            current_color = self.selected_class.brush().color() if self.selected_class.brush().color().isValid() else QtGui.QColor("cyan")
+        
+            # Open color dialog and pass current color as the initial color
+            color = QtWidgets.QColorDialog.getColor(
+                initial=current_color, 
+                parent=None,  # You can set this to your main window if you want it modal
+                title="Select Box Color"
+            )
+        
+            # If a valid color is chosen, set the new brush color for the class box
+            if color.isValid():
+                self.selected_class.setBrush(QtGui.QBrush(color))
                         
     #################################################################
     ## MOUSE RELATED ##
@@ -460,6 +479,12 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             #################################
             # Create the context menu
             contextMenu = QtWidgets.QMenu()
+            
+            # Add box color options
+            change_box_color_button = contextMenu.addAction("Box Color")
+            
+            # Add a separator before the class options
+            contextMenu.addSeparator()
             
             # Add class options
             rename_class_button = contextMenu.addAction("Rename Class")
@@ -489,7 +514,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             rename_parameter_button = contextMenu.addAction("Rename Parameter")
             replace_parameter_button = contextMenu.addAction("Replace Parameter")
 
-            #################################    
+            #################################  
+            # Connect box color options to box color functions  
+            change_box_color_button.triggered.connect(self.change_box_color)
+            
             # Connect class options to class functions
             rename_class_button.triggered.connect(self.rename_class)
             
