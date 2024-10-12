@@ -1,9 +1,9 @@
 ###################################################################################################
 
+import os
 from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
-# from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import Method
 
 ###################################################################################################
 
@@ -123,19 +123,25 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     
     #################################################################
     ## CLASS OPERATION ##
-    def add_class(self):
+    def add_class(self, loaded_class_name=None, is_loading=False):
         """
         Add a sample UML class box to the scene.
         """
-        # Display a dialog asking the user for the new class name
-        input_class_name, ok = QtWidgets.QInputDialog.getText(None, "Add Class", "Enter class name:")
-        if ok and input_class_name:
-            is_class_added = self.interface.add_class(input_class_name)
+        if is_loading:
+            is_class_added = self.interface.add_class(loaded_class_name)
             if is_class_added:
-                class_box = UMLClassBox(self.interface, class_name=input_class_name)
+                class_box = UMLClassBox(self.interface, class_name=loaded_class_name)
                 self.scene().addItem(class_box)
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", f"Class '{input_class_name}' has already existed!")
+        else:
+            # Display a dialog asking the user for the new class name
+            input_class_name, ok = QtWidgets.QInputDialog.getText(None, "Add Class", "Enter class name:")
+            if ok and input_class_name:
+                is_class_added = self.interface.add_class(input_class_name)
+                if is_class_added:
+                    class_box = UMLClassBox(self.interface, class_name=input_class_name)
+                    self.scene().addItem(class_box)
+                else:
+                    QtWidgets.QMessageBox.warning(None, "Warning", f"Class '{input_class_name}' has already existed!")
             
     def delete_class(self):
         """
@@ -178,24 +184,38 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
-    def add_field(self):
-        if self.selected_class:
-            # Display a dialog asking the user for the new field name
-            field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
-            # If the user confirms and provides a valid name, create and add the field
-            if ok and field_name:
-                selected_class_name = self.selected_class.class_name_text.toPlainText()
-                is_field_added = self.interface.add_field(selected_class_name, field_name)
-                if is_field_added:
-                    # Create a text item for the field and add it to the list
-                    field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True)
-                    self.selected_class.field_list[field_name] = field_text  # Add the field to the internal list
-                    self.selected_class.field_name_list.append(field_name)  # Track the field name in the name list
-                    self.selected_class.update_box()  # Update the box to reflect the changes
-                else:
-                    QtWidgets.QMessageBox.warning(None, "Warning", f"Field name '{field_name}' has already existed!")
+    def add_field(self, loaded_class_name=None, loaded_field_name=None, is_loading=False):
+        if is_loading:
+            # Find the UML class box by the loaded class name in the scene
+            for item in self.scene().items():
+                if isinstance(item, UMLClassBox) and item.class_name_text.toPlainText() == loaded_class_name:
+                    selected_class_box = item  # Found the class box
+                    # Add the field to the found class box
+                    is_field_added = self.interface.add_field(loaded_class_name, loaded_field_name)
+                    if is_field_added:
+                        # Create a text item for the field and add it to the list of the found class box
+                        field_text = selected_class_box.create_text_item(loaded_field_name, is_field=True, selectable=True, color=selected_class_box.default_text_color)
+                        selected_class_box.field_list[loaded_field_name] = field_text  # Add the field to the internal list
+                        selected_class_box.field_name_list.append(loaded_field_name)  # Track the field name in the name list
+                        selected_class_box.update_box()  # Update the box to reflect the changes
         else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+            if self.selected_class:
+                # Display a dialog asking the user for the new field name
+                field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
+                # If the user confirms and provides a valid name, create and add the field
+                if ok and field_name:
+                    selected_class_name = self.selected_class.class_name_text.toPlainText()
+                    is_field_added = self.interface.add_field(selected_class_name, field_name)
+                    if is_field_added:
+                        # Create a text item for the field and add it to the list
+                        field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True, color=self.selected_class.default_text_color)
+                        self.selected_class.field_list[field_name] = field_text  # Add the field to the internal list
+                        self.selected_class.field_name_list.append(field_name)  # Track the field name in the name list
+                        self.selected_class.update_box()  # Update the box to reflect the changes
+                    else:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Field name '{field_name}' has already existed!")
+            else:
+                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def delete_field(self):
         if self.selected_class:
@@ -241,26 +261,42 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Show a warning if there are no fields to rename
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
-    def add_method(self):
-        if self.selected_class:
-            # Display a dialog asking for the new method name
-            method_name, ok = QtWidgets.QInputDialog.getText(None, "Add Method", "Enter method name:")
-
-            # If the user confirms and provides a valid method name, add it to the UML box
-            if ok and method_name:
-                selected_class_name = self.selected_class.class_name_text.toPlainText()
-                is_method_added = self.interface.add_method(selected_class_name, method_name)
-                if is_method_added:
-                    method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True)
-                    self.selected_class.method_list[method_name] = method_text  # Store the method text
-                    self.selected_class.method_name_list[method_name] = []  # Track the method's parameters
-                    if len(self.selected_class.method_name_list) == 1:  # If this is the first method, create a separator
-                        self.selected_class.create_separator(is_first=False)
-                    self.selected_class.update_box()  # Update the UML box
-                else:
-                    QtWidgets.QMessageBox.warning(None, "Warning", f"Method name '{method_name}' has already existed!")
+    def add_method(self, loaded_class_name=None, loaded_method_name=None, is_loading=False):
+        if is_loading:
+            # Find the UML class box by the loaded class name in the scene
+            for item in self.scene().items():
+                if isinstance(item, UMLClassBox) and item.class_name_text.toPlainText() == loaded_class_name:
+                    selected_class_box = item  # Found the class box
+                    # Add the method to the found class box
+                    is_method_added = self.interface.add_method(loaded_class_name, loaded_method_name)
+                    if is_method_added:
+                        # Create a text item for the method and add it to the list of the found class box
+                        method_text = selected_class_box.create_text_item(loaded_method_name + "()", is_method=True, selectable=True, color=selected_class_box.default_text_color)
+                        selected_class_box.method_list[loaded_method_name] = method_text  # Add the method to the internal list
+                        selected_class_box.method_name_list[loaded_method_name] = []  # Track the method name in the name list
+                        if len(selected_class_box.method_name_list) == 1:  # If this is the first method, create a separator
+                            selected_class_box.create_separator(is_first=False)
+                        selected_class_box.update_box()  # Update the box to reflect the changes
         else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+            if self.selected_class:
+                # Display a dialog asking for the new method name
+                method_name, ok = QtWidgets.QInputDialog.getText(None, "Add Method", "Enter method name:")
+
+                # If the user confirms and provides a valid method name, add it to the UML box
+                if ok and method_name:
+                    selected_class_name = self.selected_class.class_name_text.toPlainText()
+                    is_method_added = self.interface.add_method(selected_class_name, method_name)
+                    if is_method_added:
+                        method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True, color=self.selected_class.default_text_color)
+                        self.selected_class.method_list[method_name] = method_text  # Store the method text
+                        self.selected_class.method_name_list[method_name] = []  # Track the method's parameters
+                        if len(self.selected_class.method_name_list) == 1:  # If this is the first method, create a separator
+                            self.selected_class.create_separator(is_first=False)
+                        self.selected_class.update_box()  # Update the UML box
+                    else:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Method name '{method_name}' has already existed!")
+            else:
+                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
     
     def delete_method(self):
         if self.selected_class:
@@ -309,32 +345,46 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Show a warning if there are no fields to rename
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
-    def add_param(self):
-        if self.selected_class:
-            if self.selected_class.method_list:
-                # Ask the user to choose a method to add a parameter to
-                method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method to add parameter:", list(self.selected_class.method_name_list.keys()), 0, False)
-                if ok and method_name:
-                    # Ask for the parameter name
-                    param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
-                    if ok and param_name:
-                        selected_class_name = self.selected_class.class_name_text.toPlainText()
-                        is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
-                        if is_param_added:
-                            # Add the parameter to the selected method and update the UML box
-                            param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True)
-                            self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
-                            self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
-                            self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
-                            self.selected_class.update_box()  # Update the UML box
-                        else:
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"New parameter name '{param_name}' has already existed!")
+    def add_param(self,loaded_class_name=None, loaded_method_name=None, loaded_param_name=None, is_loading=False):
+        if is_loading:
+            # Find the UML class box by the loaded class name in the scene
+            for item in self.scene().items():
+                if isinstance(item, UMLClassBox) and item.class_name_text.toPlainText() == loaded_class_name:
+                    selected_class_box = item  # Found the class box
+                    is_param_added = self.interface.add_parameter(loaded_class_name, loaded_method_name, loaded_param_name)
+                    if is_param_added:
+                        # Add the parameter to the selected method and update the UML box
+                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=True, color=selected_class_box.default_text_color)
+                        selected_class_box.method_name_list[loaded_method_name].append(loaded_param_name)  # Track the parameter
+                        selected_class_box.parameter_list[loaded_param_name] = param_text  # Store the parameter text
+                        selected_class_box.parameter_name_list.append(loaded_param_name)  # Add to the list of parameter names
+                        selected_class_box.update_box()  # Update the UML box
+        else:
+            if self.selected_class:
+                if self.selected_class.method_list:
+                    # Ask the user to choose a method to add a parameter to
+                    method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method to add parameter:", list(self.selected_class.method_name_list.keys()), 0, False)
+                    if ok and method_name:
+                        # Ask for the parameter name
+                        param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
+                        if ok and param_name:
+                            selected_class_name = self.selected_class.class_name_text.toPlainText()
+                            is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
+                            if is_param_added:
+                                # Add the parameter to the selected method and update the UML box
+                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
+                                self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
+                                self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
+                                self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
+                                self.selected_class.update_box()  # Update the UML box
+                            else:
+                                QtWidgets.QMessageBox.warning(None, "Warning", f"New parameter name '{param_name}' has already existed!")
+                else:
+                    # Show a warning if there are no methods available
+                    QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose!")
             else:
                 # Show a warning if there are no methods available
-                QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose!")
-        else:
-            # Show a warning if there are no methods available
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
     
     def delete_param(self):
         if self.selected_class:
@@ -438,7 +488,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.method_name_list[method_name].clear()
                                 # Add new parameters to the method
                                 for new_param in new_param_list:
-                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True)
+                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
                                     self.selected_class.method_name_list[method_name].append(new_param)
                                     self.selected_class.parameter_list[new_param] = param_text
                                     self.selected_class.parameter_name_list.append(new_param)
@@ -450,7 +500,59 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-                        
+            
+    def open_folder_gui(self):
+        """
+        Open a file dialog to select a file.
+        """
+        self.clear_current_scene()
+        # Show an open file dialog and store the selected file path
+        full_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
+        if not full_path.endswith('.json'):
+            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
+            return
+        if full_path:
+            file_base_name = os.path.basename(full_path)
+            file_name_only = os.path.splitext(file_base_name)[0]
+            self.interface.load_gui(file_name_only, full_path, self)
+            
+    def save_as_gui(self):
+        """
+        Open a save file dialog to select a file location for saving.
+        """
+        full_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(),"JSON Files (*.json)")
+        if not full_path.endswith('.json'):
+            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
+            return
+        if full_path:
+            file_base_name = os.path.basename(full_path)
+            file_name_only = os.path.splitext(file_base_name)[0]
+            self.interface.save_gui(file_name_only, full_path)
+
+    def save_gui(self):
+        """
+        Save to current active file, if no active file, prompt user to create new json file
+        """
+        current_active_file_path = self.interface.get_active_file_gui()
+        if current_active_file_path == "No active file!":
+            self.save_as_gui()
+        else:
+            file_base_name = os.path.basename(current_active_file_path)
+            file_name_only = os.path.splitext(file_base_name)[0]
+            self.interface.save_gui(file_name_only, current_active_file_path)
+            
+    
+    def clear_current_scene(self):
+        """
+        Remove all UMLClassBox items from the scene.
+        """
+        # Iterate through all items in the scene
+        for item in self.scene().items():
+            # Check if the item is a UMLClassBox
+            if isinstance(item, UMLClassBox):
+                # Remove the item from the scene
+                self.scene().removeItem(item)
+                
     #################################################################
     ## MOUSE RELATED ##
 
@@ -460,6 +562,21 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             #################################
             # Create the context menu
             contextMenu = QtWidgets.QMenu()
+            
+            # Add box color options
+            change_box_color_button = contextMenu.addAction("Box Color")
+            
+            # Add text color options
+            change_text_color_button = contextMenu.addAction("Text Color")
+            
+            # Add a separator before the class options
+            contextMenu.addSeparator()
+            
+            # Add class options
+            rename_class_button = contextMenu.addAction("Rename Class")
+            
+            # Add a separator before the field options
+            contextMenu.addSeparator()
         
             # Add field options
             add_field_button = contextMenu.addAction("Add Field")
@@ -483,18 +600,27 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             rename_parameter_button = contextMenu.addAction("Rename Parameter")
             replace_parameter_button = contextMenu.addAction("Replace Parameter")
 
-            #################################    
-            # Connect field options to fields
+            #################################  
+            # Connect box color options to box color functions  
+            change_box_color_button.triggered.connect(self.change_box_color)
+            
+            # Connect text color options to box color functions  
+            change_text_color_button.triggered.connect(self.change_text_color)
+            
+            # Connect class options to class functions
+            rename_class_button.triggered.connect(self.rename_class)
+            
+            # Connect field options to field functions
             add_field_button.triggered.connect(self.add_field)
             delete_field_button.triggered.connect(self.delete_field)
             rename_field_button.triggered.connect(self.rename_field)
         
-            # Connect method options to methods
+            # Connect method options to method functions
             add_method_button.triggered.connect(self.add_method)
             delete_method_button.triggered.connect(self.delete_method)
             rename_method_button.triggered.connect(self.rename_method)
         
-            # Connect parameter options to parameters
+            # Connect parameter options to parameter functions
             add_parameter_button.triggered.connect(self.add_param)
             delete_parameter_button.triggered.connect(self.delete_param)
             rename_parameter_button.triggered.connect(self.rename_param)
@@ -623,8 +749,56 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         for item in self.scene().items():
             if isinstance(item, UMLClassBox):
                 item.snap_to_grid()
+                
+    def change_box_color(self):
+        """
+        Open a color dialog to select a new box color.
+        """
+        if self.selected_class:
+            # Get the current brush color, or set a default color if not set
+            current_color = self.selected_class.brush().color() if self.selected_class.brush().color().isValid() else QtGui.QColor("cyan")
+        
+            # Open color dialog and pass current color as the initial color
+            color = QtWidgets.QColorDialog.getColor(
+                initial=current_color, 
+                parent=None,  # Set this to your main window
+                title="Select Box Color"
+            )
+        
+            # If a valid color is chosen, set the new brush color for the class box
+            if color.isValid():
+                self.selected_class.setBrush(QtGui.QBrush(color))
+                
+    def change_text_color(self):
+        """
+        Open a color dialog to select a new text color and apply it to the selected UML class box's text.
+        """
+        if self.selected_class:
+            # Get the current text color, or set a default color if not set
+            current_color = self.selected_class.class_name_text.defaultTextColor() if self.selected_class.class_name_text.defaultTextColor().isValid() else QtGui.QColor("black")
+            # Open color dialog and pass the current color as the initial color
+            color = QtWidgets.QColorDialog.getColor(
+                initial=current_color, 
+                parent=None,  # Optionally set this to your main window for modal behavior
+                title="Select Text Color"
+            )
+            # If a valid color is chosen, set the new color for the text
+            if color.isValid():
+                if self.selected_class.field_list:
+                    for field_text in self.selected_class.field_list.values():
+                        field_text.setDefaultTextColor(color)
+                if self.selected_class.method_list:
+                    for method_text in self.selected_class.method_list.values():
+                        method_text.setDefaultTextColor(color)
+                if self.selected_class.parameter_list:
+                    for param_text in self.selected_class.parameter_list.values():
+                        param_text.setDefaultTextColor(color)
+                self.selected_class.class_name_text.setDefaultTextColor(color)
+                # Ensure later added text will use this color too
+                self.selected_class.default_text_color = color
+                self.selected_class.update_box()
 
-    def setGridVisible(self, visible):
+    def set_grid_visible(self, visible):
         """
         Control the visibility of the grid lines.
 
@@ -634,7 +808,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.grid_visible = visible
         self.viewport().update()
 
-    def setGridColor(self, color):
+    def set_grid_color(self, color):
         """
         Update the color of the grid lines.
 
@@ -644,7 +818,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.grid_color = color
         self.viewport().update()
 
-    def resetView(self):
+    def reset_view(self):
         """
         Reset the zoom and position to the initial state.
         """
@@ -652,7 +826,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.resetTransform()
         self.centerOn(0, 0)
 
-    def setLightMode(self):
+    def set_light_mode(self):
         """
         Set the view to light mode.
         """
@@ -661,7 +835,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.viewport().update()
         self.scene().update()
 
-    def setDarkMode(self):
+    def set_dark_mode(self):
         """
         Set the view to dark mode.
         """
@@ -670,11 +844,11 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.viewport().update()
         self.scene().update()
 
-    def toggleMode(self):
+    def toggle_mode(self):
         """
         Toggle between dark mode and light mode.
         """
         if self.is_dark_mode:
-            self.setLightMode()
+            self.set_light_mode()
         else:
-            self.setDarkMode()
+            self.set_dark_mode()

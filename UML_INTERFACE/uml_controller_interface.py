@@ -474,6 +474,10 @@ class UMLInterface:
         Loads the UML diagram data by delegating the operation to the model.
         """
         self.Model._load()
+        
+    # Load data GUI #
+    def load_gui(self, file_name, file_path, graphical_view):
+        self.Model._load_gui(file_name, file_path, graphical_view)
     
     # Delete saved file #
     def delete_saved_file(self):
@@ -491,6 +495,16 @@ class UMLInterface:
             str: The name of the active file.
         """
         return self.Model._get_active_file()
+    
+    # Get active file GUI #
+    def get_active_file_gui(self) -> str:
+        """
+        Retrieves the name of the currently active file in the UML editor.
+
+        Returns:
+            str: The name of the active file.
+        """
+        return self.Model._get_active_file_gui()
     
     # Saved file name check #
     def saved_file_name_check(self, file_name: str) -> bool:

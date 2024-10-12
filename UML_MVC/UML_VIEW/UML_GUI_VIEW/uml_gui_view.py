@@ -92,46 +92,19 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.rename_param_action.triggered.connect(self.rename_param_gui) 
         self.replace_param_action.triggered.connect(self.replace_param_gui) 
         
+        #################################################################
+        self.open_folder_action = self.findChild(QtWidgets.QAction, "Open")
+        self.save_as_action = self.findChild(QtWidgets.QAction, "SaveAs")
+        self.save_action = self.findChild(QtWidgets.QAction, "Save")
+        
+        self.open_folder_action.triggered.connect(self.open_folder_gui)
+        self.save_as_action.triggered.connect(self.save_as_gui)
+        self.save_action.triggered.connect(self.save_gui)
+        
     #################################################################
     ### EVENT FUNCTIONS ###
-
-    ## GRID EVENTS ##
-
-    def toggle_grid_method(self, checked):
-        """
-        Toggle the visibility of the grid.
-
-        Parameters:
-        - checked (bool): Indicates whether the grid should be visible.
-        """
-        self.grid_view.setGridVisible(checked)
-
-    def change_gridColor_method(self):
-        """
-        Open a color dialog to select a new grid color.
-        """
-        color = QtWidgets.QColorDialog.getColor(
-            initial=self.grid_view.grid_color,
-            parent=self,
-            title="Select Grid Color"
-        )
-        if color.isValid():
-            self.grid_view.setGridColor(color)
-
-    def reset_view_method(self):
-        """
-        Reset the view to the default state.
-        """
-        self.grid_view.resetView()
-
-    def toggle_mode_method(self):
-        """
-        Switch between light and dark modes.
-        """
-        self.grid_view.toggleMode()
-
-    ## UML DIAGRAM EVENTS ##
-
+    
+    ## UML BOX EVENTS ##
     def add_class_gui(self):
         """
         Add a new UML class item to the scene.
@@ -175,6 +148,67 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.grid_view.rename_param()
         
     def replace_param_gui(self):
-        self.grid_view.replace_param()  
+        self.grid_view.replace_param() 
+    
+    def open_folder_gui(self):
+        self.grid_view.open_folder_gui()
         
+    def save_as_gui(self):
+        self.grid_view.save_as_gui()
+    
+    def save_gui(self):
+        self.grid_view.save_gui()
+
+    ## GRID EVENTS ##
+
+    def toggle_grid_method(self, checked):
+        """
+        Toggle the visibility of the grid.
+
+        Parameters:
+        - checked (bool): Indicates whether the grid should be visible.
+        """
+        self.grid_view.set_grid_visible(checked)
+
+    def change_gridColor_method(self):
+        """
+        Open a color dialog to select a new grid color.
+        """
+        color = QtWidgets.QColorDialog.getColor(
+            initial=self.grid_view.grid_color,
+            parent=self,
+            title="Select Grid Color"
+        )
+        if color.isValid():
+            self.grid_view.set_grid_color(color)
+
+    def reset_view_method(self):
+        """
+        Reset the view to the default state.
+        """
+        self.grid_view.reset_view()
+
+    def toggle_mode_method(self):
+        """
+        Switch between light and dark modes.
+        """
+        self.grid_view.toggle_mode()
+
 #################################################################
+### WINDOW EVENTS ###
+    def closeEvent(self, event):
+        """
+        This method is called when the user attempts to close the window.
+        """
+        reply = QtWidgets.QMessageBox.question(self, "Exit",
+                                               "Are you sure you want to quit?",
+                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                               QtWidgets.QMessageBox.No)
+
+        # If the user chooses 'Yes', the program will exit
+        if reply == QtWidgets.QMessageBox.Yes:
+            print("Program is exiting...")
+            self.interface.exit()
+            event.accept()  # Accept the event to close the application
+        else:
+            event.ignore()  # Ignore the event to keep the application running

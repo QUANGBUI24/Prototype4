@@ -19,5 +19,8 @@
     },
     {
         "test00": "off"
+    },
+    {
+        "gui_save": "off"
     }
 ]

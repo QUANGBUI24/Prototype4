@@ -17,6 +17,7 @@ from UML_CORE.UML_PARAMETER.uml_parameter import UMLParameter as Parameter
 from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relationship
 from UML_MVC.UML_CONTROLLER.uml_storage_manager import UMLStorageManager as Storage
 from UML_ENUM_CLASS.uml_enum import InterfaceOptions, RelationshipType
+from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_grid import GridGraphicsView as GUIView
 
 ###################################################################################################
 
@@ -49,7 +50,7 @@ class UMLModel:
         self.__relationship_list: List[Relationship] = []
         self.__main_data: Dict = {"classes":[], "relationships":[]}
         self._observers = [] # For observer design pattern
-            
+                    
     #################################################################
       
     # Observer management methods
@@ -1151,7 +1152,7 @@ class UMLModel:
         self.__console.print(f"\n[bold green]Successfully saved data to [bold white]'{user_input}.json'![/bold white][/bold green]")
 
     # Save for GUI #
-    def _save_gui(self, file_name, file_path):
+    def _save_gui(self, file_name, full_path):
         """
         Saves UML data through the GUI, saving to the specified file name and path.
         
@@ -1163,9 +1164,9 @@ class UMLModel:
         class_data_list = []
         relationship_data_list = []
         # Update main data with class and relationship information
-        main_data = self.__update_main_data_from_loaded_file(file_name, class_data_list, relationship_data_list)
+        main_data = self.__update_main_data_from_loaded_file(file_name, class_data_list, relationship_data_list, file_path=full_path)
         # Save data to JSON via the GUI
-        self.__storage_manager._save_data_to_json_gui(file_name, file_path, main_data)
+        self.__storage_manager._save_data_to_json_gui(full_path, main_data)
 
     # Load data #
     def _load(self):
@@ -1198,9 +1199,20 @@ class UMLModel:
         self.__update_data_members(main_data)
         self.__check_file_and_set_status(user_input)
         self.__console.print(f"\n[bold green]Successfully loaded data from [bold white]'{user_input}.json'[/bold white]![/bold green]")
+        
+    def _load_gui(self, file_name: str, file_path: str, graphical_view: GUIView):
+        """
+        Loads UML data from a saved JSON file, prompting the user for a file name or displaying a list of saved files.
+        The data is loaded and the program's state is updated.
+        """
+        # Load data from the file and update program state
+        main_data = self.__main_data = self.__storage_manager._load_data_from_json(file_name)
+        self.__update_data_members_gui(main_data, graphical_view)
+        self.__check_file_and_set_status(file_name)
+        self._check_file_and_set_status_gui(file_path)
 
     # Update main data to store data to JSON file #
-    def __update_main_data_from_loaded_file(self, user_input: str, class_data_list: List, relationship_data_list: List) -> Dict:
+    def __update_main_data_from_loaded_file(self, user_input: str, class_data_list: List, relationship_data_list: List, file_path=None) -> Dict:
         """
         Updates the main data to be saved into a JSON file by compiling class data and relationship data.
 
@@ -1217,6 +1229,8 @@ class UMLModel:
         main_data = self.__main_data
         # Add the file name to the saved list if it is a new one
         self.__storage_manager._add_name_to_saved_file(user_input)
+        if file_path is not None:
+            self.__storage_manager._add_name_to_saved_file_gui(file_path)
         # Format classes for JSON storage
         for class_name in self.__class_list:
             class_data_format = self._class_json_format(class_name)
@@ -1237,7 +1251,7 @@ class UMLModel:
         class_data = main_data["classes"]
         relationship_data = main_data["relationships"]
         # Reset the current storage before loading new data
-        self.__reset_storage()
+        self._reset_storage()
         # Set the new main data
         self.__main_data = main_data
         # Extract and recreate class, fields, methods, and parameters from the loaded data
@@ -1257,6 +1271,33 @@ class UMLModel:
         # Recreate relationships from the loaded data
         for each_dictionary in relationship_data:
             self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
+            
+    def __update_data_members_gui(self, main_data: Dict, graphical_view: GUIView):
+        """
+        Updates the internal data members (class and relationship) after loading from a JSON file.
+
+        Args:
+            main_data (Dict): The data dictionary loaded from a JSON file.
+        """
+        class_data = main_data["classes"]
+        # Reset the current storage before loading new data
+        self._reset_storage()
+        # Set the new main data
+        self.__main_data = main_data
+        # Extract and recreate class, fields, methods, and parameters from the loaded data
+        extracted_class_data = self._extract_class_data(class_data)
+        for each_pair in extracted_class_data:
+            for class_name, data in each_pair.items():
+                field_list = data['fields']
+                method_param_list = data['methods_params']
+                # Add classes, fields, methods, and parameters to the program state
+                graphical_view.add_class(class_name, is_loading=True)
+                for each_field in field_list:
+                    graphical_view.add_field(class_name, each_field, is_loading=True)
+                for method_name, param_list in method_param_list.items():
+                    graphical_view.add_method(class_name, method_name, is_loading=True)
+                    for param_name in param_list:
+                        graphical_view.add_param(class_name, method_name, param_name, is_loading=True)
     
     # Extract class, field, method, and parameters from json file #
     def _extract_class_data(self, class_data: List[Dict]) -> List[Dict[str, Dict[str, List | Dict]]]:
@@ -1338,7 +1379,8 @@ class UMLModel:
         Ends the current session and resets the program to its default blank state by resetting all data and turning off active files.
         """
         self.__set_all_file_off()
-        self.__reset_storage()
+        self._set_all_file_off_gui()
+        self._reset_storage()
         self.__console.print("\n[bold green]Successfully back to default program![/bold green]")
     
     # Get active file #
@@ -1350,6 +1392,21 @@ class UMLModel:
             str: The name of the active file, or 'No active file!' if none is active.
         """
         saved_list = self.__storage_manager._get_saved_list()
+        for each_dictionary in saved_list:
+            for key, val in each_dictionary.items():
+                if val == "on":
+                    return key
+        return "No active file!"
+    
+    # Get active file #
+    def _get_active_file_gui(self) -> str:
+        """
+        Retrieves the name of the currently active file if one exists.
+
+        Returns:
+            str: The name of the active file, or 'No active file!' if none is active.
+        """
+        saved_list = self.__storage_manager._get_saved_list_gui()
         for each_dictionary in saved_list:
             for key, val in each_dictionary.items():
                 if val == "on":
@@ -1369,7 +1426,7 @@ class UMLModel:
         if current_active_file == "No active file!":
             self.__console.print("\n[bold red]No active file![bold red]")
             return
-        self.__reset_storage()
+        self._reset_storage()
         self.__storage_manager._save_data_to_json(current_active_file, self.__main_data)
         self.__console.print(f"\n[bold green]Successfully cleared data in file [bold white]'{current_active_file}.json'[/bold white][/bold green]")
     
@@ -1379,6 +1436,7 @@ class UMLModel:
         Exits the program, turning off any active file and cleaning up.
         """
         self.__set_all_file_off()
+        self._set_all_file_off_gui()
         self.__console.print("\n[bold green]Exited Program[/bold green]")
     
     # Set all files' status to 'off' #
@@ -1386,12 +1444,13 @@ class UMLModel:
         """
         Resets the status of all files in the saved list, setting their status to 'off' (inactive).
         """
+        # CLI
         saved_list = self.__storage_manager._get_saved_list()
         for each_dictionary in saved_list:
             for key in each_dictionary:
                 each_dictionary[key] = "off"
         self.__storage_manager._update_saved_list(saved_list)
-    
+
     # Set a specific file's status #
     def __set_file_status(self, file_name: str, status: str):
         """
@@ -1423,8 +1482,47 @@ class UMLModel:
         self.__set_file_status(file_name, status="on")
         self.__storage_manager._update_saved_list(saved_list)
     
+    # Set all files' status to 'off' #
+    def _set_all_file_off_gui(self):
+        saved_list = self.__storage_manager._get_saved_list_gui()
+        for each_dictionary in saved_list:
+            for key in each_dictionary:
+                each_dictionary[key] = "off"
+        self.__storage_manager._update_saved_list_gui(saved_list)
+    
+    # Set a specific file's status #
+    def _set_file_status_gui(self, file_path: str, status: str):
+        """
+        Sets the status of a specific file in the saved list.
+
+        Args:
+            file_name (str): The name of the file.
+            status (str): The new status to assign to the file ('on' or 'off').
+        """
+        saved_list = self.__storage_manager._get_saved_list_gui()
+        for each_dictionary in saved_list:
+            for key in each_dictionary:
+                if key == file_path:
+                    each_dictionary[key] = status
+                    
+    # Check and set file status #
+    def _check_file_and_set_status_gui(self, file_path: str) -> str:
+        """
+        Ensures only the selected file is marked as 'on', setting all others to 'off'.
+
+        Args:
+            file_name (str): The name of the file to activate.
+        """
+        saved_list = self.__storage_manager._get_saved_list_gui()
+        for each_dictionary in saved_list:
+            for key in each_dictionary:
+                if each_dictionary[key] == "on":
+                    each_dictionary[key] = "off"
+        self._set_file_status_gui(file_path, status="on")
+        self.__storage_manager._update_saved_list_gui(saved_list)
+    
     # Reset all storage (classes, relationships, and main data) #
-    def __reset_storage(self):
+    def _reset_storage(self):
         """
         Resets the entire storage by clearing all class data, relationships, and the main data dictionary.
         """
