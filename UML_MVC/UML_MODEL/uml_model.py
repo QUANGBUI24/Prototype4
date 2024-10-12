@@ -127,7 +127,7 @@ class UMLModel:
     ## CLASS RELATED ##
     
     # Add class #
-    def _add_class(self, class_name: str, is_loading: bool):
+    def _add_class(self, class_name: str, is_loading: bool) -> bool:
         """
         Adds a new UML class to the class list. If the class already exists, no action is taken.
         Notifies observers of the addition event.
@@ -140,14 +140,15 @@ class UMLModel:
         is_class_exist = self._validate_entities(class_name=class_name, class_should_exist=False)
         # If the class already exists, exit the function
         if not is_class_exist:
-            return
+            return False
         # Create a new class and add it to the class list
         new_class = self.create_class(class_name)
         self.__class_list[class_name] = new_class
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.ADD_CLASS.value, data={"class_name": class_name}, is_loading=is_loading)
-        
+        return True
+    
     # Delete class #
     def _delete_class(self, class_name: str):
         """
@@ -161,7 +162,7 @@ class UMLModel:
         is_class_exist = self._validate_entities(class_name=class_name, class_should_exist=True)
         # If the class does not exist, exit the function
         if not is_class_exist:
-            return
+            return False
         # Remove the class from the class list
         self.__class_list.pop(class_name)
         # Clean up any relationships involving the class
@@ -169,6 +170,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.DELETE_CLASS.value, data={"class_name": class_name})
+        return True
         
     # Rename class #
     def _rename_class(self, current_name: str, new_name: str):
@@ -183,7 +185,7 @@ class UMLModel:
         # Check if renaming is possible (class name validation)
         is_able_to_rename = self.__check_class_rename(current_name, new_name)
         if not is_able_to_rename:
-            return
+            return False
         # Rename the class and update the class list
         class_object = self.__class_list[current_name]
         class_object._set_class_name(new_name)
@@ -193,7 +195,8 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.RENAME_CLASS.value, data={"old_name": current_name, "new_name": new_name})
-
+        return True
+        
     ## FIELD RELATED ##
     
     # Add field #
@@ -209,7 +212,7 @@ class UMLModel:
         # Check if both the class and the field do not already exist
         is_class_and_field_exist = self._validate_entities(class_name=class_name, field_name=field_name, class_should_exist=True, field_should_exist=False)
         if not is_class_and_field_exist:
-            return
+            return False
         # Retrieve the class and add the new field to its field list
         class_object = self.__class_list[class_name]
         field_list = class_object._get_class_field_list()
@@ -218,6 +221,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.ADD_FIELD.value, data={"class_name": class_name, "field_name": field_name}, is_loading=is_loading)
+        return True
         
     # Delete field #
     def _delete_field(self, class_name: str, field_name: str):
@@ -231,7 +235,7 @@ class UMLModel:
         # Check if both the class and the field exist
         is_class_and_field_exist = self._validate_entities(class_name=class_name, field_name=field_name, class_should_exist=True, field_should_exist=True)
         if not is_class_and_field_exist:
-            return
+            return False
         # Remove the field from the class's field list
         class_object = self.__class_list[class_name]
         field_list = class_object._get_class_field_list()
@@ -240,6 +244,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.DELETE_FIELD.value, data={"class_name": class_name, "field_name": field_name})
+        return True
         
     # Rename field #
     def _rename_field(self, class_name: str, current_field_name: str, new_field_name: str):
@@ -254,14 +259,15 @@ class UMLModel:
         # Check if renaming is possible (field name validation)
         is_able_to_rename = self.__check_field_or_method_rename(class_name, current_field_name, new_field_name, is_field=True)
         if not is_able_to_rename:
-            return
+            return False
         # Rename the field in the class
         chosen_field = self.__get_chosen_field_or_method(class_name, current_field_name, is_field=True)
         chosen_field._set_name(new_field_name)
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.RENAME_FIELD.value, data={"class_name": class_name, "old_field_name": current_field_name, "new_field_name": new_field_name})
-
+        return True
+        
     ## METHOD RELATED ##
     
     # Add method #
@@ -277,7 +283,7 @@ class UMLModel:
         # Check if the class exists and the method does not already exist
         is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=False)
         if not is_class_and_method_exist:
-            return
+            return False
         # Add the new method to the class's method list
         class_object = self.__class_list[class_name]
         method_list = class_object._get_class_method_list()
@@ -289,6 +295,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.ADD_METHOD.value, data={"class_name": class_name, "method_name": method_name}, is_loading=is_loading)
+        return True
         
     # Delete method #
     def _delete_method(self, class_name: str, method_name: str):
@@ -302,7 +309,7 @@ class UMLModel:
         # Check if both the class and the method exist
         is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=True)
         if not is_class_and_method_exist:
-            return
+            return False
         # Remove the method from the class's method list
         class_object = self.__class_list[class_name]
         method_list = class_object._get_class_method_list()
@@ -313,6 +320,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.DELETE_METHOD.value, data={"class_name": class_name, "method_name": method_name})
+        return True
         
     # Rename method #
     def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
@@ -327,7 +335,7 @@ class UMLModel:
         # Check if renaming is possible (method name validation)
         is_able_to_rename = self.__check_field_or_method_rename(class_name, current_method_name, new_method_name, is_field=False)
         if not is_able_to_rename:
-            return
+            return False
         # Rename the method in the class and update the method list
         class_object = self.__class_list[class_name]
         method_and_parameter_list = class_object._get_method_and_parameters_list()
@@ -337,6 +345,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.RENAME_METHOD.value, data={"class_name": class_name, "old_method_name": current_method_name, "new_method_name": new_method_name})
+        return True
 
     ## PARAMETER RELATED ##
     
@@ -354,7 +363,7 @@ class UMLModel:
         # Check if the class, method, and parameter do not already exist
         is_class_and_method_and_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name, parameter_name=parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=False)
         if not is_class_and_method_and_parameter_exist:
-            return
+            return False
         # Add the new parameter to the method's parameter list
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
         new_parameter = self.create_parameter(parameter_name)
@@ -362,6 +371,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.ADD_PARAM.value, data={"class_name": class_name, "method_name": method_name, "param_name": parameter_name}, is_loading=is_loading)
+        return True
         
     # Delete parameter #
     def _delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
@@ -376,7 +386,7 @@ class UMLModel:
         # Check if the class, method, and parameter exist
         is_class_and_method_and_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name, parameter_name=parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=True)
         if not is_class_and_method_and_parameter_exist:
-            return
+            return False
         # Remove the parameter from the method's parameter list
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
         chosen_parameter = self.__get_chosen_parameter(class_name, method_name, parameter_name)
@@ -384,6 +394,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.DELETE_PARAM.value, data={"class_name": class_name, "method_name": method_name, "param_name": parameter_name})
+        return True
 
     # Rename parameter #
     def _rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
@@ -400,14 +411,15 @@ class UMLModel:
         is_class_and_method_and_current_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name, parameter_name=current_parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=True)
         is_new_parameter_exist = self._validate_entities(class_name=class_name, method_name=method_name, parameter_name=new_parameter_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=False)
         if not is_class_and_method_and_current_parameter_exist or not is_new_parameter_exist:
-            return
+            return False
         # Rename the parameter
         chosen_parameter = self.__get_chosen_parameter(class_name, method_name, current_parameter_name)
         chosen_parameter._set_parameter_name(new_parameter_name)
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.RENAME_PARAM.value, data={"class_name": class_name, "method_name": method_name, "old_param_name": current_parameter_name, "new_param_name": new_parameter_name})
-
+        return True
+        
     # Replace parameter list #
     def _replace_param_list(self, class_name: str, method_name: str):
         """
@@ -420,7 +432,7 @@ class UMLModel:
         # Check if the class and method exist
         is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=True)
         if not is_class_and_method_exist:
-            return
+            return False
         # Prompt the user to input new parameter names
         self.__console.print("\n[bold yellow]Enter the names for the new parameter list, each name must be separated by spaces:[/bold yellow]\n\n[bold white]==>[/bold white] ")
         user_input = input()
@@ -432,7 +444,7 @@ class UMLModel:
             duplicates = [param for param in new_param_name_list if new_param_name_list.count(param) > 1]
             self.__console.print(f"\n[bold red]Duplicates: [bold white]{set(duplicates)}[/bold white][/bold red]")
             self.__console.print("\n[bold red]Please modify the parameter list manually to ensure uniqueness.[/bold red]")
-            return
+            return False
         # Create parameter objects for the new list and replace the old list
         new_param_list: List[Parameter] = []
         for param_name in new_param_name_list:
@@ -443,6 +455,24 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.REPLACE_PARAM.value, data={"class_name": class_name, "method_name": method_name, "new_list": new_param_list})
+        return True
+    
+    def _replace_param_list_gui(self, class_name: str, method_name: str, new_param_name_list: List):
+        # Check if the class and method exist
+        is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=True)
+        if not is_class_and_method_exist:
+            return False
+        new_param_list: List[Parameter] = []
+        for param_name in new_param_name_list:
+            new_param = self.create_parameter(param_name)
+            new_param_list.append(new_param)
+        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list[method_name] = new_param_list
+        # Update main data and notify observers
+        self._update_main_data_for_every_action()
+        self._notify_observers(event_type=InterfaceOptions.REPLACE_PARAM.value, data={"class_name": class_name, "method_name": method_name, "new_list": new_param_list})
+        return True
+        
 
     ## RELATIONSHIP RELATED ##
     

@@ -219,7 +219,7 @@ class UMLInterface:
         Args:
             class_name (str): The name of the class to be added.
         """
-        self.Model._add_class(class_name, is_loading=False)
+        return self.Model._add_class(class_name, is_loading=False)
         
     # Delete class interface #
     def delete_class(self, class_name: str):
@@ -229,7 +229,7 @@ class UMLInterface:
         Args:
             class_name (str): The name of the class to be deleted.
         """
-        self.Model._delete_class(class_name)
+        return self.Model._delete_class(class_name)
         
     # Rename class interface #
     def rename_class(self, current_name: str, new_name: str):
@@ -240,7 +240,7 @@ class UMLInterface:
             current_name (str): The current name of the class.
             new_name (str): The new name for the class.
         """
-        self.Model._rename_class(current_name, new_name)
+        return self.Model._rename_class(current_name, new_name)
         
     ## FIELD RELATED ##
     
@@ -253,7 +253,7 @@ class UMLInterface:
             class_name (str): The name of the class.
             field_name (str): The name of the field to be added.
         """
-        self.Model._add_field(class_name, field_name, is_loading=False)
+        return self.Model._add_field(class_name, field_name, is_loading=False)
         
     # Delete field interface #
     def delete_field(self, class_name: str, field_name: str):
@@ -264,7 +264,7 @@ class UMLInterface:
             class_name (str): The name of the class.
             field_name (str): The name of the field to be deleted.
         """
-        self.Model._delete_field(class_name, field_name)
+        return self.Model._delete_field(class_name, field_name)
     
     # Rename field interface #
     def rename_field(self, class_name: str, current_field_name: str, new_field_name: str):
@@ -276,7 +276,7 @@ class UMLInterface:
             current_field_name (str): The current name of the field.
             new_field_name (str): The new name for the field.
         """
-        self.Model._rename_field(class_name, current_field_name, new_field_name)
+        return self.Model._rename_field(class_name, current_field_name, new_field_name)
         
     ## METHOD RELATED ##
     
@@ -289,7 +289,7 @@ class UMLInterface:
             class_name (str): The name of the class.
             method_name (str): The name of the method to be added.
         """
-        self.Model._add_method(class_name, method_name, is_loading=False)
+        return self.Model._add_method(class_name, method_name, is_loading=False)
     
     # Delete method interface #
     def delete_method(self, class_name: str, method_name: str):
@@ -300,7 +300,7 @@ class UMLInterface:
             class_name (str): The name of the class.
             method_name (str): The name of the method to be deleted.
         """
-        self.Model._delete_method(class_name, method_name)
+        return self.Model._delete_method(class_name, method_name)
         
     # Rename method interface #
     def rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
@@ -312,7 +312,7 @@ class UMLInterface:
             current_method_name (str): The current name of the method.
             new_method_name (str): The new name for the method.
         """
-        self.Model._rename_method(class_name, current_method_name, new_method_name)
+        return self.Model._rename_method(class_name, current_method_name, new_method_name)
         
     ## PARAMETER RELATED ##
     
@@ -326,7 +326,7 @@ class UMLInterface:
             method_name (str): The name of the method.
             parameter_name (str): The name of the parameter to be added.
         """
-        self.Model._add_parameter(class_name, method_name, parameter_name, is_loading=False)
+        return self.Model._add_parameter(class_name, method_name, parameter_name, is_loading=False)
         
     # Delete parameter interface #
     def delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
@@ -338,7 +338,7 @@ class UMLInterface:
             method_name (str): The name of the method.
             parameter_name (str): The name of the parameter to be deleted.
         """
-        self.Model._delete_parameter(class_name, method_name, parameter_name)
+        return self.Model._delete_parameter(class_name, method_name, parameter_name)
         
     # Rename parameter interface #
     def rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
@@ -351,7 +351,7 @@ class UMLInterface:
             current_parameter_name (str): The current name of the parameter.
             new_parameter_name (str): The new name for the parameter.
         """
-        self.Model._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
+        return self.Model._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
         
     # Replace parameter list interface #
     def replace_param_list(self, class_name: str, method_name: str):
@@ -362,7 +362,18 @@ class UMLInterface:
             class_name (str): The name of the class.
             method_name (str): The name of the method.
         """
-        self.Model._replace_param_list(class_name, method_name)
+        return self.Model._replace_param_list(class_name, method_name)
+    
+    # Replace parameter list interface for GUI #
+    def replace_param_list_gui(self, class_name: str, method_name: str, new_param_list: List):
+        """
+        Replaces the parameter list of a UML method by delegating the operation to the model.
+
+        Args:
+            class_name (str): The name of the class.
+            method_name (str): The name of the method.
+        """
+        return self.Model._replace_param_list_gui(class_name, method_name, new_param_list)
         
     ## RELATIONSHIP RELATED ##
     

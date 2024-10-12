@@ -74,13 +74,26 @@
     <bool>false</bool>
    </attribute>
    <addaction name="add_class"/>
-   <addaction name="rename_class"/>
    <addaction name="delete_class"/>
+   <addaction name="rename_class"/>
+   <addaction name="separator"/>
+   <addaction name="add_field"/>
+   <addaction name="delete_field"/>
+   <addaction name="rename_field"/>
+   <addaction name="separator"/>
+   <addaction name="add_method"/>
+   <addaction name="delete_method"/>
+   <addaction name="rename_method"/>
+   <addaction name="separator"/>
+   <addaction name="add_param"/>
+   <addaction name="delete_param"/>
+   <addaction name="rename_param"/>
+   <addaction name="replace_param"/>
    <addaction name="separator"/>
    <addaction name="reset_view"/>
    <addaction name="change_grid_color"/>
-   <addaction name="toggle_grid"/>
    <addaction name="toggle_mode"/>
+   <addaction name="toggle_grid"/>
   </widget>
   <action name="actionSave">
    <property name="text">
@@ -308,6 +321,56 @@
   <action name="rename_class">
    <property name="text">
     <string>Rename Class</string>
+   </property>
+  </action>
+  <action name="add_field">
+   <property name="text">
+    <string>Add Field</string>
+   </property>
+  </action>
+  <action name="delete_field">
+   <property name="text">
+    <string>Delete Field</string>
+   </property>
+  </action>
+  <action name="rename_field">
+   <property name="text">
+    <string>Rename Field</string>
+   </property>
+  </action>
+  <action name="add_method">
+   <property name="text">
+    <string>Add Method</string>
+   </property>
+  </action>
+  <action name="delete_method">
+   <property name="text">
+    <string>Delete Method</string>
+   </property>
+  </action>
+  <action name="rename_method">
+   <property name="text">
+    <string>Rename Method</string>
+   </property>
+  </action>
+  <action name="add_param">
+   <property name="text">
+    <string>Add Parameter</string>
+   </property>
+  </action>
+  <action name="delete_param">
+   <property name="text">
+    <string>Delete Parameter</string>
+   </property>
+  </action>
+  <action name="rename_param">
+   <property name="text">
+    <string>Rename Parameter</string>
+   </property>
+  </action>
+  <action name="replace_param">
+   <property name="text">
+    <string>Replace Parameter</string>
    </property>
   </action>
  </widget>

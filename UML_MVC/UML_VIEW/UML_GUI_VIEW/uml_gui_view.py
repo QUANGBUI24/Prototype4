@@ -50,13 +50,48 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
 
         ## UML DIAGRAM BUTTONS ##
         # Find QAction objects from the toolbar
-        self.add_class_action = self.findChild(QtWidgets.QAction, "add_class")
-        self.rename_class_action = self.findChild(QtWidgets.QAction, "rename_class")
-        self.delete_class_action = self.findChild(QtWidgets.QAction, "delete_class")
+        #################################################################
         
-        self.delete_class_action.triggered.connect(self.delete_selected_item_from_diagram)  # Updated method
-        self.add_class_action.triggered.connect(self.add_class_to_diagram)
-
+        self.add_class_action = self.findChild(QtWidgets.QAction, "add_class")
+        self.delete_class_action = self.findChild(QtWidgets.QAction, "delete_class")
+        self.rename_class_action = self.findChild(QtWidgets.QAction, "rename_class")
+        
+        self.add_class_action.triggered.connect(self.add_class_gui)
+        self.delete_class_action.triggered.connect(self.delete_class_gui)  
+        self.rename_class_action.triggered.connect(self.rename_class_gui)
+        
+        #################################################################
+        
+        self.add_field_action = self.findChild(QtWidgets.QAction, "add_field")
+        self.delete_field_action = self.findChild(QtWidgets.QAction, "delete_field")
+        self.rename_field_action = self.findChild(QtWidgets.QAction, "rename_field") 
+        
+        self.add_field_action.triggered.connect(self.add_field_gui) 
+        self.delete_field_action.triggered.connect(self.delete_field_gui) 
+        self.rename_field_action.triggered.connect(self.rename_field_gui) 
+        
+        #################################################################
+        
+        self.add_method_action = self.findChild(QtWidgets.QAction, "add_method")
+        self.delete_method_action = self.findChild(QtWidgets.QAction, "delete_method")
+        self.rename_method_action = self.findChild(QtWidgets.QAction, "rename_method")
+        
+        self.add_method_action.triggered.connect(self.add_method_gui) 
+        self.delete_method_action.triggered.connect(self.delete_method_gui) 
+        self.rename_method_action.triggered.connect(self.rename_method_gui) 
+        
+        #################################################################
+        
+        self.add_param_action = self.findChild(QtWidgets.QAction, "add_param")
+        self.delete_param_action = self.findChild(QtWidgets.QAction, "delete_param")
+        self.rename_param_action = self.findChild(QtWidgets.QAction, "rename_param")
+        self.replace_param_action = self.findChild(QtWidgets.QAction, "replace_param")
+        
+        self.add_param_action.triggered.connect(self.add_param_gui) 
+        self.delete_param_action.triggered.connect(self.delete_param_gui) 
+        self.rename_param_action.triggered.connect(self.rename_param_gui) 
+        self.replace_param_action.triggered.connect(self.replace_param_gui) 
+        
     #################################################################
     ### EVENT FUNCTIONS ###
 
@@ -97,16 +132,49 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
 
     ## UML DIAGRAM EVENTS ##
 
-    def add_class_to_diagram(self):
+    def add_class_gui(self):
         """
         Add a new UML class item to the scene.
         """
         self.grid_view.add_class()
 
-    def delete_selected_item_from_diagram(self):
+    def delete_class_gui(self):
         """
         Delete the selected class or arrow from the diagram.
         """
         self.grid_view.delete_class()
+    
+    def rename_class_gui(self):
+        self.grid_view.rename_class()
+        
+    def add_field_gui(self):
+        self.grid_view.add_field()
+        
+    def delete_field_gui(self):
+        self.grid_view.delete_field()
+        
+    def rename_field_gui(self):
+        self.grid_view.rename_field()
+        
+    def add_method_gui(self):
+        self.grid_view.add_method()
+    
+    def delete_method_gui(self):
+        self.grid_view.delete_method()
+        
+    def rename_method_gui(self):
+        self.grid_view.rename_method()
+        
+    def add_param_gui(self):
+        self.grid_view.add_param()
+    
+    def delete_param_gui(self):
+        self.grid_view.delete_param()
+        
+    def rename_param_gui(self):
+        self.grid_view.rename_param()
+        
+    def replace_param_gui(self):
+        self.grid_view.replace_param()  
         
 #################################################################
