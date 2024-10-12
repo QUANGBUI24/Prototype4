@@ -113,7 +113,7 @@ class UMLView(Observer):
             class_name = data["class_name"]
             method_name = data["method_name"]
             param_name = data["param_name"]
-            self.console.print(f"\n[bold green]Successfully removed parameter [bold white]'{param_name}'[/bold white] from method [bold white]'{method_name}' from class [bold white]'{class_name}'[/bold white]![/bold green]")
+            self.console.print(f"\n[bold green]Successfully removed parameter [bold white]'{param_name}'[/bold white] from method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
         
         # Rename parameter
         elif event_type == InterfaceOptions.RENAME_PARAM.value:
