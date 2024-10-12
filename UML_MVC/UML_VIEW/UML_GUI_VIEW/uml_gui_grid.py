@@ -185,6 +185,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def add_field(self, loaded_class_name=None, loaded_field_name=None, is_loading=False):
+        """
         Add a field to a UML class box, either during loading or interactively.
 
         This function either loads a field into the UML class during the loading process or allows the user
