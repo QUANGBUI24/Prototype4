@@ -185,6 +185,22 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def add_field(self, loaded_class_name=None, loaded_field_name=None, is_loading=False):
+        """
+        Add a field to a UML class box, either during loading or interactively.
+
+        This function either loads a field into the UML class during the loading process or allows the user
+        to add a new field through a dialog box. It updates the UML class box and its internal lists.
+
+        Args:
+            loaded_class_name (str): The name of the class to which the field is added (used during loading).
+            loaded_field_name (str): The name of the field being added (used during loading).
+            is_loading (bool): Whether the function is being called during the loading process.
+
+        Steps:
+        1. If loading, find the UML class by its name and add the loaded field.
+        2. If not loading, prompt the user for a field name to add to the selected UML class.
+        3. Update the UML class box to reflect the new field.
+        """
         if is_loading:
             # Find the UML class box by the loaded class name in the scene
             for item in self.scene().items():
@@ -216,8 +232,19 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         QtWidgets.QMessageBox.warning(None, "Warning", f"Field name '{field_name}' has already existed!")
             else:
                 QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-            
+
     def delete_field(self):
+        """
+        Remove an existing field from the UML class.
+
+        This function allows the user to select a field from the selected class and remove it.
+        It updates the internal lists and the graphical display.
+
+        Steps:
+        1. Prompt the user to select a field from the class.
+        2. Remove the selected field and update the UML class box.
+        3. If no class or field is selected, display a warning.
+        """
         if self.selected_class:
             if self.selected_class.field_name_list:
                 # Display a dialog asking the user to select a field to remove
@@ -234,8 +261,19 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 QtWidgets.QMessageBox.warning(None, "Warning", "No field selected!")
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-    
+
     def rename_field(self):
+        """
+        Rename an existing field in the UML class.
+
+        This function allows the user to select a field and provide a new name.
+        The field's name is updated, and the UML class box is refreshed.
+
+        Steps:
+        1. Prompt the user to select a field to rename.
+        2. Ask the user for a new name and update the field's name.
+        3. If no class or field is selected, display a warning.
+        """
         if self.selected_class:
             if self.selected_class.field_name_list:
                 # Display a dialog to choose the field to rename
@@ -260,8 +298,24 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             # Show a warning if there are no fields to rename
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-            
+    
     def add_method(self, loaded_class_name=None, loaded_method_name=None, is_loading=False):
+        """
+        Add a method to a UML class box, either during loading or interactively.
+
+        This function either loads a method into the UML class during the loading process or allows the user
+        to add a new method through a dialog box. It updates the UML class box and its internal lists.
+
+        Args:
+            loaded_class_name (str): The name of the class to which the method is added (used during loading).
+            loaded_method_name (str): The name of the method being added (used during loading).
+            is_loading (bool): Whether the function is being called during the loading process.
+
+        Steps:
+        1. If loading, find the UML class by its name and add the loaded method.
+        2. If not loading, prompt the user for a method name to add to the selected UML class.
+        3. Update the UML class box to reflect the new method.
+        """
         if is_loading:
             # Find the UML class box by the loaded class name in the scene
             for item in self.scene().items():
@@ -299,6 +353,19 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
     
     def delete_method(self):
+        """
+        Remove an existing method from the selected UML class.
+
+        This function allows the user to select a method from the currently selected class 
+        and delete it along with all associated parameters. It updates the UML class box 
+        and its internal lists accordingly.
+
+        Steps:
+        1. Check if a class and method are selected.
+        2. Prompt the user to select a method to remove.
+        3. Delete the selected method and all associated parameters.
+        4. Update the UML class box to reflect the changes.
+        """
         if self.selected_class:
             if self.selected_class.method_list:
                 # Ask the user to select a method to remove
@@ -319,8 +386,19 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 QtWidgets.QMessageBox.warning(None, "Warning", "No methods to remove!")
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-    
+
     def rename_method(self):
+        """
+        Rename an existing method in the selected UML class.
+
+        This function allows the user to select a method and provide a new name for it.
+        The method name is updated, and the UML class box is refreshed.
+
+        Steps:
+        1. Check if a class and method are selected.
+        2. Prompt the user to select a method and provide a new name.
+        3. Rename the method and update the UML class box.
+        """
         if self.selected_class:
             # Prompt the user to select the method to rename
             old_method_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Method Name", "Select method to change:", self.selected_class.method_name_list, 0, False)
@@ -342,10 +420,27 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     else:
                         QtWidgets.QMessageBox.warning(None, "Warning", f"New method name '{new_method_name}' has already existed!")
         else:
-            # Show a warning if there are no fields to rename
+            # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-            
-    def add_param(self,loaded_class_name=None, loaded_method_name=None, loaded_param_name=None, is_loading=False):
+
+    def add_param(self, loaded_class_name=None, loaded_method_name=None, loaded_param_name=None, is_loading=False):
+        """
+        Add a parameter to a method in the UML class, either during loading or interactively.
+
+        This function either loads a parameter into a method during the loading process 
+        or allows the user to add a new parameter interactively through a dialog.
+
+        Args:
+            loaded_class_name (str): The class name where the parameter is being added.
+            loaded_method_name (str): The method name where the parameter is being added.
+            loaded_param_name (str): The parameter name being added.
+            is_loading (bool): Whether the function is being called during the loading process.
+
+        Steps:
+        1. If loading, find the UML class and add the parameter to the method.
+        2. If not loading, prompt the user to add a new parameter to a selected method.
+        3. Update the UML class box to reflect the new parameter.
+        """
         if is_loading:
             # Find the UML class box by the loaded class name in the scene
             for item in self.scene().items():
@@ -354,7 +449,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_param_added = self.interface.add_parameter(loaded_class_name, loaded_method_name, loaded_param_name)
                     if is_param_added:
                         # Add the parameter to the selected method and update the UML box
-                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=True, color=selected_class_box.default_text_color)
+                        param_text = selected_class_box.create_text_item(loaded_param_name, is_parameter=True, selectable=True, color=selected_class_box.default_text_color)
                         selected_class_box.method_name_list[loaded_method_name].append(loaded_param_name)  # Track the parameter
                         selected_class_box.parameter_list[loaded_param_name] = param_text  # Store the parameter text
                         selected_class_box.parameter_name_list.append(loaded_param_name)  # Add to the list of parameter names
@@ -372,7 +467,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                             is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
                             if is_param_added:
                                 # Add the parameter to the selected method and update the UML box
-                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
+                                param_text = self.selected_class.create_text_item(param_name, is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
                                 self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
                                 self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
                                 self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
@@ -385,8 +480,19 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             else:
                 # Show a warning if there are no methods available
                 QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-    
+
     def delete_param(self):
+        """
+        Remove a parameter from a selected method in the UML class.
+
+        This function allows the user to choose a method and a parameter to delete.
+        The parameter is removed from the method, and the UML class box is updated.
+
+        Steps:
+        1. Check if a class and method are selected.
+        2. Prompt the user to select a method and a parameter to delete.
+        3. Remove the parameter and update the UML class box.
+        """
         if self.selected_class:
             if self.selected_class.method_name_list:
                 # Ask the user to choose a method to remove a parameter from
@@ -419,8 +525,18 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
-    
     def rename_param(self):
+        """
+        Rename a parameter within a selected method in the UML class.
+
+        This function allows the user to select a method and a parameter and provide a new name for the parameter.
+        The parameter's name is updated, and the UML class box is refreshed.
+
+        Steps:
+        1. Check if a class and method are selected.
+        2. Prompt the user to select a method and a parameter to rename.
+        3. Rename the parameter and update the UML class box.
+        """
         if self.selected_class:
             if self.selected_class.method_name_list:
                 # Ask the user to choose a method containing the parameter
@@ -456,8 +572,19 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-    
+
     def replace_param(self):
+        """
+        Replace all parameters of a selected method in the UML class.
+
+        This function allows the user to replace the entire list of parameters for a given method with a new set.
+        It prompts the user for a comma-separated list of parameters and updates the UML class box accordingly.
+
+        Steps:
+        1. Check if a class and method are selected.
+        2. Prompt the user to enter a new list of parameters.
+        3. Replace the current parameters with the new ones and update the UML class box.
+        """
         if self.selected_class:
             # Ensure there are methods to choose from
             if self.selected_class.method_name_list:
@@ -503,54 +630,103 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             
     def open_folder_gui(self):
         """
-        Open a file dialog to select a file.
+        Open a file dialog to allow the user to select a JSON file for loading into the application.
+
+        This function uses the `QFileDialog` to let the user select a `.json` file from the file system.
+        If a valid JSON file is selected, the function proceeds to load the file into the interface.
+        If the selected file is not a JSON file, a warning is displayed to the user.
+
+        Steps:
+        1. Clear the current UML scene.
+        2. Open the file dialog and retrieve the file path selected by the user.
+        3. Validate that the selected file is a JSON file.
+        4. If valid, load the selected JSON file into the interface.
         """
-        self.clear_current_scene()
+        self.clear_current_scene()  # Clear the scene before loading a new file
+        
         # Show an open file dialog and store the selected file path
         full_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
+        
+        # Check if the selected file is a JSON file
         if not full_path.endswith('.json'):
             QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
             return
+        
+        # If a valid file is selected, proceed to load it into the interface
         if full_path:
-            file_base_name = os.path.basename(full_path)
-            file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.load_gui(file_name_only, full_path, self)
-            
+            file_base_name = os.path.basename(full_path)  # Extract the file name from the full path
+            file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
+            self.interface.load_gui(file_name_only, full_path, self)  # Load the file into the GUI
+
     def save_as_gui(self):
         """
-        Open a save file dialog to select a file location for saving.
+        Open a file dialog to allow the user to specify the location and name for saving the current data.
+
+        This function opens a `QFileDialog` to allow the user to select where to save the current UML data as a `.json` file.
+        If a valid JSON file is specified, the data is saved to the selected location.
+        If the user does not select a `.json` file, a warning is displayed.
+
+        Steps:
+        1. Open the save file dialog and retrieve the selected path.
+        2. Validate that the selected file path has a `.json` extension.
+        3. If valid, save the data to the selected file.
         """
-        full_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(),"JSON Files (*.json)")
+        # Open a save file dialog to select a location for saving
+        full_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(), "JSON Files (*.json)")
+        
+        # Check if the selected file has a .json extension
         if not full_path.endswith('.json'):
             QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
             return
+        
+        # If a valid file path is selected, proceed to save the data
         if full_path:
-            file_base_name = os.path.basename(full_path)
-            file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.save_gui(file_name_only, full_path)
+            file_base_name = os.path.basename(full_path)  # Extract the file name from the full path
+            file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
+            self.interface.save_gui(file_name_only, full_path)  # Save the data to the file
 
     def save_gui(self):
         """
-        Save to current active file, if no active file, prompt user to create new json file
+        Save the current UML data to the active file. If there is no active file, prompt the user to create a new one.
+
+        This function checks if there is an active file in the system (i.e., a file that is currently open and active for saving).
+        If no active file exists, it opens the `save_as_gui` method to prompt the user to create a new file.
+        If an active file exists, the current data is saved to that file.
+
+        Steps:
+        1. Check if there is an active file using the interface's `get_active_file_gui` method.
+        2. If there is no active file, call `save_as_gui` to prompt the user for a save location.
+        3. If there is an active file, save the data to that file.
         """
+        # Get the current active file from the interface
         current_active_file_path = self.interface.get_active_file_gui()
+        
+        # If there is no active file, prompt the user to create a new one
         if current_active_file_path == "No active file!":
-            self.save_as_gui()
+            self.save_as_gui()  # Open the save-as dialog to create a new file
         else:
-            file_base_name = os.path.basename(current_active_file_path)
-            file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.save_gui(file_name_only, current_active_file_path)
-            
-    
+            # If an active file exists, save the data to it
+            file_base_name = os.path.basename(current_active_file_path)  # Extract the file name from the full path
+            file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
+            self.interface.save_gui(file_name_only, current_active_file_path)  # Save the data to the file
+
     def clear_current_scene(self):
         """
-        Remove all UMLClassBox items from the scene.
+        Clear the current UML scene by removing all UMLClassBox items.
+
+        This function iterates through all items in the current scene and removes any `UMLClassBox` objects.
+        It is used to clear the scene before loading new UML data or resetting the interface.
+
+        Steps:
+        1. Iterate over all items in the scene.
+        2. For each item, check if it is an instance of `UMLClassBox`.
+        3. Remove any `UMLClassBox` items from the scene.
         """
         # Iterate through all items in the scene
         for item in self.scene().items():
             # Check if the item is a UMLClassBox
             if isinstance(item, UMLClassBox):
-                # Remove the item from the scene
+                # Remove the UMLClassBox from the scene
                 self.scene().removeItem(item)
                 
     #################################################################
