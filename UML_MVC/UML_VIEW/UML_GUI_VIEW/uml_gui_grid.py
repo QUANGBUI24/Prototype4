@@ -739,6 +739,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Open a save file dialog to select a file location for saving.
         """
         full_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(),"JSON Files (*.json)")
+        if not full_path:
+            return  # If canceled, just return and do nothing
         if not full_path.endswith('.json'):
             QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
             return
