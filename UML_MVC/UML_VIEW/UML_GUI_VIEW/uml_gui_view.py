@@ -104,7 +104,7 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         Parameters:
         - checked (bool): Indicates whether the grid should be visible.
         """
-        self.grid_view.setGridVisible(checked)
+        self.grid_view.set_grid_visible(checked)
 
     def change_gridColor_method(self):
         """
@@ -116,19 +116,19 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
             title="Select Grid Color"
         )
         if color.isValid():
-            self.grid_view.setGridColor(color)
+            self.grid_view.set_grid_color(color)
 
     def reset_view_method(self):
         """
         Reset the view to the default state.
         """
-        self.grid_view.resetView()
+        self.grid_view.reset_view()
 
     def toggle_mode_method(self):
         """
         Switch between light and dark modes.
         """
-        self.grid_view.toggleMode()
+        self.grid_view.toggle_mode()
 
     ## UML DIAGRAM EVENTS ##
 

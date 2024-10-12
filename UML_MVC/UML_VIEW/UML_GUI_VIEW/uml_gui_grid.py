@@ -450,54 +450,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-            
-    def change_box_color(self):
-        """
-        Open a color dialog to select a new box color.
-        """
-        if self.selected_class:
-            # Get the current brush color, or set a default color if not set
-            current_color = self.selected_class.brush().color() if self.selected_class.brush().color().isValid() else QtGui.QColor("cyan")
-        
-            # Open color dialog and pass current color as the initial color
-            color = QtWidgets.QColorDialog.getColor(
-                initial=current_color, 
-                parent=None,  # Set this to your main window
-                title="Select Box Color"
-            )
-        
-            # If a valid color is chosen, set the new brush color for the class box
-            if color.isValid():
-                self.selected_class.setBrush(QtGui.QBrush(color))
-                
-    def change_text_color(self):
-        """
-        Open a color dialog to select a new text color and apply it to the selected UML class box's text.
-        """
-        if self.selected_class:
-            # Get the current text color, or set a default color if not set
-            current_color = self.selected_class.class_name_text.defaultTextColor() if self.selected_class.class_name_text.defaultTextColor().isValid() else QtGui.QColor("black")
-            # Open color dialog and pass the current color as the initial color
-            color = QtWidgets.QColorDialog.getColor(
-                initial=current_color, 
-                parent=None,  # Optionally set this to your main window for modal behavior
-                title="Select Text Color"
-            )
-            # If a valid color is chosen, set the new color for the text
-            if color.isValid():
-                if self.selected_class.field_list:
-                    for field_text in self.selected_class.field_list.values():
-                        field_text.setDefaultTextColor(color)
-                if self.selected_class.method_list:
-                    for method_text in self.selected_class.method_list.values():
-                        method_text.setDefaultTextColor(color)
-                if self.selected_class.parameter_list:
-                    for param_text in self.selected_class.parameter_list.values():
-                        param_text.setDefaultTextColor(color)
-                self.selected_class.class_name_text.setDefaultTextColor(color)
-                # Ensure later added text will use this color too
-                self.selected_class.default_text_color = color
-                self.selected_class.update_box()
                         
     #################################################################
     ## MOUSE RELATED ##
@@ -695,8 +647,56 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         for item in self.scene().items():
             if isinstance(item, UMLClassBox):
                 item.snap_to_grid()
+                
+    def change_box_color(self):
+        """
+        Open a color dialog to select a new box color.
+        """
+        if self.selected_class:
+            # Get the current brush color, or set a default color if not set
+            current_color = self.selected_class.brush().color() if self.selected_class.brush().color().isValid() else QtGui.QColor("cyan")
+        
+            # Open color dialog and pass current color as the initial color
+            color = QtWidgets.QColorDialog.getColor(
+                initial=current_color, 
+                parent=None,  # Set this to your main window
+                title="Select Box Color"
+            )
+        
+            # If a valid color is chosen, set the new brush color for the class box
+            if color.isValid():
+                self.selected_class.setBrush(QtGui.QBrush(color))
+                
+    def change_text_color(self):
+        """
+        Open a color dialog to select a new text color and apply it to the selected UML class box's text.
+        """
+        if self.selected_class:
+            # Get the current text color, or set a default color if not set
+            current_color = self.selected_class.class_name_text.defaultTextColor() if self.selected_class.class_name_text.defaultTextColor().isValid() else QtGui.QColor("black")
+            # Open color dialog and pass the current color as the initial color
+            color = QtWidgets.QColorDialog.getColor(
+                initial=current_color, 
+                parent=None,  # Optionally set this to your main window for modal behavior
+                title="Select Text Color"
+            )
+            # If a valid color is chosen, set the new color for the text
+            if color.isValid():
+                if self.selected_class.field_list:
+                    for field_text in self.selected_class.field_list.values():
+                        field_text.setDefaultTextColor(color)
+                if self.selected_class.method_list:
+                    for method_text in self.selected_class.method_list.values():
+                        method_text.setDefaultTextColor(color)
+                if self.selected_class.parameter_list:
+                    for param_text in self.selected_class.parameter_list.values():
+                        param_text.setDefaultTextColor(color)
+                self.selected_class.class_name_text.setDefaultTextColor(color)
+                # Ensure later added text will use this color too
+                self.selected_class.default_text_color = color
+                self.selected_class.update_box()
 
-    def setGridVisible(self, visible):
+    def set_grid_visible(self, visible):
         """
         Control the visibility of the grid lines.
 
@@ -706,7 +706,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.grid_visible = visible
         self.viewport().update()
 
-    def setGridColor(self, color):
+    def set_grid_color(self, color):
         """
         Update the color of the grid lines.
 
@@ -716,7 +716,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.grid_color = color
         self.viewport().update()
 
-    def resetView(self):
+    def reset_view(self):
         """
         Reset the zoom and position to the initial state.
         """
@@ -724,7 +724,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.resetTransform()
         self.centerOn(0, 0)
 
-    def setLightMode(self):
+    def set_light_mode(self):
         """
         Set the view to light mode.
         """
@@ -733,7 +733,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.viewport().update()
         self.scene().update()
 
-    def setDarkMode(self):
+    def set_dark_mode(self):
         """
         Set the view to dark mode.
         """
@@ -742,11 +742,11 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.viewport().update()
         self.scene().update()
 
-    def toggleMode(self):
+    def toggle_mode(self):
         """
         Toggle between dark mode and light mode.
         """
         if self.is_dark_mode:
-            self.setLightMode()
+            self.set_light_mode()
         else:
-            self.setDarkMode()
+            self.set_dark_mode()
