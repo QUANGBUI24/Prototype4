@@ -35,11 +35,5 @@
             "methods": []
         }
     ],
-    "relationships": [
-        {
-            "source": "Human",
-            "destination": "Animal",
-            "type": "aggregation"
-        }
-    ]
+    "relationships": []
 }

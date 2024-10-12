@@ -95,8 +95,11 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         #################################################################
         self.open_folder_action = self.findChild(QtWidgets.QAction, "Open")
         self.save_as_action = self.findChild(QtWidgets.QAction, "SaveAs")
+        self.save_action = self.findChild(QtWidgets.QAction, "Save")
         
         self.open_folder_action.triggered.connect(self.open_folder_gui)
+        self.save_as_action.triggered.connect(self.save_as_gui)
+        self.save_action.triggered.connect(self.save_gui)
         
     #################################################################
     ### EVENT FUNCTIONS ###
@@ -151,7 +154,7 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.grid_view.open_folder_gui()
         
     def save_as_gui(self):
-        self.grid_view.open_folder_gui()
+        self.grid_view.save_as_gui()
     
     def save_gui(self):
         self.grid_view.save_gui()
@@ -192,3 +195,20 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.grid_view.toggle_mode()
 
 #################################################################
+### WINDOW EVENTS ###
+    def closeEvent(self, event):
+        """
+        This method is called when the user attempts to close the window.
+        """
+        reply = QtWidgets.QMessageBox.question(self, "Exit",
+                                               "Are you sure you want to quit?",
+                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                                               QtWidgets.QMessageBox.No)
+
+        # If the user chooses 'Yes', the program will exit
+        if reply == QtWidgets.QMessageBox.Yes:
+            print("Program is exiting...")
+            self.interface.exit()
+            event.accept()  # Accept the event to close the application
+        else:
+            event.ignore()  # Ignore the event to keep the application running

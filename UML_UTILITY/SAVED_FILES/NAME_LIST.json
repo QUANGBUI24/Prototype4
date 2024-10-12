@@ -9,7 +9,7 @@
         "test": "off"
     },
     {
-        "test02": "on"
+        "test02": "off"
     },
     {
         "test03": "off"
@@ -19,5 +19,8 @@
     },
     {
         "test00": "off"
+    },
+    {
+        "gui_save": "off"
     }
 ]

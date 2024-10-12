@@ -505,23 +505,54 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Open a file dialog to select a file.
         """
+        self.clear_current_scene()
         # Show an open file dialog and store the selected file path
-        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
-        if not file_name.endswith('.json'):
+        full_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
+        if not full_path.endswith('.json'):
             QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
             return
-        if file_name:
-            file_base_name = os.path.basename(file_name)
+        if full_path:
+            file_base_name = os.path.basename(full_path)
             file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.load_gui(file_name_only, self)
-            QtWidgets.QMessageBox.information(self, "File Selected", f"File: {file_name}")
+            self.interface.load_gui(file_name_only, full_path, self)
             
     def save_as_gui(self):
-        pass
+        """
+        Open a save file dialog to select a file location for saving.
+        """
+        full_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(),"JSON Files (*.json)")
+        if not full_path.endswith('.json'):
+            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
+            return
+        if full_path:
+            file_base_name = os.path.basename(full_path)
+            file_name_only = os.path.splitext(file_base_name)[0]
+            self.interface.save_gui(file_name_only, full_path)
 
     def save_gui(self):
-        pass
-             
+        """
+        Save to current active file, if no active file, prompt user to create new json file
+        """
+        current_active_file_path = self.interface.get_active_file_gui()
+        if current_active_file_path == "No active file!":
+            self.save_as_gui()
+        else:
+            file_base_name = os.path.basename(current_active_file_path)
+            file_name_only = os.path.splitext(file_base_name)[0]
+            self.interface.save_gui(file_name_only, current_active_file_path)
+            
+    
+    def clear_current_scene(self):
+        """
+        Remove all UMLClassBox items from the scene.
+        """
+        # Iterate through all items in the scene
+        for item in self.scene().items():
+            # Check if the item is a UMLClassBox
+            if isinstance(item, UMLClassBox):
+                # Remove the item from the scene
+                self.scene().removeItem(item)
+                
     #################################################################
     ## MOUSE RELATED ##
 
