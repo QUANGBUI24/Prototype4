@@ -474,6 +474,10 @@ class UMLInterface:
         Loads the UML diagram data by delegating the operation to the model.
         """
         self.Model._load()
+        
+    # Load data GUI #
+    def load_gui(self, file_name, graphical_view):
+        self.Model._load_gui(file_name, graphical_view)
     
     # Delete saved file #
     def delete_saved_file(self):

@@ -1,55 +1,72 @@
 import sys
-from PyQt5 import QtWidgets, QtGui, QtCore
+import os
+from PyQt5 import QtWidgets
 
-class Box(QtWidgets.QGraphicsRectItem):
-    def __init__(self):
-        super().__init__(QtCore.QRectF(50, 50, 100, 100))  # Box size and position
-        self.setBrush(QtGui.QBrush(QtGui.QColor(100, 100, 250)))
-    
-    def contextMenuEvent(self, event):
-        # Create the pop-up menu
-        menu = QtWidgets.QMenu()
 
-        # Add options to the menu
-        add_field_action = menu.addAction('Add Field')
-        add_method_action = menu.addAction('Add Method')
-        add_parameter_action = menu.addAction('Add Parameter')
-
-        # Show the menu at the cursor position
-        action = menu.exec_(event.screenPos())
-        
-        # Connect actions to methods
-        if action == add_field_action:
-            self.add_field()
-        elif action == add_method_action:
-            self.add_method()
-        elif action == add_parameter_action:
-            self.add_parameter()
-
-    def add_field(self):
-        print("Field added!")
-
-    def add_method(self):
-        print("Method added!")
-
-    def add_parameter(self):
-        print("Parameter added!")
-
-class Scene(QtWidgets.QGraphicsScene):
+class FileDialogApp(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        # Add a box to the scene
-        self.box = Box()
-        self.addItem(self.box)
-        
-class MainWindow(QtWidgets.QGraphicsView):
-    def __init__(self):
-        super().__init__()
-        self.scene = Scene()
-        self.setScene(self.scene)
+
+        # Initialize the UI
+        self.init_ui()
+
+    def init_ui(self):
+        # Create a vertical layout
+        layout = QtWidgets.QVBoxLayout()
+
+        # Create buttons for loading and saving files
+        self.open_button = QtWidgets.QPushButton("Open File")
+        self.save_button = QtWidgets.QPushButton("Save File")
+
+        # Connect button signals to their respective functions
+        self.open_button.clicked.connect(self.open_file_dialog)
+        self.save_button.clicked.connect(self.save_file_dialog)
+
+        # Add buttons to the layout
+        layout.addWidget(self.open_button)
+        layout.addWidget(self.save_button)
+
+        # Set the layout on the main widget
+        self.setLayout(layout)
+        self.setWindowTitle("Open and Save File Example")
+
+    def open_file_dialog(self):
+        """
+        Open a file dialog to select a file.
+        """
+        # Show an open file dialog and store the selected file path
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(),
+                                                             "All Files (*);;Text Files (*.txt)")
+        if file_name:
+            QtWidgets.QMessageBox.information(self, "File Selected", f"File: {file_name}")
+            print(f"File selected: {file_name}")
+
+    def save_file_dialog(self):
+        """
+        Open a save file dialog to select a file location for saving.
+        """
+        # Show a save file dialog and store the selected file path
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(),
+                                                             "All Files (*);;Text Files (*.txt)")
+        if file_name:
+            # Save logic here (just printing for now)
+            with open(file_name, 'w') as f:
+                f.write("Sample data to save")
+            QtWidgets.QMessageBox.information(self, "File Saved", f"File saved to: {file_name}")
+            print(f"File saved to: {file_name}")
+
+
+def main():
+    # Create application
+    app = QtWidgets.QApplication(sys.argv)
+
+    # Create main window
+    window = FileDialogApp()
+    window.show()
+
+    # Start the event loop
+    sys.exit(app.exec_())
+
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec_())
+    main()

@@ -17,6 +17,7 @@ from UML_CORE.UML_PARAMETER.uml_parameter import UMLParameter as Parameter
 from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relationship
 from UML_MVC.UML_CONTROLLER.uml_storage_manager import UMLStorageManager as Storage
 from UML_ENUM_CLASS.uml_enum import InterfaceOptions, RelationshipType
+from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_grid import GridGraphicsView as GUIView
 
 ###################################################################################################
 
@@ -49,7 +50,7 @@ class UMLModel:
         self.__relationship_list: List[Relationship] = []
         self.__main_data: Dict = {"classes":[], "relationships":[]}
         self._observers = [] # For observer design pattern
-            
+                    
     #################################################################
       
     # Observer management methods
@@ -1198,6 +1199,16 @@ class UMLModel:
         self.__update_data_members(main_data)
         self.__check_file_and_set_status(user_input)
         self.__console.print(f"\n[bold green]Successfully loaded data from [bold white]'{user_input}.json'[/bold white]![/bold green]")
+        
+    def _load_gui(self, file_name: str, graphical_view: GUIView):
+        """
+        Loads UML data from a saved JSON file, prompting the user for a file name or displaying a list of saved files.
+        The data is loaded and the program's state is updated.
+        """
+        # Load data from the file and update program state
+        main_data = self.__main_data = self.__storage_manager._load_data_from_json(file_name)
+        self.__update_data_members_gui(main_data, graphical_view)
+        self.__check_file_and_set_status(file_name)
 
     # Update main data to store data to JSON file #
     def __update_main_data_from_loaded_file(self, user_input: str, class_data_list: List, relationship_data_list: List) -> Dict:
@@ -1237,7 +1248,7 @@ class UMLModel:
         class_data = main_data["classes"]
         relationship_data = main_data["relationships"]
         # Reset the current storage before loading new data
-        self.__reset_storage()
+        self._reset_storage()
         # Set the new main data
         self.__main_data = main_data
         # Extract and recreate class, fields, methods, and parameters from the loaded data
@@ -1257,6 +1268,33 @@ class UMLModel:
         # Recreate relationships from the loaded data
         for each_dictionary in relationship_data:
             self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
+            
+    def __update_data_members_gui(self, main_data: Dict, graphical_view: GUIView):
+        """
+        Updates the internal data members (class and relationship) after loading from a JSON file.
+
+        Args:
+            main_data (Dict): The data dictionary loaded from a JSON file.
+        """
+        class_data = main_data["classes"]
+        # Reset the current storage before loading new data
+        self._reset_storage()
+        # Set the new main data
+        self.__main_data = main_data
+        # Extract and recreate class, fields, methods, and parameters from the loaded data
+        extracted_class_data = self._extract_class_data(class_data)
+        for each_pair in extracted_class_data:
+            for class_name, data in each_pair.items():
+                field_list = data['fields']
+                method_param_list = data['methods_params']
+                # Add classes, fields, methods, and parameters to the program state
+                graphical_view.add_class(class_name, is_loading=True)
+                for each_field in field_list:
+                    graphical_view.add_field(class_name, each_field, is_loading=True)
+                for method_name, param_list in method_param_list.items():
+                    graphical_view.add_method(class_name, method_name, is_loading=True)
+                    for param_name in param_list:
+                        graphical_view.add_param(class_name, method_name, param_name, is_loading=True)
     
     # Extract class, field, method, and parameters from json file #
     def _extract_class_data(self, class_data: List[Dict]) -> List[Dict[str, Dict[str, List | Dict]]]:
@@ -1338,7 +1376,7 @@ class UMLModel:
         Ends the current session and resets the program to its default blank state by resetting all data and turning off active files.
         """
         self.__set_all_file_off()
-        self.__reset_storage()
+        self._reset_storage()
         self.__console.print("\n[bold green]Successfully back to default program![/bold green]")
     
     # Get active file #
@@ -1369,7 +1407,7 @@ class UMLModel:
         if current_active_file == "No active file!":
             self.__console.print("\n[bold red]No active file![bold red]")
             return
-        self.__reset_storage()
+        self._reset_storage()
         self.__storage_manager._save_data_to_json(current_active_file, self.__main_data)
         self.__console.print(f"\n[bold green]Successfully cleared data in file [bold white]'{current_active_file}.json'[/bold white][/bold green]")
     
@@ -1424,7 +1462,7 @@ class UMLModel:
         self.__storage_manager._update_saved_list(saved_list)
     
     # Reset all storage (classes, relationships, and main data) #
-    def __reset_storage(self):
+    def _reset_storage(self):
         """
         Resets the entire storage by clearing all class data, relationships, and the main data dictionary.
         """
