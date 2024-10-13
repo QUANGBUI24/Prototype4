@@ -1,114 +1,138 @@
 import sys
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
-class StylePanel(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        
-        # Set up the layout for the panel
-        layout = QtWidgets.QVBoxLayout(self)
-        
-        # Font combo box
-        self.font_combo = QtWidgets.QFontComboBox(self)
-        layout.addWidget(self.font_combo)
-        
-        # Font size spin box
-        self.font_size_spin = QtWidgets.QSpinBox(self)
-        self.font_size_spin.setRange(8, 72)  # Font size range
-        self.font_size_spin.setValue(12)  # Default font size
-        layout.addWidget(self.font_size_spin)
-        
-        # Bold, Italic, Underline buttons
-        self.bold_button = QtWidgets.QPushButton("B", self)
-        self.bold_button.setCheckable(True)
-        bold_font = QtGui.QFont("Arial", 10)
-        bold_font.setBold(True)
-        self.bold_button.setFont(bold_font)
-        
-        self.italic_button = QtWidgets.QPushButton("I", self)
-        self.italic_button.setCheckable(True)
-        italic_font = QtGui.QFont("Arial", 10)
-        italic_font.setItalic(True)
-        self.italic_button.setFont(italic_font)
-        
-        self.underline_button = QtWidgets.QPushButton("U", self)
-        self.underline_button.setCheckable(True)
-        underline_font = QtGui.QFont("Arial", 10)
-        underline_font.setUnderline(True)
-        self.underline_button.setFont(underline_font)
-        
-        # Layout for bold, italic, underline
-        format_layout = QtWidgets.QHBoxLayout()
-        format_layout.addWidget(self.bold_button)
-        format_layout.addWidget(self.italic_button)
-        format_layout.addWidget(self.underline_button)
-        layout.addLayout(format_layout)
-        
-        # Alignment buttons (left, center, right)
-        self.left_align_button = QtWidgets.QPushButton("Left", self)
-        self.left_align_button.setCheckable(True)
-        self.center_align_button = QtWidgets.QPushButton("Center", self)
-        self.center_align_button.setCheckable(True)
-        self.right_align_button = QtWidgets.QPushButton("Right", self)
-        self.right_align_button.setCheckable(True)
-        
-        # Layout for alignment buttons
-        align_layout = QtWidgets.QHBoxLayout()
-        align_layout.addWidget(self.left_align_button)
-        align_layout.addWidget(self.center_align_button)
-        align_layout.addWidget(self.right_align_button)
-        layout.addLayout(align_layout)
-        
-        # Font color button
-        self.font_color_button = QtWidgets.QPushButton("Font Color", self)
-        self.font_color_button.clicked.connect(self.change_font_color)
-        layout.addWidget(self.font_color_button)
-        
-        # Background color button
-        self.bg_color_button = QtWidgets.QPushButton("Background Color", self)
-        self.bg_color_button.clicked.connect(self.change_background_color)
-        layout.addWidget(self.bg_color_button)
-        
-        # Set the main layout
-        self.setLayout(layout)
-    
-    def change_font_color(self):
-        """
-        Opens a color dialog to select the font color.
-        """
-        color = QtWidgets.QColorDialog.getColor()
-        if color.isValid():
-            self.font_color_button.setStyleSheet(f"background-color: {color.name()};")
 
-    def change_background_color(self):
+class Box(QtWidgets.QGraphicsRectItem):
+    """
+    A simple rectangular box that can be selected, copied, and pasted.
+    """
+    def __init__(self, x, y, width, height, color=QtGui.QColor("lightblue")):
+        super().__init__(x, y, width, height)
+        self.setBrush(QtGui.QBrush(color))
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+
+
+class GraphicsView(QtWidgets.QGraphicsView):
+    """
+    Custom QGraphicsView that supports adding, copying, and pasting boxes,
+    as well as selecting items by dragging a rectangular selection area.
+    """
+    def __init__(self):
+        super().__init__()
+        self.scene = QtWidgets.QGraphicsScene(self)
+        self.setScene(self.scene)
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
+        
+        # To store the copied box
+        self.copied_box = None
+        
+        # For the rectangular selection feature
+        self.rubber_band = None  # Selection rectangle
+        self.origin_point = QtCore.QPointF()  # Starting point of the selection
+
+    def add_box(self, x=0, y=0, width=100, height=100):
         """
-        Opens a color dialog to select the background color.
+        Add a new box to the scene.
         """
-        color = QtWidgets.QColorDialog.getColor()
-        if color.isValid():
-            self.bg_color_button.setStyleSheet(f"background-color: {color.name()};")
+        box = Box(x, y, width, height)
+        self.scene.addItem(box)
+
+    def copy_selected_box(self):
+        """
+        Copy the selected box if one is selected.
+        """
+        selected_items = self.scene.selectedItems()
+        if selected_items:
+            # Copy the first selected item (for simplicity)
+            self.copied_box = selected_items[0]
+
+    def paste_box(self):
+        """
+        Paste the copied box at a new location if one has been copied.
+        """
+        if self.copied_box:
+            # Create a new box with the same dimensions and color as the copied one
+            rect = self.copied_box.rect()
+            new_box = Box(0, 0, rect.width(), rect.height(), self.copied_box.brush().color())
+            new_box.setPos(self.copied_box.pos() + QtCore.QPointF(20, 20))  # Paste with a small offset
+            self.scene.addItem(new_box)
+
+    def mousePressEvent(self, event):
+        """
+        Handle mouse press events, including starting the rectangular selection.
+        """
+        if event.button() == QtCore.Qt.LeftButton:
+            self.origin_point = self.mapToScene(event.pos())
+            self.rubber_band = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, self.viewport())
+            self.rubber_band.setGeometry(QtCore.QRect(event.pos(), event.pos()))
+            self.rubber_band.show()
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """
+        Handle mouse move events, including updating the rectangular selection area.
+        """
+        if self.rubber_band:
+            rect = QtCore.QRectF(self.origin_point, self.mapToScene(event.pos())).normalized()
+            self.rubber_band.setGeometry(self.mapFromScene(rect).boundingRect())
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """
+        Handle mouse release events, including finalizing the rectangular selection.
+        """
+        if self.rubber_band:
+            rubber_band_rect = self.rubber_band.geometry()
+            selection_rect = self.mapToScene(rubber_band_rect).boundingRect()
+            self.select_items_in_rect(selection_rect)
+            self.rubber_band.hide()
+            self.rubber_band = None
+        super().mouseReleaseEvent(event)
+
+    def select_items_in_rect(self, rect):
+        """
+        Select all items within the provided rectangular area.
+        """
+        items_in_rect = self.scene.items(rect)
+        for item in self.scene.selectedItems():
+            item.setSelected(False)  # Deselect previously selected items
+        for item in items_in_rect:
+            item.setSelected(True)  # Select new items in the rectangle
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
+        
+        self.view = GraphicsView()
+        self.setCentralWidget(self.view)
 
-        # Create the central widget and layout
-        self.central_widget = QtWidgets.QWidget(self)
-        self.setCentralWidget(self.central_widget)
-        self.central_layout = QtWidgets.QHBoxLayout(self.central_widget)
+        # Create the toolbar with Add, Copy, and Paste actions
+        toolbar = self.addToolBar("Tools")
+        add_action = toolbar.addAction("Add Box")
+        copy_action = toolbar.addAction("Copy")
+        paste_action = toolbar.addAction("Paste")
+        
+        # Connect toolbar actions to their respective functions
+        add_action.triggered.connect(self.add_box)
+        copy_action.triggered.connect(self.copy_box)
+        paste_action.triggered.connect(self.paste_box)
 
-        # Add style panel on the right side
-        self.style_panel = StylePanel(self)
-        self.central_layout.addWidget(self.style_panel)
+    def add_box(self):
+        self.view.add_box(0, 0, 100, 100)
 
-        # Placeholder for canvas or other content
-        self.canvas = QtWidgets.QLabel("Canvas Area", self)
-        self.canvas.setAlignment(QtCore.Qt.AlignCenter)
-        self.canvas.setFixedSize(400, 300)
-        self.central_layout.addWidget(self.canvas)
+    def copy_box(self):
+        self.view.copy_selected_box()
+
+    def paste_box(self):
+        self.view.paste_box()
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()
+    window.setWindowTitle("Rectangular Selection and Copy-Paste Example")
+    window.resize(800, 600)
     window.show()
     sys.exit(app.exec_())

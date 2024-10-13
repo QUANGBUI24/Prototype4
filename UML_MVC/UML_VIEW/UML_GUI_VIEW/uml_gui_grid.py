@@ -44,19 +44,13 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Panning state variables
         self.is_panning = False  # Flag to indicate if panning is active
         self.last_mouse_pos = None  # Last mouse position during panning
+        
+        # For the rectangular selection feature
+        self.rubber_band = None  # Selection rectangle
+        self.origin_point = QtCore.QPointF()  # Starting point of the selection
 
         # Track selected class or arrow
         self.selected_class = None
-        self.selected_arrow = None  # NEW: Track selected arrow
-
-        # Variables for arrow drawing
-        self.startItem = None
-        self.endItem = None
-        self.startPoint = None
-        self.endPoint = None
-        self.startKey = None
-        self.endKey = None
-        self.line = None
 
     #################################################################
     ## GRID VIEW RELATED ##
@@ -840,73 +834,118 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     def mousePressEvent(self, event):
         """
-        Handle mouse press events for panning or starting arrow drawing.
+        Handle mouse press events for starting selection, panning, or determining item selection.
+
+        This function handles different behaviors based on the mouse button pressed:
+        - Left-click: Begins the rectangular selection using a rubber band rectangle.
+        - Middle-click: Initiates the panning behavior, allowing the user to move the view by dragging.
 
         Parameters:
-        - event (QMouseEvent): The mouse event.
+        - event (QMouseEvent): The mouse event, providing information about which button was pressed, the position of the cursor, etc.
         """
-        # Determine the item under the mouse cursor
+        if event.button() == QtCore.Qt.LeftButton and not self.selected_class:
+            # Record the starting point of the selection in scene coordinates
+            self.origin_point = self.mapToScene(event.pos())
+            
+            # Create a rubber band (selection rectangle) to visualize the selection area
+            self.rubber_band = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, self.viewport())
+            
+            # Set the initial geometry of the rubber band to the starting point
+            self.rubber_band.setGeometry(QtCore.QRect(event.pos(), event.pos()))
+            
+            # Show the rubber band on the view
+            self.rubber_band.show()
+
+        # Determine if the cursor is over a UMLClassBox or an Arrow
         item = self.itemAt(event.pos())
         if isinstance(item, UMLClassBox):
+            # If the clicked item is a class box, select the class and deselect any arrow
             self.selected_class = item
-            self.selected_arrow = None  # Deselect any arrow
-        elif isinstance(item, Arrow):
-            self.selected_arrow = item  # Select the arrow
-            self.selected_class = None  # Deselect any class
         else:
+            # If no relevant item is clicked, deselect both class and arrow
             self.selected_class = None
-            self.selected_arrow = None
 
         if event.button() == QtCore.Qt.MiddleButton:
-            # Start panning
+            # Start panning mode when the middle mouse button is pressed
             self.is_panning = True
+            # Record the last position of the mouse to track the movement
             self.last_mouse_pos = event.pos()
+            # Change the cursor to a closed hand to indicate panning mode
             self.setCursor(QtCore.Qt.ClosedHandCursor)
             event.accept()
-        else:
-            super().mousePressEvent(event)
+
+        # Call the parent class's mousePressEvent to ensure default behavior
+        super().mousePressEvent(event)
+
 
     def mouseMoveEvent(self, event):
         """
-        Handle mouse move events for panning or updating the temporary arrow.
+        Handle mouse move events for updating the rubber band rectangle or panning the view.
+
+        This function handles two behaviors based on user interaction:
+        - If the user is dragging while holding the left button, update the rubber band selection.
+        - If the user is dragging while holding the middle button, pan the view.
 
         Parameters:
-        - event (QMouseEvent): The mouse event.
+        - event (QMouseEvent): The mouse event, providing the current mouse position, buttons pressed, etc.
         """
+        if not self.selected_class:
+            if self.rubber_band:
+                # Update the rubber band rectangle as the mouse moves
+                rect = QtCore.QRectF(self.origin_point, self.mapToScene(event.pos())).normalized()
+                self.rubber_band.setGeometry(self.mapFromScene(rect).boundingRect())
+
         if self.is_panning and self.last_mouse_pos is not None:
-            # Panning the view
+            # If panning is active, calculate the delta (movement) of the mouse
             delta = event.pos() - self.last_mouse_pos
+            # Temporarily disable the anchor point for transformations to pan freely
             self.setTransformationAnchor(QtWidgets.QGraphicsView.NoAnchor)
+            # Translate the view based on the mouse movement
             self.translate(delta.x(), delta.y())
+            # Update the last mouse position to the current position
             self.last_mouse_pos = event.pos()
+            # Request an update of the view
             self.viewport().update()
             event.accept()
-        elif self.line:
-            # Update the temporary arrow line during drawing
-            new_end = self.mapToScene(event.pos())
-            if self.startPoint:
-                newLine = QtCore.QLineF(self.startPoint, new_end)
-                self.line.setLine(newLine)
-                event.accept()
-        else:
-            super().mouseMoveEvent(event)
+
+        # Call the parent class's mouseMoveEvent to ensure default behavior
+        super().mouseMoveEvent(event)
+
 
     def mouseReleaseEvent(self, event):
         """
-        Handle mouse release events to end panning or finish drawing arrows.
+        Handle mouse release events to end panning or finalize the rectangular selection.
+
+        This function ends user actions depending on the released mouse button:
+        - Left-click: Finalize the rubber band selection and select items within the rectangle.
+        - Middle-click: End panning mode and reset the cursor.
 
         Parameters:
-        - event (QMouseEvent): The mouse event.
+        - event (QMouseEvent): The mouse event, providing information about the button released and the position.
         """
+        if self.rubber_band:
+            # Get the final rectangle defined by the rubber band
+            rubber_band_rect = self.rubber_band.geometry()
+            # Convert the rubber band rectangle from view coordinates to scene coordinates
+            selection_rect = self.mapToScene(rubber_band_rect).boundingRect()
+            # Select all items within the rubber band rectangle
+            self.select_items_in_rect(selection_rect)
+            # Hide and delete the rubber band
+            self.rubber_band.hide()
+            self.rubber_band = None
+            self.selected_class = None # Deselect any selected class after releasing
+
         if event.button() == QtCore.Qt.MiddleButton and self.is_panning:
-            # End panning
+            # End panning mode when the middle mouse button is released
             self.is_panning = False
             self.last_mouse_pos = None
+            # Restore the cursor to the default arrow
             self.setCursor(QtCore.Qt.ArrowCursor)
             event.accept()
-        else:
-            super().mouseReleaseEvent(event)
-            self.viewport().update()
+
+        # Call the parent class's mouseReleaseEvent to ensure default behavior
+        super().mouseReleaseEvent(event)
+        self.viewport().update()
     
     def keyPressEvent(self, event):
         """
@@ -924,6 +963,16 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     #################################################################
     ## UTILITY FUNCTIONS ##
+    
+    def select_items_in_rect(self, rect):
+        """
+        Select all items within the provided rectangular area.
+        """
+        items_in_rect = self.scene().items(rect)
+        for item in self.scene().selectedItems():
+            item.setSelected(False)  # Deselect previously selected items
+        for item in items_in_rect:
+            item.setSelected(True)  # Select new items in the rectangle
 
     def update_snap(self):
         """
