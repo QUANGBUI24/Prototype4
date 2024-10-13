@@ -210,7 +210,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_field_added = self.interface.add_field(loaded_class_name, loaded_field_name)
                     if is_field_added:
                         # Create a text item for the field and add it to the list of the found class box
-                        field_text = selected_class_box.create_text_item(loaded_field_name, is_field=True, selectable=True, color=selected_class_box.default_text_color)
+                        field_text = selected_class_box.create_text_item(loaded_field_name, is_field=True, selectable=True, color=selected_class_box.text_color)
                         selected_class_box.field_list[loaded_field_name] = field_text  # Add the field to the internal list
                         selected_class_box.field_name_list.append(loaded_field_name)  # Track the field name in the name list
                         selected_class_box.update_box()  # Update the box to reflect the changes
@@ -224,7 +224,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_field_added = self.interface.add_field(selected_class_name, field_name)
                     if is_field_added:
                         # Create a text item for the field and add it to the list
-                        field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True, color=self.selected_class.default_text_color)
+                        field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True, color=self.selected_class.text_color)
                         self.selected_class.field_list[field_name] = field_text  # Add the field to the internal list
                         self.selected_class.field_name_list.append(field_name)  # Track the field name in the name list
                         self.selected_class.update_box()  # Update the box to reflect the changes
@@ -325,7 +325,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_method_added = self.interface.add_method(loaded_class_name, loaded_method_name)
                     if is_method_added:
                         # Create a text item for the method and add it to the list of the found class box
-                        method_text = selected_class_box.create_text_item(loaded_method_name + "()", is_method=True, selectable=True, color=selected_class_box.default_text_color)
+                        method_text = selected_class_box.create_text_item(loaded_method_name + "()", is_method=True, selectable=True, color=selected_class_box.text_color)
                         selected_class_box.method_list[loaded_method_name] = method_text  # Add the method to the internal list
                         selected_class_box.method_name_list[loaded_method_name] = []  # Track the method name in the name list
                         if len(selected_class_box.method_name_list) == 1:  # If this is the first method, create a separator
@@ -341,7 +341,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     selected_class_name = self.selected_class.class_name_text.toPlainText()
                     is_method_added = self.interface.add_method(selected_class_name, method_name)
                     if is_method_added:
-                        method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True, color=self.selected_class.default_text_color)
+                        method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True, color=self.selected_class.text_color)
                         self.selected_class.method_list[method_name] = method_text  # Store the method text
                         self.selected_class.method_name_list[method_name] = []  # Track the method's parameters
                         if len(self.selected_class.method_name_list) == 1:  # If this is the first method, create a separator
@@ -449,7 +449,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_param_added = self.interface.add_parameter(loaded_class_name, loaded_method_name, loaded_param_name)
                     if is_param_added:
                         # Add the parameter to the selected method and update the UML box
-                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=True, color=selected_class_box.default_text_color)
+                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=True, color=selected_class_box.text_color)
                         selected_class_box.method_name_list[loaded_method_name].append(loaded_param_name)  # Track the parameter
                         selected_class_box.parameter_list[loaded_param_name] = param_text  # Store the parameter text
                         selected_class_box.parameter_name_list.append(loaded_param_name)  # Add to the list of parameter names
@@ -467,7 +467,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                             is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
                             if is_param_added:
                                 # Add the parameter to the selected method and update the UML box
-                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
+                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.text_color)
                                 self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
                                 self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
                                 self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
@@ -615,7 +615,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.method_name_list[method_name].clear()
                                 # Add new parameters to the method
                                 for new_param in new_param_list:
-                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
+                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True, color=self.selected_class.text_color)
                                     self.selected_class.method_name_list[method_name].append(new_param)
                                     self.selected_class.parameter_list[new_param] = param_text
                                     self.selected_class.parameter_name_list.append(new_param)
@@ -643,10 +643,11 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         4. If valid, load the selected JSON file into the interface.
         """
         self.clear_current_scene()  # Clear the scene before loading a new file
-        
         # Show an open file dialog and store the selected file path
         full_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
-        
+        # Check if the user canceled the dialog (full_path will be empty if canceled)
+        if not full_path:
+            return  # Exit the function if the user cancels the dialog
         # Check if the selected file is a JSON file
         if not full_path.endswith('.json'):
             QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
@@ -657,83 +658,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             file_base_name = os.path.basename(full_path)  # Extract the file name from the full path
             file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
             self.interface.load_gui(file_name_only, full_path, self)  # Load the file into the GUI
-
-    def save_as_gui(self):
-        """
-        Open a file dialog to allow the user to specify the location and name for saving the current data.
-
-        This function opens a `QFileDialog` to allow the user to select where to save the current UML data as a `.json` file.
-        If a valid JSON file is specified, the data is saved to the selected location.
-        If the user does not select a `.json` file, a warning is displayed.
-
-        Steps:
-        1. Open the save file dialog and retrieve the selected path.
-        2. Validate that the selected file path has a `.json` extension.
-        3. If valid, save the data to the selected file.
-        """
-        # Open a save file dialog to select a location for saving
-        full_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(), "JSON Files (*.json)")
-        
-        # Check if the selected file has a .json extension
-        if not full_path.endswith('.json'):
-            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
-            return
-        
-        # If a valid file path is selected, proceed to save the data
-        if full_path:
-            file_base_name = os.path.basename(full_path)  # Extract the file name from the full path
-            file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
-            self.interface.save_gui(file_name_only, full_path)  # Save the data to the file
-
-    def save_gui(self):
-        """
-        Save the current UML data to the active file. If there is no active file, prompt the user to create a new one.
-
-        This function checks if there is an active file in the system (i.e., a file that is currently open and active for saving).
-        If no active file exists, it opens the `save_as_gui` method to prompt the user to create a new file.
-        If an active file exists, the current data is saved to that file.
-
-        Steps:
-        1. Check if there is an active file using the interface's `get_active_file_gui` method.
-        2. If there is no active file, call `save_as_gui` to prompt the user for a save location.
-        3. If there is an active file, save the data to that file.
-        """
-        # Get the current active file from the interface
-        current_active_file_path = self.interface.get_active_file_gui()
-        
-        # If there is no active file, prompt the user to create a new one
-        if current_active_file_path == "No active file!":
-            self.save_as_gui()  # Open the save-as dialog to create a new file
-        else:
-            # If an active file exists, save the data to it
-            file_base_name = os.path.basename(current_active_file_path)  # Extract the file name from the full path
-            file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
-            self.interface.save_gui(file_name_only, current_active_file_path)  # Save the data to the file
-
-    def clear_current_scene(self):
-        """
-        Clear the current UML scene by removing all UMLClassBox items.
-
-        This function iterates through all items in the current scene and removes any `UMLClassBox` objects.
-        It is used to clear the scene before loading new UML data or resetting the interface.
-
-        Steps:
-        1. Iterate over all items in the scene.
-        2. For each item, check if it is an instance of `UMLClassBox`.
-        3. Remove any `UMLClassBox` items from the scene.
-        Open a file dialog to select a file.
-        """
-        self.clear_current_scene()
-        # Show an open file dialog and store the selected file path
-        full_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
-        if not full_path.endswith('.json'):
-            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
-            return
-        if full_path:
-            file_base_name = os.path.basename(full_path)
-            file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.load_gui(file_name_only, full_path, self)
-            
+     
     def save_as_gui(self):
         """
         Open a save file dialog to select a file location for saving.
@@ -759,8 +684,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             file_base_name = os.path.basename(current_active_file_path)
             file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.save_gui(file_name_only, current_active_file_path)
-            
+            self.interface.save_gui(file_name_only, current_active_file_path)     
     
     def clear_current_scene(self):
         """
@@ -778,78 +702,117 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     def contextMenuEvent(self, event):
         """Show context menu when right-clicking on the UMLClassBox"""
+        # Create the context menu
+        contextMenu = QtWidgets.QMenu()
+            
         if self.selected_class:
             #################################
-            # Create the context menu
-            contextMenu = QtWidgets.QMenu()
             
             # Add box color options
             change_box_color_button = contextMenu.addAction("Box Color")
+            # Connect box color options
+            change_box_color_button.triggered.connect(self.change_box_color)
+            
+            #################################
             
             # Add text color options
             change_text_color_button = contextMenu.addAction("Text Color")
+            # Connect text color options
+            change_text_color_button.triggered.connect(self.change_text_color)
             
+            #################################
+            
+            # Add text font modification
+            change_text_font_button = contextMenu.addAction("Text Font")
+            # Connect text font options
+            change_text_font_button.triggered.connect(self.change_text_font_and_size)
             # Add a separator before the class options
             contextMenu.addSeparator()
+        
+            #################################
             
             # Add class options
             rename_class_button = contextMenu.addAction("Rename Class")
-            
+            # Connect class options to class functions
+            rename_class_button.triggered.connect(self.rename_class)
             # Add a separator before the field options
             contextMenu.addSeparator()
+            
+            #################################
         
             # Add field options
             add_field_button = contextMenu.addAction("Add Field")
             delete_field_button = contextMenu.addAction("Delete Field")
             rename_field_button = contextMenu.addAction("Rename Field")
-        
+            
+            # Connect field options to field functions
+            add_field_button.triggered.connect(self.add_field)
+            delete_field_button.triggered.connect(self.delete_field)
+            rename_field_button.triggered.connect(self.rename_field)
             # Add a separator before the method options
             contextMenu.addSeparator()
+            
+            #################################
         
             # Add method options
             add_method_button = contextMenu.addAction("Add Method")
             delete_method_button = contextMenu.addAction("Delete Method")
             rename_method_button = contextMenu.addAction("Rename Method")
+            
+            # Connect method options to method functions
+            add_method_button.triggered.connect(self.add_method)
+            delete_method_button.triggered.connect(self.delete_method)
+            rename_method_button.triggered.connect(self.rename_method)
         
             # Add a separator before the parameter options
             contextMenu.addSeparator()
+            
+            #################################
         
             # Add parameter options
             add_parameter_button = contextMenu.addAction("Add Parameter")
             delete_parameter_button = contextMenu.addAction("Delete Parameter")
             rename_parameter_button = contextMenu.addAction("Rename Parameter")
             replace_parameter_button = contextMenu.addAction("Replace Parameter")
-
-            #################################  
-            # Connect box color options to box color functions  
-            change_box_color_button.triggered.connect(self.change_box_color)
             
-            # Connect text color options to box color functions  
-            change_text_color_button.triggered.connect(self.change_text_color)
-            
-            # Connect class options to class functions
-            rename_class_button.triggered.connect(self.rename_class)
-            
-            # Connect field options to field functions
-            add_field_button.triggered.connect(self.add_field)
-            delete_field_button.triggered.connect(self.delete_field)
-            rename_field_button.triggered.connect(self.rename_field)
-        
-            # Connect method options to method functions
-            add_method_button.triggered.connect(self.add_method)
-            delete_method_button.triggered.connect(self.delete_method)
-            rename_method_button.triggered.connect(self.rename_method)
-        
             # Connect parameter options to parameter functions
             add_parameter_button.triggered.connect(self.add_param)
             delete_parameter_button.triggered.connect(self.delete_param)
             rename_parameter_button.triggered.connect(self.rename_param)
             replace_parameter_button.triggered.connect(self.replace_param)
 
+            #################################  
+
             # Execute the context menu and get the selected action
             contextMenu.exec_(event.globalPos())
             self.selected_class.update_box()
-    
+        else:
+            #################################  
+            
+            # Add class options
+            add_class_action = contextMenu.addAction("Add Class")
+            add_class_action.triggered.connect(self.add_class)
+            # Add a separator before the save button
+            contextMenu.addSeparator()
+            
+            #################################  
+            
+            # Open button
+            open_action = contextMenu.addAction("Open")
+            open_action.triggered.connect(self.open_folder_gui)
+            
+            # Save button
+            save_action = contextMenu.addAction("Save")
+            save_action.triggered.connect(self.save_gui)
+            
+            # Save As button
+            save_as_action = contextMenu.addAction("Save As")
+            save_as_action.triggered.connect(self.save_as_gui)
+
+            #################################  
+            
+            contextMenu.exec_(event.globalPos())
+            
     def wheelEvent(self, event):
         """
         Handle zoom in/out functionality using the mouse wheel.
@@ -1015,7 +978,33 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         param_text.setDefaultTextColor(color)
                 self.selected_class.class_name_text.setDefaultTextColor(color)
                 # Ensure later added text will use this color too
-                self.selected_class.default_text_color = color
+                self.selected_class.text_color = color
+                self.selected_class.update_box()
+                
+    def change_text_font_and_size(self):
+        """
+        Open a font dialog to select a new text font and size then apply it to the selected UML class box's text.
+        The font will be applied based on the currently selected text color.
+        """
+        if self.selected_class:
+            # Open the font dialog and allow the user to select a font and size
+            font, ok = QtWidgets.QFontDialog.getFont(self.selected_class.class_name_text.font())
+            
+            if ok:
+                # Apply the selected font to all text elements in the UMLClassBox
+                if self.selected_class.field_list:
+                    for field_text in self.selected_class.field_list.values():
+                        field_text.setFont(font)
+                if self.selected_class.method_list:
+                    for method_text in self.selected_class.method_list.values():
+                        method_text.setFont(font)
+                if self.selected_class.parameter_list:
+                    for param_text in self.selected_class.parameter_list.values():
+                        param_text.setFont(font)
+                self.selected_class.class_name_text.setFont(font)
+
+                # Ensure later added text will use this font too
+                self.selected_class.default_text_font = font
                 self.selected_class.update_box()
 
     def set_grid_visible(self, visible):

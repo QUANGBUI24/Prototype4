@@ -71,8 +71,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.is_resizing = False
         self.is_selected = False
         self.current_handle = None
-        # Default text color
-        self.default_text_color = QtGui.QColor("black")
         
         #################################
         
@@ -92,9 +90,13 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Enable hover events
         self.setAcceptHoverEvents(True)
         # Class name text box and make it appear at the center of the box.
-        self.class_name_text = self.create_text_item(class_name, selectable=True, color=self.default_text_color)
+        self.class_name_text = self.create_text_item(class_name, selectable=True)
         # Connect the text change callback to ensure it re-centers when the text changes.
         self.class_name_text.document().contentsChanged.connect(self.centering_class_name)
+        # Default text color
+        self.text_color = self.class_name_text.defaultTextColor()
+        self.text_font = self.class_name_text.font()
+        self.font_size = self.text_font.pointSize()
         # Create separator below class name
         self.create_separator()
         # Draw first separator
@@ -421,7 +423,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     #################################
     ## CLASS NAME TEXT RELATED ##
     
-    def create_text_item(self, text:str, selectable=False, is_field=None, is_method=None, is_parameter=None, color=None):
+    def create_text_item(self, text:str, selectable=False, is_field=None, is_method=None, is_parameter=None, color=None, font=None):
         """
         Create and return a QGraphicsTextItem with editing capabilities.
 
@@ -433,11 +435,22 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         Returns:
         - EditableTextItem: The created text item.
         """
-        self.default_text_color
-        if color is not None:
-            text_item = Text(text=text, parent=self, color=color)  # Use the custom EditableTextItem
+        # Both color and font are valid
+        if color is not None and font is not None:
+            text_item = Text(text=text, parent=self, color=color, font=font)  
+            self.text_color = color
+            self.text_font = font
+        # Only color is valid
+        elif color is not None and font is None:
+            text_item = Text(text=text, parent=self, color=color) 
+            self.text_color = color 
+        # Only font is valid
+        elif color is None and font is not None:
+            text_item = Text(text=text, parent=self, font=font)  
+            self.text_font = font
+        # Both color and font are invalid
         else:
-            text_item = Text(text=text, parent=self)  # Use the custom EditableTextItem
+            text_item = Text(text=text, parent=self)  
         
         if selectable:
             text_item.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
