@@ -1,7 +1,7 @@
 ###################################################################################################
 
 import os
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtGui, QtCore, QtPrintSupport
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
 
@@ -44,19 +44,13 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Panning state variables
         self.is_panning = False  # Flag to indicate if panning is active
         self.last_mouse_pos = None  # Last mouse position during panning
+        
+        # For the rectangular selection feature
+        self.rubber_band = None  # Selection rectangle
+        self.origin_point = QtCore.QPointF()  # Starting point of the selection
 
         # Track selected class or arrow
         self.selected_class = None
-        self.selected_arrow = None  # NEW: Track selected arrow
-
-        # Variables for arrow drawing
-        self.startItem = None
-        self.endItem = None
-        self.startPoint = None
-        self.endPoint = None
-        self.startKey = None
-        self.endKey = None
-        self.line = None
 
     #################################################################
     ## GRID VIEW RELATED ##
@@ -210,7 +204,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_field_added = self.interface.add_field(loaded_class_name, loaded_field_name)
                     if is_field_added:
                         # Create a text item for the field and add it to the list of the found class box
-                        field_text = selected_class_box.create_text_item(loaded_field_name, is_field=True, selectable=True, color=selected_class_box.default_text_color)
+                        field_text = selected_class_box.create_text_item(loaded_field_name, is_field=True, selectable=True, color=selected_class_box.text_color)
                         selected_class_box.field_list[loaded_field_name] = field_text  # Add the field to the internal list
                         selected_class_box.field_name_list.append(loaded_field_name)  # Track the field name in the name list
                         selected_class_box.update_box()  # Update the box to reflect the changes
@@ -224,7 +218,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_field_added = self.interface.add_field(selected_class_name, field_name)
                     if is_field_added:
                         # Create a text item for the field and add it to the list
-                        field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True, color=self.selected_class.default_text_color)
+                        field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True, color=self.selected_class.text_color)
                         self.selected_class.field_list[field_name] = field_text  # Add the field to the internal list
                         self.selected_class.field_name_list.append(field_name)  # Track the field name in the name list
                         self.selected_class.update_box()  # Update the box to reflect the changes
@@ -325,7 +319,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_method_added = self.interface.add_method(loaded_class_name, loaded_method_name)
                     if is_method_added:
                         # Create a text item for the method and add it to the list of the found class box
-                        method_text = selected_class_box.create_text_item(loaded_method_name + "()", is_method=True, selectable=True, color=selected_class_box.default_text_color)
+                        method_text = selected_class_box.create_text_item(loaded_method_name + "()", is_method=True, selectable=True, color=selected_class_box.text_color)
                         selected_class_box.method_list[loaded_method_name] = method_text  # Add the method to the internal list
                         selected_class_box.method_name_list[loaded_method_name] = []  # Track the method name in the name list
                         if len(selected_class_box.method_name_list) == 1:  # If this is the first method, create a separator
@@ -341,7 +335,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     selected_class_name = self.selected_class.class_name_text.toPlainText()
                     is_method_added = self.interface.add_method(selected_class_name, method_name)
                     if is_method_added:
-                        method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True, color=self.selected_class.default_text_color)
+                        method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True, color=self.selected_class.text_color)
                         self.selected_class.method_list[method_name] = method_text  # Store the method text
                         self.selected_class.method_name_list[method_name] = []  # Track the method's parameters
                         if len(self.selected_class.method_name_list) == 1:  # If this is the first method, create a separator
@@ -449,7 +443,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     is_param_added = self.interface.add_parameter(loaded_class_name, loaded_method_name, loaded_param_name)
                     if is_param_added:
                         # Add the parameter to the selected method and update the UML box
-                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=True, color=selected_class_box.default_text_color)
+                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=True, color=selected_class_box.text_color)
                         selected_class_box.method_name_list[loaded_method_name].append(loaded_param_name)  # Track the parameter
                         selected_class_box.parameter_list[loaded_param_name] = param_text  # Store the parameter text
                         selected_class_box.parameter_name_list.append(loaded_param_name)  # Add to the list of parameter names
@@ -467,7 +461,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                             is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
                             if is_param_added:
                                 # Add the parameter to the selected method and update the UML box
-                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
+                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.text_color)
                                 self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
                                 self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
                                 self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
@@ -615,7 +609,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.method_name_list[method_name].clear()
                                 # Add new parameters to the method
                                 for new_param in new_param_list:
-                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True, color=self.selected_class.default_text_color)
+                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True, color=self.selected_class.text_color)
                                     self.selected_class.method_name_list[method_name].append(new_param)
                                     self.selected_class.parameter_list[new_param] = param_text
                                     self.selected_class.parameter_name_list.append(new_param)
@@ -643,10 +637,11 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         4. If valid, load the selected JSON file into the interface.
         """
         self.clear_current_scene()  # Clear the scene before loading a new file
-        
         # Show an open file dialog and store the selected file path
         full_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
-        
+        # Check if the user canceled the dialog (full_path will be empty if canceled)
+        if not full_path:
+            return  # Exit the function if the user cancels the dialog
         # Check if the selected file is a JSON file
         if not full_path.endswith('.json'):
             QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
@@ -657,83 +652,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             file_base_name = os.path.basename(full_path)  # Extract the file name from the full path
             file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
             self.interface.load_gui(file_name_only, full_path, self)  # Load the file into the GUI
-
-    def save_as_gui(self):
-        """
-        Open a file dialog to allow the user to specify the location and name for saving the current data.
-
-        This function opens a `QFileDialog` to allow the user to select where to save the current UML data as a `.json` file.
-        If a valid JSON file is specified, the data is saved to the selected location.
-        If the user does not select a `.json` file, a warning is displayed.
-
-        Steps:
-        1. Open the save file dialog and retrieve the selected path.
-        2. Validate that the selected file path has a `.json` extension.
-        3. If valid, save the data to the selected file.
-        """
-        # Open a save file dialog to select a location for saving
-        full_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save File", os.getcwd(), "JSON Files (*.json)")
-        
-        # Check if the selected file has a .json extension
-        if not full_path.endswith('.json'):
-            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
-            return
-        
-        # If a valid file path is selected, proceed to save the data
-        if full_path:
-            file_base_name = os.path.basename(full_path)  # Extract the file name from the full path
-            file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
-            self.interface.save_gui(file_name_only, full_path)  # Save the data to the file
-
-    def save_gui(self):
-        """
-        Save the current UML data to the active file. If there is no active file, prompt the user to create a new one.
-
-        This function checks if there is an active file in the system (i.e., a file that is currently open and active for saving).
-        If no active file exists, it opens the `save_as_gui` method to prompt the user to create a new file.
-        If an active file exists, the current data is saved to that file.
-
-        Steps:
-        1. Check if there is an active file using the interface's `get_active_file_gui` method.
-        2. If there is no active file, call `save_as_gui` to prompt the user for a save location.
-        3. If there is an active file, save the data to that file.
-        """
-        # Get the current active file from the interface
-        current_active_file_path = self.interface.get_active_file_gui()
-        
-        # If there is no active file, prompt the user to create a new one
-        if current_active_file_path == "No active file!":
-            self.save_as_gui()  # Open the save-as dialog to create a new file
-        else:
-            # If an active file exists, save the data to it
-            file_base_name = os.path.basename(current_active_file_path)  # Extract the file name from the full path
-            file_name_only = os.path.splitext(file_base_name)[0]  # Remove the file extension
-            self.interface.save_gui(file_name_only, current_active_file_path)  # Save the data to the file
-
-    def clear_current_scene(self):
-        """
-        Clear the current UML scene by removing all UMLClassBox items.
-
-        This function iterates through all items in the current scene and removes any `UMLClassBox` objects.
-        It is used to clear the scene before loading new UML data or resetting the interface.
-
-        Steps:
-        1. Iterate over all items in the scene.
-        2. For each item, check if it is an instance of `UMLClassBox`.
-        3. Remove any `UMLClassBox` items from the scene.
-        Open a file dialog to select a file.
-        """
-        self.clear_current_scene()
-        # Show an open file dialog and store the selected file path
-        full_path, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", os.getcwd(), "JSON Files (*.json)")
-        if not full_path.endswith('.json'):
-            QtWidgets.QMessageBox.warning(None, "Warning", "The selected file is not a JSON file. Please select a valid JSON file.")
-            return
-        if full_path:
-            file_base_name = os.path.basename(full_path)
-            file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.load_gui(file_name_only, full_path, self)
-            
+     
     def save_as_gui(self):
         """
         Open a save file dialog to select a file location for saving.
@@ -759,8 +678,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             file_base_name = os.path.basename(current_active_file_path)
             file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.save_gui(file_name_only, current_active_file_path)
-            
+            self.interface.save_gui(file_name_only, current_active_file_path)     
     
     def clear_current_scene(self):
         """
@@ -778,78 +696,117 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     def contextMenuEvent(self, event):
         """Show context menu when right-clicking on the UMLClassBox"""
+        # Create the context menu
+        contextMenu = QtWidgets.QMenu()
+            
         if self.selected_class:
             #################################
-            # Create the context menu
-            contextMenu = QtWidgets.QMenu()
             
             # Add box color options
             change_box_color_button = contextMenu.addAction("Box Color")
+            # Connect box color options
+            change_box_color_button.triggered.connect(self.change_box_color)
+            
+            #################################
             
             # Add text color options
             change_text_color_button = contextMenu.addAction("Text Color")
+            # Connect text color options
+            change_text_color_button.triggered.connect(self.change_text_color)
             
+            #################################
+            
+            # Add text font modification
+            change_text_font_button = contextMenu.addAction("Text Font")
+            # Connect text font options
+            change_text_font_button.triggered.connect(self.change_text_font_and_size)
             # Add a separator before the class options
             contextMenu.addSeparator()
+        
+            #################################
             
             # Add class options
             rename_class_button = contextMenu.addAction("Rename Class")
-            
+            # Connect class options to class functions
+            rename_class_button.triggered.connect(self.rename_class)
             # Add a separator before the field options
             contextMenu.addSeparator()
+            
+            #################################
         
             # Add field options
             add_field_button = contextMenu.addAction("Add Field")
             delete_field_button = contextMenu.addAction("Delete Field")
             rename_field_button = contextMenu.addAction("Rename Field")
-        
+            
+            # Connect field options to field functions
+            add_field_button.triggered.connect(self.add_field)
+            delete_field_button.triggered.connect(self.delete_field)
+            rename_field_button.triggered.connect(self.rename_field)
             # Add a separator before the method options
             contextMenu.addSeparator()
+            
+            #################################
         
             # Add method options
             add_method_button = contextMenu.addAction("Add Method")
             delete_method_button = contextMenu.addAction("Delete Method")
             rename_method_button = contextMenu.addAction("Rename Method")
+            
+            # Connect method options to method functions
+            add_method_button.triggered.connect(self.add_method)
+            delete_method_button.triggered.connect(self.delete_method)
+            rename_method_button.triggered.connect(self.rename_method)
         
             # Add a separator before the parameter options
             contextMenu.addSeparator()
+            
+            #################################
         
             # Add parameter options
             add_parameter_button = contextMenu.addAction("Add Parameter")
             delete_parameter_button = contextMenu.addAction("Delete Parameter")
             rename_parameter_button = contextMenu.addAction("Rename Parameter")
             replace_parameter_button = contextMenu.addAction("Replace Parameter")
-
-            #################################  
-            # Connect box color options to box color functions  
-            change_box_color_button.triggered.connect(self.change_box_color)
             
-            # Connect text color options to box color functions  
-            change_text_color_button.triggered.connect(self.change_text_color)
-            
-            # Connect class options to class functions
-            rename_class_button.triggered.connect(self.rename_class)
-            
-            # Connect field options to field functions
-            add_field_button.triggered.connect(self.add_field)
-            delete_field_button.triggered.connect(self.delete_field)
-            rename_field_button.triggered.connect(self.rename_field)
-        
-            # Connect method options to method functions
-            add_method_button.triggered.connect(self.add_method)
-            delete_method_button.triggered.connect(self.delete_method)
-            rename_method_button.triggered.connect(self.rename_method)
-        
             # Connect parameter options to parameter functions
             add_parameter_button.triggered.connect(self.add_param)
             delete_parameter_button.triggered.connect(self.delete_param)
             rename_parameter_button.triggered.connect(self.rename_param)
             replace_parameter_button.triggered.connect(self.replace_param)
 
+            #################################  
+
             # Execute the context menu and get the selected action
             contextMenu.exec_(event.globalPos())
             self.selected_class.update_box()
-    
+        else:
+            #################################  
+            
+            # Add class options
+            add_class_action = contextMenu.addAction("Add Class")
+            add_class_action.triggered.connect(self.add_class)
+            # Add a separator before the save button
+            contextMenu.addSeparator()
+            
+            #################################  
+            
+            # Open button
+            open_action = contextMenu.addAction("Open")
+            open_action.triggered.connect(self.open_folder_gui)
+            
+            # Save button
+            save_action = contextMenu.addAction("Save")
+            save_action.triggered.connect(self.save_gui)
+            
+            # Save As button
+            save_as_action = contextMenu.addAction("Save As")
+            save_as_action.triggered.connect(self.save_as_gui)
+
+            #################################  
+            
+            contextMenu.exec_(event.globalPos())
+            
     def wheelEvent(self, event):
         """
         Handle zoom in/out functionality using the mouse wheel.
@@ -877,73 +834,118 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     def mousePressEvent(self, event):
         """
-        Handle mouse press events for panning or starting arrow drawing.
+        Handle mouse press events for starting selection, panning, or determining item selection.
+
+        This function handles different behaviors based on the mouse button pressed:
+        - Left-click: Begins the rectangular selection using a rubber band rectangle.
+        - Middle-click: Initiates the panning behavior, allowing the user to move the view by dragging.
 
         Parameters:
-        - event (QMouseEvent): The mouse event.
+        - event (QMouseEvent): The mouse event, providing information about which button was pressed, the position of the cursor, etc.
         """
-        # Determine the item under the mouse cursor
+        if event.button() == QtCore.Qt.LeftButton and not self.selected_class:
+            # Record the starting point of the selection in scene coordinates
+            self.origin_point = self.mapToScene(event.pos())
+            
+            # Create a rubber band (selection rectangle) to visualize the selection area
+            self.rubber_band = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, self.viewport())
+            
+            # Set the initial geometry of the rubber band to the starting point
+            self.rubber_band.setGeometry(QtCore.QRect(event.pos(), event.pos()))
+            
+            # Show the rubber band on the view
+            self.rubber_band.show()
+
+        # Determine if the cursor is over a UMLClassBox or an Arrow
         item = self.itemAt(event.pos())
         if isinstance(item, UMLClassBox):
+            # If the clicked item is a class box, select the class and deselect any arrow
             self.selected_class = item
-            self.selected_arrow = None  # Deselect any arrow
-        elif isinstance(item, Arrow):
-            self.selected_arrow = item  # Select the arrow
-            self.selected_class = None  # Deselect any class
         else:
+            # If no relevant item is clicked, deselect both class and arrow
             self.selected_class = None
-            self.selected_arrow = None
 
         if event.button() == QtCore.Qt.MiddleButton:
-            # Start panning
+            # Start panning mode when the middle mouse button is pressed
             self.is_panning = True
+            # Record the last position of the mouse to track the movement
             self.last_mouse_pos = event.pos()
+            # Change the cursor to a closed hand to indicate panning mode
             self.setCursor(QtCore.Qt.ClosedHandCursor)
             event.accept()
-        else:
-            super().mousePressEvent(event)
+
+        # Call the parent class's mousePressEvent to ensure default behavior
+        super().mousePressEvent(event)
+
 
     def mouseMoveEvent(self, event):
         """
-        Handle mouse move events for panning or updating the temporary arrow.
+        Handle mouse move events for updating the rubber band rectangle or panning the view.
+
+        This function handles two behaviors based on user interaction:
+        - If the user is dragging while holding the left button, update the rubber band selection.
+        - If the user is dragging while holding the middle button, pan the view.
 
         Parameters:
-        - event (QMouseEvent): The mouse event.
+        - event (QMouseEvent): The mouse event, providing the current mouse position, buttons pressed, etc.
         """
+        if not self.selected_class:
+            if self.rubber_band:
+                # Update the rubber band rectangle as the mouse moves
+                rect = QtCore.QRectF(self.origin_point, self.mapToScene(event.pos())).normalized()
+                self.rubber_band.setGeometry(self.mapFromScene(rect).boundingRect())
+
         if self.is_panning and self.last_mouse_pos is not None:
-            # Panning the view
+            # If panning is active, calculate the delta (movement) of the mouse
             delta = event.pos() - self.last_mouse_pos
+            # Temporarily disable the anchor point for transformations to pan freely
             self.setTransformationAnchor(QtWidgets.QGraphicsView.NoAnchor)
+            # Translate the view based on the mouse movement
             self.translate(delta.x(), delta.y())
+            # Update the last mouse position to the current position
             self.last_mouse_pos = event.pos()
+            # Request an update of the view
             self.viewport().update()
             event.accept()
-        elif self.line:
-            # Update the temporary arrow line during drawing
-            new_end = self.mapToScene(event.pos())
-            if self.startPoint:
-                newLine = QtCore.QLineF(self.startPoint, new_end)
-                self.line.setLine(newLine)
-                event.accept()
-        else:
-            super().mouseMoveEvent(event)
+
+        # Call the parent class's mouseMoveEvent to ensure default behavior
+        super().mouseMoveEvent(event)
+
 
     def mouseReleaseEvent(self, event):
         """
-        Handle mouse release events to end panning or finish drawing arrows.
+        Handle mouse release events to end panning or finalize the rectangular selection.
+
+        This function ends user actions depending on the released mouse button:
+        - Left-click: Finalize the rubber band selection and select items within the rectangle.
+        - Middle-click: End panning mode and reset the cursor.
 
         Parameters:
-        - event (QMouseEvent): The mouse event.
+        - event (QMouseEvent): The mouse event, providing information about the button released and the position.
         """
+        if self.rubber_band:
+            # Get the final rectangle defined by the rubber band
+            rubber_band_rect = self.rubber_band.geometry()
+            # Convert the rubber band rectangle from view coordinates to scene coordinates
+            selection_rect = self.mapToScene(rubber_band_rect).boundingRect()
+            # Select all items within the rubber band rectangle
+            self.select_items_in_rect(selection_rect)
+            # Hide and delete the rubber band
+            self.rubber_band.hide()
+            self.rubber_band = None
+            self.selected_class = None # Deselect any selected class after releasing
+
         if event.button() == QtCore.Qt.MiddleButton and self.is_panning:
-            # End panning
+            # End panning mode when the middle mouse button is released
             self.is_panning = False
             self.last_mouse_pos = None
+            # Restore the cursor to the default arrow
             self.setCursor(QtCore.Qt.ArrowCursor)
             event.accept()
-        else:
-            super().mouseReleaseEvent(event)
-            self.viewport().update()
+
+        # Call the parent class's mouseReleaseEvent to ensure default behavior
+        super().mouseReleaseEvent(event)
+        self.viewport().update()
     
     def keyPressEvent(self, event):
         """
@@ -961,6 +963,16 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     #################################################################
     ## UTILITY FUNCTIONS ##
+    
+    def select_items_in_rect(self, rect):
+        """
+        Select all items within the provided rectangular area.
+        """
+        items_in_rect = self.scene().items(rect)
+        for item in self.scene().selectedItems():
+            item.setSelected(False)  # Deselect previously selected items
+        for item in items_in_rect:
+            item.setSelected(True)  # Select new items in the rectangle
 
     def update_snap(self):
         """
@@ -1015,7 +1027,33 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         param_text.setDefaultTextColor(color)
                 self.selected_class.class_name_text.setDefaultTextColor(color)
                 # Ensure later added text will use this color too
-                self.selected_class.default_text_color = color
+                self.selected_class.text_color = color
+                self.selected_class.update_box()
+                
+    def change_text_font_and_size(self):
+        """
+        Open a font dialog to select a new text font and size then apply it to the selected UML class box's text.
+        The font will be applied based on the currently selected text color.
+        """
+        if self.selected_class:
+            # Open the font dialog and allow the user to select a font and size
+            font, ok = QtWidgets.QFontDialog.getFont(self.selected_class.class_name_text.font())
+            
+            if ok:
+                # Apply the selected font to all text elements in the UMLClassBox
+                if self.selected_class.field_list:
+                    for field_text in self.selected_class.field_list.values():
+                        field_text.setFont(font)
+                if self.selected_class.method_list:
+                    for method_text in self.selected_class.method_list.values():
+                        method_text.setFont(font)
+                if self.selected_class.parameter_list:
+                    for param_text in self.selected_class.parameter_list.values():
+                        param_text.setFont(font)
+                self.selected_class.class_name_text.setFont(font)
+
+                # Ensure later added text will use this font too
+                self.selected_class.default_text_font = font
                 self.selected_class.update_box()
 
     def set_grid_visible(self, visible):
@@ -1072,3 +1110,104 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             self.set_light_mode()
         else:
             self.set_dark_mode()
+            
+    def export_pdf(self):
+        """
+        Export the current scene to a PDF file.
+
+        This method creates a high-resolution PDF file that contains the entire scene.
+        The user is prompted to select the save location and file name for the PDF file, 
+        and the scene is rendered onto the PDF using a QPainter object.
+
+        Steps:
+        1. The user selects a file location and name using QFileDialog.
+        2. The scene is rendered into the PDF file using a QPrinter object.
+        3. The file is saved to the selected location.
+        
+        Raises:
+            None: This method handles errors internally (e.g., user cancels the file save dialog).
+        """
+        # Create a printer object for high-resolution PDF export
+        printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
+        
+        # Set output file name for PDF
+        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
+        
+        # Open a QFileDialog to let the user select the location and file name
+        output_pdf_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Save PDF", "", "PDF Files (*.pdf)")
+    
+         # Check if the user canceled the dialog or did not select a file
+        if not output_pdf_path:
+            return  # Exit if the user cancels the dialog
+
+        # Ensure the file has a .pdf extension
+        if not output_pdf_path.endswith(".pdf"):
+            output_pdf_path += ".pdf"
+            
+        # Set the output file name for the PDF
+        printer.setOutputFileName(output_pdf_path)
+            
+        # Create a QPainter to paint the scene on the printer
+        painter = QtGui.QPainter(printer)
+        
+        # Render the scene into the PDF file
+        self.scene().render(painter)
+        
+        # Finish the painting and save the PDF
+        painter.end()
+        
+        QtWidgets.QMessageBox.information(None, "Export", f"The scene has been exported to {output_pdf_path }.pdf")
+        
+    def export_png(self):
+        """
+        Export the entire GridView scene to a high-resolution PNG image file.
+        
+        This method captures the entire scene of the GridView, and allows the user to select 
+        a location and name for saving the PNG file with improved resolution.
+        
+        Steps:
+        1. The user selects a file location and name using QFileDialog.
+        2. A QImage object is created to fit the entire scene.
+        3. The scene is rendered into the QImage using a QPainter.
+        4. The image is saved as a PNG file.
+        """
+        # Open a QFileDialog to let the user select the location and file name for the PNG
+        output_png_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Save PNG", "", "PNG Files (*.png)")
+
+        # Check if the user canceled the dialog or did not select a file
+        if not output_png_path:
+            return  # Exit if the user cancels the dialog
+
+        # Ensure the file has a .png extension
+        if not output_png_path.endswith(".png"):
+            output_png_path += ".png"
+
+        # Get the bounding rectangle of the entire scene to capture everything
+        scene_rect = self.scene().itemsBoundingRect()
+
+        # Increase resolution by scaling the QImage size
+        scale_factor = 1  # Increase this to generate a higher-resolution PNG
+        image_width = int(scene_rect.width() * scale_factor)
+        image_height = int(scene_rect.height() * scale_factor)
+
+        # Create a high-resolution QImage
+        image = QtGui.QImage(image_width, image_height, QtGui.QImage.Format_ARGB32)
+        image.fill(QtCore.Qt.white)  # Optional: Fill background with white
+
+        # Create a QPainter to paint the scene onto the QImage
+        painter = QtGui.QPainter(image)
+
+        # Apply scaling to render at a higher resolution
+        painter.scale(scale_factor, scale_factor)
+
+        # Render the scene onto the QImage
+        self.scene().render(painter)
+
+        # End the QPainter
+        painter.end()
+
+        # Save the image to the selected PNG file location
+        image.save(output_png_path, "PNG")
+
+        # Inform the user that the export was successful
+        QtWidgets.QMessageBox.information(None, "Export", f"The scene has been exported to {output_png_path}")

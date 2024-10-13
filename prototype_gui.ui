@@ -90,6 +90,8 @@
    <addaction name="rename_param"/>
    <addaction name="replace_param"/>
    <addaction name="separator"/>
+   <addaction name="export_pdf"/>
+   <addaction name="export_png"/>
    <addaction name="reset_view"/>
    <addaction name="change_grid_color"/>
    <addaction name="toggle_mode"/>
@@ -371,6 +373,16 @@
   <action name="replace_param">
    <property name="text">
     <string>Replace Parameter</string>
+   </property>
+  </action>
+  <action name="export_pdf">
+   <property name="text">
+    <string>PDF</string>
+   </property>
+  </action>
+  <action name="export_png">
+   <property name="text">
+    <string>PNG</string>
    </property>
   </action>
  </widget>
