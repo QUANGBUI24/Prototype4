@@ -101,6 +101,13 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.save_as_action.triggered.connect(self.save_as_gui)
         self.save_action.triggered.connect(self.save_gui)
         
+        #################################################################
+        self.export_pdf_action = self.findChild(QtWidgets.QAction, "export_pdf")
+        self.export_png_action = self.findChild(QtWidgets.QAction, "export_png")
+        
+        self.export_pdf_action.triggered.connect(self.export_pdf_gui)
+        self.export_png_action.triggered.connect(self.export_png_gui)
+        
     #################################################################
     ### EVENT FUNCTIONS ###
     
@@ -193,7 +200,13 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         Switch between light and dark modes.
         """
         self.grid_view.toggle_mode()
-
+#################################################################
+### UTILITY ###
+    def export_pdf_gui(self):
+        self.grid_view.export_pdf()
+        
+    def export_png_gui(self):
+        self.grid_view.export_png()
 #################################################################
 ### WINDOW EVENTS ###
     def closeEvent(self, event):
