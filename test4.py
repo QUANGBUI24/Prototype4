@@ -89,7 +89,8 @@ class GraphicsView(QtWidgets.QGraphicsView):
             self.rubber_band.hide()
             self.rubber_band = None
         super().mouseReleaseEvent(event)
-
+        
+        
     def select_items_in_rect(self, rect):
         """
         Select all items within the provided rectangular area.
