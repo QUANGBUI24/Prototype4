@@ -1,158 +1,185 @@
 import sys
-from PyQt5 import QtCore, QtWidgets, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 
-class UMLHandle(QtWidgets.QGraphicsEllipseItem):
-    def __init__(self, box, handle_name, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.box = box  # Keep reference to the UMLClassBox
-        self.handle_name = handle_name
-
-        # Set handle appearance
-        self.setRect(-5, -5, 10, 10)  # Small circle handles
-        self.setPen(QtGui.QPen(QtGui.QColor(30, 144, 255)))  # Blue border
-        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # White fill
-
-        # Set handle properties
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
-        self.setAcceptHoverEvents(True)
-
-    def hoverEnterEvent(self, event):
-        """Change cursor when hovering over the handle."""
-        if self.handle_name in ['top_left', 'bottom_right']:
-            self.box.setCursor(QtCore.Qt.SizeFDiagCursor)
-        elif self.handle_name in ['top_right', 'bottom_left']:
-            self.box.setCursor(QtCore.Qt.SizeBDiagCursor)
-        event.accept()
-
-    def hoverLeaveEvent(self, event):
-        """Reset cursor when leaving the handle."""
-        self.box.setCursor(QtCore.Qt.ArrowCursor)
-        event.accept()
+# Custom QGraphicsView that handles rubber band selection
+class GridGraphicsView(QtWidgets.QGraphicsView):
+    def __init__(self, scene, parent=None):
+        super().__init__(scene, parent)
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
+        self.rubber_band = None
+        self.is_using_rubber_band = False
+        self.origin_point = QtCore.QPointF()
 
     def mousePressEvent(self, event):
-        """Handle mouse press events for resizing the box."""
-        self.box.start_resizing(self.handle_name)
-        event.accept()
+        item = self.itemAt(event.pos())
+        if isinstance(item, UMLClassBox):
+            self.is_using_rubber_band = False
+        else:
+            self.is_using_rubber_band = True
 
-class UMLClassBox(QtWidgets.QGraphicsRectItem):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Set box appearance and default size
-        self.setRect(50, 50, 150, 100)
-        self.setPen(QtGui.QPen(QtGui.QColor(30, 144, 255)))
-        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 255, 255)))
-
-        # Enable box selection and movement
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
-
-        # Track resizing state
-        self.is_resizing = False
-        self.current_handle = None
-        self.handle_offset = 20  # Move handles away from corners by 20 pixels
-
-        # Initialize handles_list to store the handles
-        self.handles = {}
-
-    def create_handles(self):
-        """Create handles for resizing the box."""
-        self.handles = {
-            'top_left': UMLHandle(self, 'top_left'),
-            'top_right': UMLHandle(self, 'top_right'),
-            'bottom_left': UMLHandle(self, 'bottom_left'),
-            'bottom_right': UMLHandle(self, 'bottom_right'),
-        }
-        for handle in self.handles.values():
-            self.scene().addItem(handle)  # Add handles to the scene
-
-        self.update_handle_positions()
-
-    def update_handle_positions(self):
-        """Update the position of the resize handles."""
-        rect = self.rect()
-        offset = self.handle_offset
-
-        # Move handles outside the box by the offset value
-        self.handles['top_left'].setPos(rect.topLeft().x() - offset, rect.topLeft().y() - offset)
-        self.handles['top_right'].setPos(rect.topRight().x() + offset, rect.topRight().y() - offset)
-        self.handles['bottom_left'].setPos(rect.bottomLeft().x() - offset, rect.bottomLeft().y() + offset)
-        self.handles['bottom_right'].setPos(rect.bottomRight().x() + offset, rect.bottomRight().y() + offset)
-
-    def start_resizing(self, handle_name):
-        """Start resizing the box based on the handle."""
-        self.is_resizing = True
-        self.current_handle = handle_name
+        if event.button() == QtCore.Qt.LeftButton and self.is_using_rubber_band:
+            self.origin_point = event.pos()
+            self.rubber_band = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, self.viewport())
+            self.rubber_band.setGeometry(QtCore.QRect(self.origin_point, QtCore.QSize()))
+            self.rubber_band.show()
+            event.accept()
+        else:
+            super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        """Handle resizing based on the handle being dragged."""
-        if self.is_resizing and self.current_handle:
-            pos = self.mapFromScene(event.scenePos())
-            new_rect = self.rect()
-
-            if self.current_handle == 'top_left':
-                new_rect.setTopLeft(pos)
-            elif self.current_handle == 'top_right':
-                new_rect.setTopRight(pos)
-            elif self.current_handle == 'bottom_left':
-                new_rect.setBottomLeft(pos)
-            elif self.current_handle == 'bottom_right':
-                new_rect.setBottomRight(pos)
-
-            self.setRect(new_rect)
-            self.update_handle_positions()
+        if self.is_using_rubber_band and self.rubber_band:
+            rect = QtCore.QRect(self.origin_point.toPoint(), event.pos()).normalized()
+            self.rubber_band.setGeometry(rect)
+            event.accept()
         else:
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """Stop resizing when the mouse is released."""
+        if self.rubber_band:
+            self.rubber_band.hide()
+            self.rubber_band = None
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
+
+# Custom resize handle class that accepts mouse events
+class ResizeHandle(QtWidgets.QGraphicsEllipseItem):
+    def __init__(self, handle_name, parent=None):
+        super().__init__(parent)
+        self.handle_name = handle_name
+        self.setAcceptHoverEvents(True)
+        self.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+
+    def mousePressEvent(self, event):
+        event.accept()
+
+    def mouseMoveEvent(self, event):
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        event.accept()
+
+# Custom UMLClassBox that can be resized and moved
+class UMLClassBox(QtWidgets.QGraphicsRectItem):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setRect(0, 0, 150, 100)
+        self.setBrush(QtGui.QBrush(QtGui.QColor(200, 200, 255)))
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
+        self.setAcceptHoverEvents(True)
+
         self.is_resizing = False
         self.current_handle = None
-        super().mouseReleaseEvent(event)
+        self.is_box_dragged = False
 
-    def itemChange(self, change, value):
-        """Check when the UMLClassBox is added to the scene."""
-        if change == QtWidgets.QGraphicsItem.ItemSceneChange:
-            if self.scene() is not None:
-                self.create_handles()  # Create handles only after the box is added to the scene
-        return super().itemChange(change, value)
+        self.handle_size = 10
+        self.create_resize_handles()
+        self.update_handle_positions()
 
+    def create_resize_handles(self):
+        self.handles_list = {
+            'top_left': ResizeHandle('top_left', self),
+            'top_right': ResizeHandle('top_right', self),
+            'bottom_left': ResizeHandle('bottom_left', self),
+            'bottom_right': ResizeHandle('bottom_right', self),
+        }
 
-class UMLScene(QtWidgets.QGraphicsScene):
-    """A custom QGraphicsScene that handles multiple UML boxes."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setSceneRect(0, 0, 800, 600)
+        for handle_name, handle in self.handles_list.items():
+            handle.setRect(-self.handle_size / 2, -self.handle_size / 2, self.handle_size, self.handle_size)
+            handle.setPen(QtGui.QPen(QtGui.QColor(0, 0, 0)))
+            handle.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))
+            handle.setZValue(1)  # Ensure handles are on top
 
-        # Create a UMLClassBox and add it to the scene
-        box = UMLClassBox()
-        self.addItem(box)
+    def update_handle_positions(self):
+        rect = self.rect()
+        self.handles_list['top_left'].setPos(rect.topLeft())
+        self.handles_list['top_right'].setPos(rect.topRight())
+        self.handles_list['bottom_left'].setPos(rect.bottomLeft())
+        self.handles_list['bottom_right'].setPos(rect.bottomRight())
 
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            if isinstance(event.target(), ResizeHandle):
+                handle = event.target()
+                self.current_handle = handle.handle_name
+                self.is_resizing = True
+                event.accept()
+            else:
+                self.is_box_dragged = True
+                super().mousePressEvent(event)
+        else:
+            super().mousePressEvent(event)
 
-class UMLView(QtWidgets.QGraphicsView):
-    """A custom QGraphicsView to visualize the UMLScene."""
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.setScene(UMLScene())
+    def mouseMoveEvent(self, event):
+        if self.is_resizing and self.current_handle:
+            self.resize_box(event)
+            event.accept()
+        elif self.is_box_dragged:
+            super().mouseMoveEvent(event)
+            event.accept()
+        else:
+            super().mouseMoveEvent(event)
 
-        # Enable antialiasing for smoother visuals
-        self.setRenderHint(QtGui.QPainter.Antialiasing)
+    def mouseReleaseEvent(self, event):
+        if self.is_resizing:
+            self.is_resizing = False
+            self.current_handle = None
+            event.accept()
+        elif self.is_box_dragged:
+            self.is_box_dragged = False
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
 
+    def resize_box(self, event):
+        pos = self.mapFromScene(event.scenePos())
+        rect = self.rect()
 
-class UMLApp(QtWidgets.QApplication):
-    """The main application."""
-    def __init__(self, sys_argv):
-        super().__init__(sys_argv)
+        if self.current_handle == 'top_left':
+            new_rect = QtCore.QRectF(pos, rect.bottomRight()).normalized()
+        elif self.current_handle == 'top_right':
+            new_rect = QtCore.QRectF(QtCore.QPointF(rect.left(), pos.y()), QtCore.QPointF(pos.x(), rect.bottom())).normalized()
+        elif self.current_handle == 'bottom_left':
+            new_rect = QtCore.QRectF(QtCore.QPointF(pos.x(), rect.top()), QtCore.QPointF(rect.right(), pos.y())).normalized()
+        elif self.current_handle == 'bottom_right':
+            new_rect = QtCore.QRectF(rect.topLeft(), pos).normalized()
+        else:
+            return
 
-        # Create the main window with a UMLView
-        self.main_window = QtWidgets.QMainWindow()
-        self.view = UMLView()
-        self.main_window.setCentralWidget(self.view)
-        self.main_window.resize(800, 600)
-        self.main_window.show()
+        min_size = 50  # Minimum size to prevent inversion
+        if new_rect.width() < min_size or new_rect.height() < min_size:
+            return
 
+        self.prepareGeometryChange()
+        self.setRect(new_rect)
+        self.update_handle_positions()
+
+# Main application
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        scene = QtWidgets.QGraphicsScene()
+        self.view = GridGraphicsView(scene)
+        self.setCentralWidget(self.view)
+
+        # Add some UMLClassBoxes to the scene
+        box1 = UMLClassBox()
+        box1.setPos(50, 50)
+        scene.addItem(box1)
+
+        box2 = UMLClassBox()
+        box2.setPos(250, 150)
+        scene.addItem(box2)
+
+        self.setWindowTitle("UML Class Box with Rubber Band Selection")
+        self.resize(600, 400)
 
 if __name__ == "__main__":
-    app = UMLApp(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
     sys.exit(app.exec_())
