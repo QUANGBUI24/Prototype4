@@ -696,129 +696,156 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     ## MOUSE RELATED ##
 
     def contextMenuEvent(self, event):
-        """Show context menu when right-clicking on the UMLClassBox"""
-        # Create the context menu
+        """
+        Show the context menu when right-clicking on the UMLClassBox or the background. 
+        
+        The context menu provides various options to modify the selected UML class or perform global actions 
+        such as saving and loading UML diagrams.
+        
+        Parameters:
+        - event (QContextMenuEvent): The event that triggers the context menu, typically a right-click on the scene.
+        """
+        
+        # Create the context menu object
         contextMenu = QtWidgets.QMenu()
-            
+
+        # Check if a class is selected
         if self.selected_class:
+            """
+            If a UML class is selected, show the following options for modifying the class's appearance, 
+            fields, methods, and parameters.
+            """
+
             #################################
-            
-            # Add box color options
+            # BOX COLOR OPTION
+            # Add an option to change the color of the class box
             change_box_color_button = contextMenu.addAction("Box Color")
-            # Connect box color options
+            # Connect the action to the change_box_color method, which will open a color dialog
             change_box_color_button.triggered.connect(self.change_box_color)
-            
+
             #################################
-            
-            # Add text color options
+            # TEXT COLOR OPTION
+            # Add an option to change the text color inside the class box
             change_text_color_button = contextMenu.addAction("Text Color")
-            # Connect text color options
+            # Connect the action to the change_text_color method, which opens a color dialog
             change_text_color_button.triggered.connect(self.change_text_color)
-            
+
             #################################
-            
-            # Add text font modification
+            # TEXT FONT OPTION
+            # Add an option to change the font of the text inside the class box
             change_text_font_button = contextMenu.addAction("Text Font")
-            # Connect text font options
+            # Connect the action to the change_text_font_and_size method, allowing the user to change the font and size
             change_text_font_button.triggered.connect(self.change_text_font_and_size)
-            # Add a separator before the class options
-            contextMenu.addSeparator()
-        
-            #################################
             
-            # Add class options
+            # Add a separator for better organization of the menu
+            contextMenu.addSeparator()
+
+            #################################
+            # CLASS MANAGEMENT OPTIONS
+            # Add an option to rename the selected class
             rename_class_button = contextMenu.addAction("Rename Class")
-            # Connect class options to class functions
+            # Connect the rename class action to the rename_class method
             rename_class_button.triggered.connect(self.rename_class)
-            # Add a separator before the field options
+            
+            # Add a separator to separate class management options from field options
             contextMenu.addSeparator()
-            
+
             #################################
-        
-            # Add field options
-            add_field_button = contextMenu.addAction("Add Field")
-            delete_field_button = contextMenu.addAction("Delete Field")
-            rename_field_button = contextMenu.addAction("Rename Field")
-            
-            # Connect field options to field functions
+            # FIELD OPTIONS
+            # Add options to manage fields within the selected class
+            add_field_button = contextMenu.addAction("Add Field")  # Add a field
+            delete_field_button = contextMenu.addAction("Delete Field")  # Delete a field
+            rename_field_button = contextMenu.addAction("Rename Field")  # Rename a field
+
+            # Connect field actions to their respective methods
             add_field_button.triggered.connect(self.add_field)
             delete_field_button.triggered.connect(self.delete_field)
             rename_field_button.triggered.connect(self.rename_field)
-            # Add a separator before the method options
+
+            # Add a separator to separate field options from method options
             contextMenu.addSeparator()
-            
+
             #################################
-        
-            # Add method options
-            add_method_button = contextMenu.addAction("Add Method")
-            delete_method_button = contextMenu.addAction("Delete Method")
-            rename_method_button = contextMenu.addAction("Rename Method")
-            
-            # Connect method options to method functions
+            # METHOD OPTIONS
+            # Add options to manage methods within the selected class
+            add_method_button = contextMenu.addAction("Add Method")  # Add a method
+            delete_method_button = contextMenu.addAction("Delete Method")  # Delete a method
+            rename_method_button = contextMenu.addAction("Rename Method")  # Rename a method
+
+            # Connect method actions to their respective methods
             add_method_button.triggered.connect(self.add_method)
             delete_method_button.triggered.connect(self.delete_method)
             rename_method_button.triggered.connect(self.rename_method)
-        
-            # Add a separator before the parameter options
+
+            # Add a separator to separate method options from parameter options
             contextMenu.addSeparator()
-            
+
             #################################
-        
-            # Add parameter options
-            add_parameter_button = contextMenu.addAction("Add Parameter")
-            delete_parameter_button = contextMenu.addAction("Delete Parameter")
-            rename_parameter_button = contextMenu.addAction("Rename Parameter")
-            replace_parameter_button = contextMenu.addAction("Replace Parameter")
-            
-            # Connect parameter options to parameter functions
+            # PARAMETER OPTIONS
+            # Add options to manage parameters within the selected class
+            add_parameter_button = contextMenu.addAction("Add Parameter")  # Add a parameter
+            delete_parameter_button = contextMenu.addAction("Delete Parameter")  # Delete a parameter
+            rename_parameter_button = contextMenu.addAction("Rename Parameter")  # Rename a parameter
+            replace_parameter_button = contextMenu.addAction("Replace Parameter")  # Replace a parameter
+
+            # Connect parameter actions to their respective methods
             add_parameter_button.triggered.connect(self.add_param)
             delete_parameter_button.triggered.connect(self.delete_param)
             rename_parameter_button.triggered.connect(self.rename_param)
             replace_parameter_button.triggered.connect(self.replace_param)
 
-            #################################  
-
-            # Execute the context menu and get the selected action
+            #################################
+            # Execute the context menu at the global position (where the right-click happened)
             contextMenu.exec_(event.globalPos())
-            self.selected_class.update_box()
-        else:
 
-            #################################  
-            
-            # Add class options
+            # After executing an action, update the class box to reflect changes
+            self.selected_class.update_box()
+
+        else:
+            """
+            If no UML class is selected, display options for adding a class, selecting all classes, 
+            or managing files (open, save, etc.).
+            """
+
+            #################################
+            # CLASS OPTIONS
+            # Add an option to create a new UML class
             add_class_action = contextMenu.addAction("Add Class")
+            # Connect the add_class action to the add_class method
             add_class_action.triggered.connect(self.add_class)
-            
-            # Select all class option
+
+            # Add an option to select all UML classes in the scene
             select_all_class_action = contextMenu.addAction("Select All Class")
+            # Connect the action to a method that selects all items in the grid
             select_all_class_action.triggered.connect(self.select_items_in_rect)
-            
-            # Add a separator before the save button
+
+            # Add a separator before file management options
             contextMenu.addSeparator()
 
-            #################################  
-            
-            # Open button
+            #################################
+            # FILE MANAGEMENT OPTIONS
+            # Add an option to open a folder (load a UML diagram)
             open_action = contextMenu.addAction("Open")
             open_action.triggered.connect(self.open_folder_gui)
-            
-            # Save button
+
+            # Add an option to save the current UML diagram
             save_action = contextMenu.addAction("Save")
             save_action.triggered.connect(self.save_gui)
-            
-            # Save As button
+
+            # Add an option to save the UML diagram as a new file
             save_as_action = contextMenu.addAction("Save As")
             save_as_action.triggered.connect(self.save_as_gui)
 
             # Add a separator before the end session button
             contextMenu.addSeparator()
-            
-            #################################  
-            
-            # End session button
+
+            #################################
+            # SESSION MANAGEMENT OPTION
+            # Add an option to reset the session to the default state (clear everything)
             end_session_action = contextMenu.addAction("Default State")
             end_session_action.triggered.connect(self.end_session)
-            
+
+            # Execute the context menu at the global position (where the right-click happened)
             contextMenu.exec_(event.globalPos())
             
     def wheelEvent(self, event):
@@ -851,25 +878,24 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Handle mouse press events for starting selection, panning, or determining item selection.
         Prevent the rubber band selection from activating when clicking on UMLClassBox handles.
         """
-        item = self.itemAt(event.pos())
-        if isinstance(item, UMLClassBox):
-            self.selected_class = item
-            print("1 - Can't use rubber band!!!!")
-            # First check if the click is on a resize handle before allowing rubber band
-            for handle in self.selected_class.handles_list.values():
-                if handle.isUnderMouse():
-                    # self.is_using_rubber_band = False
-                    print("2 - Can't use rubber band!!!!")
-                    event.accept()  # Accept the event to ensure rubber band logic does not proceed
-                    return
-            # If no handle is under the mouse, allow selection
-            # self.is_using_rubber_band = False
-        else:
-            # self.is_using_rubber_band = True
-            self.selected_class = None
+        #################################################################
+        #################################################################
+        
+        # item = self.itemAt(event.pos())
+        # if isinstance(item, UMLClassBox):
+        #     self.selected_class = item
+        #     # First check if the click is on a resize handle before allowing rubber band
+        #     for handle in self.selected_class.handles_list.values():
+        #         if handle.isUnderMouse():
+        #             # self.is_using_rubber_band = False
+        #             event.accept()  # Accept the event to ensure rubber band logic does not proceed
+        #             return
+        #     # If no handle is under the mouse, allow selection
+        #     # self.is_using_rubber_band = False
+        # else:
+        #     # self.is_using_rubber_band = True
+        #     self.selected_class = None
 
-        #################################################################
-        #################################################################
         # # If no handle is under the mouse and it’s a left-click
         # if event.button() == QtCore.Qt.LeftButton and not self.selected_class and # self.is_using_rubber_band:
         #     print("1 - Able to use rubber band!!!!")
@@ -879,6 +905,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         #     self.rubber_band.setGeometry(QtCore.QRect(event.pos(), event.pos()))
         #     self.rubber_band.show()
         #     event.accept()
+        
         #################################################################
         #################################################################
 
