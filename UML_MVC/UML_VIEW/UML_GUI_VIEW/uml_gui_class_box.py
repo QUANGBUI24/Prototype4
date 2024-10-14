@@ -535,7 +535,11 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                         self.current_handle = handle_name
                         self.is_resizing = True
                         self.update_box()
+                        event.accept()
                         return
+                # Normal drag logic for the box if no handle is under the mouse
+                self.is_box_dragged = True
+                event.accept()
         super().mousePressEvent(event)
         
     def mouseMoveEvent(self, event):
@@ -620,6 +624,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             
             # Update the internal layout and content of the box (e.g., text, handles, connection points)
             self.update_box()
+            event.accept()
         else:
             super().mouseMoveEvent(event)  # Call the parent method if not resizing
 
@@ -635,20 +640,20 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         """
         # If the box was being dragged, snap it to the nearest grid and stop dragging
         if self.is_box_dragged:
+            self.is_box_dragged = False  # Reset dragging flag
             self.snap_to_grid()  # Snap the box to the nearest grid position
             event.accept()
-            self.is_box_dragged = False  # Reset dragging flag
-
         # If the box was being resized, stop the resizing process
         elif self.is_resizing:
             self.is_resizing = False  # Reset resizing flag
             self.current_handle = None  # Reset the handle being resized
+            event.accept()
         super().mouseReleaseEvent(event)  # Call the parent method
 
     #################################################################
     ### UTILITY FUNCTIONS ###
     
-    def snap_to_grid(self, current_grid_size=20):
+    def snap_to_grid(self, current_grid_size=15):
         """
         Snap the UML box to the nearest grid position.
 

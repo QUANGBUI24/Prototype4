@@ -43,6 +43,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
         # Panning state variables
         self.is_panning = False  # Flag to indicate if panning is active
+        # self.is_using_rubber_band = None
         self.last_mouse_pos = None  # Last mouse position during panning
         
         # For the rectangular selection feature
@@ -781,14 +782,20 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.exec_(event.globalPos())
             self.selected_class.update_box()
         else:
+
             #################################  
             
             # Add class options
             add_class_action = contextMenu.addAction("Add Class")
             add_class_action.triggered.connect(self.add_class)
+            
+            # Select all class option
+            select_all_class_action = contextMenu.addAction("Select All Class")
+            select_all_class_action.triggered.connect(self.select_items_in_rect)
+            
             # Add a separator before the save button
             contextMenu.addSeparator()
-            
+
             #################################  
             
             # Open button
@@ -835,48 +842,49 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     def mousePressEvent(self, event):
         """
         Handle mouse press events for starting selection, panning, or determining item selection.
-
-        This function handles different behaviors based on the mouse button pressed:
-        - Left-click: Begins the rectangular selection using a rubber band rectangle.
-        - Middle-click: Initiates the panning behavior, allowing the user to move the view by dragging.
-
-        Parameters:
-        - event (QMouseEvent): The mouse event, providing information about which button was pressed, the position of the cursor, etc.
+        Prevent the rubber band selection from activating when clicking on UMLClassBox handles.
         """
-        if event.button() == QtCore.Qt.LeftButton and not self.selected_class:
-            # Record the starting point of the selection in scene coordinates
-            self.origin_point = self.mapToScene(event.pos())
-            
-            # Create a rubber band (selection rectangle) to visualize the selection area
-            self.rubber_band = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, self.viewport())
-            
-            # Set the initial geometry of the rubber band to the starting point
-            self.rubber_band.setGeometry(QtCore.QRect(event.pos(), event.pos()))
-            
-            # Show the rubber band on the view
-            self.rubber_band.show()
-
-        # Determine if the cursor is over a UMLClassBox or an Arrow
         item = self.itemAt(event.pos())
         if isinstance(item, UMLClassBox):
-            # If the clicked item is a class box, select the class and deselect any arrow
             self.selected_class = item
+            print("1 - Can't use rubber band!!!!")
+            # First check if the click is on a resize handle before allowing rubber band
+            for handle in self.selected_class.handles_list.values():
+                if handle.isUnderMouse():
+                    # self.is_using_rubber_band = False
+                    print("2 - Can't use rubber band!!!!")
+                    event.accept()  # Accept the event to ensure rubber band logic does not proceed
+                    return
+            # If no handle is under the mouse, allow selection
+            # self.is_using_rubber_band = False
         else:
-            # If no relevant item is clicked, deselect both class and arrow
+            # self.is_using_rubber_band = True
             self.selected_class = None
 
+        #################################################################
+        #################################################################
+        # # If no handle is under the mouse and it’s a left-click
+        # if event.button() == QtCore.Qt.LeftButton and not self.selected_class and # self.is_using_rubber_band:
+        #     print("1 - Able to use rubber band!!!!")
+        #     # Start the rubber band selection
+        #     self.origin_point = self.mapToScene(event.pos())
+        #     self.rubber_band = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, self.viewport())
+        #     self.rubber_band.setGeometry(QtCore.QRect(event.pos(), event.pos()))
+        #     self.rubber_band.show()
+        #     event.accept()
+        #################################################################
+        #################################################################
+
+        # Panning logic for middle mouse button
         if event.button() == QtCore.Qt.MiddleButton:
             # Start panning mode when the middle mouse button is pressed
             self.is_panning = True
-            # Record the last position of the mouse to track the movement
             self.last_mouse_pos = event.pos()
-            # Change the cursor to a closed hand to indicate panning mode
             self.setCursor(QtCore.Qt.ClosedHandCursor)
             event.accept()
 
-        # Call the parent class's mousePressEvent to ensure default behavior
+        # Call the parent class's mousePressEvent for default behavior
         super().mousePressEvent(event)
-
 
     def mouseMoveEvent(self, event):
         """
@@ -889,12 +897,16 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Parameters:
         - event (QMouseEvent): The mouse event, providing the current mouse position, buttons pressed, etc.
         """
-        if not self.selected_class:
-            if self.rubber_band:
-                # Update the rubber band rectangle as the mouse moves
-                rect = QtCore.QRectF(self.origin_point, self.mapToScene(event.pos())).normalized()
-                self.rubber_band.setGeometry(self.mapFromScene(rect).boundingRect())
-
+        #################################################################
+        #################################################################
+        # if not self.selected_class and # self.is_using_rubber_band and self.rubber_band:
+        #     print("2 - Able to use rubber band!!!!")
+        #     # Update the rubber band rectangle as the mouse moves
+        #     rect = QtCore.QRectF(self.origin_point, self.mapToScene(event.pos())).normalized()
+        #     self.rubber_band.setGeometry(self.mapFromScene(rect).boundingRect())
+        #################################################################
+        #################################################################
+        
         if self.is_panning and self.last_mouse_pos is not None:
             # If panning is active, calculate the delta (movement) of the mouse
             delta = event.pos() - self.last_mouse_pos
@@ -923,17 +935,21 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Parameters:
         - event (QMouseEvent): The mouse event, providing information about the button released and the position.
         """
-        if self.rubber_band:
-            # Get the final rectangle defined by the rubber band
-            rubber_band_rect = self.rubber_band.geometry()
-            # Convert the rubber band rectangle from view coordinates to scene coordinates
-            selection_rect = self.mapToScene(rubber_band_rect).boundingRect()
-            # Select all items within the rubber band rectangle
-            self.select_items_in_rect(selection_rect)
-            # Hide and delete the rubber band
-            self.rubber_band.hide()
-            self.rubber_band = None
-            self.selected_class = None # Deselect any selected class after releasing
+        #################################################################
+        #################################################################
+        # if self.rubber_band:
+        #     # Get the final rectangle defined by the rubber band
+        #     rubber_band_rect = self.rubber_band.geometry()
+        #     # Convert the rubber band rectangle from view coordinates to scene coordinates
+        #     selection_rect = self.mapToScene(rubber_band_rect).boundingRect()
+        #     # Hide and delete the rubber band
+        #     self.rubber_band.hide()
+        #     self.rubber_band = None
+        #     # Select all items within the rubber band rectangle
+        #     self.select_items_in_rect(selection_rect)
+        #     # self.is_using_rubber_band = False
+        #################################################################
+        #################################################################
 
         if event.button() == QtCore.Qt.MiddleButton and self.is_panning:
             # End panning mode when the middle mouse button is released
@@ -970,9 +986,11 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         items_in_rect = self.scene().items(rect)
         for item in self.scene().selectedItems():
-            item.setSelected(False)  # Deselect previously selected items
+            if isinstance(item, UMLClassBox):
+                item.setSelected(False)  # Deselect previously selected items
         for item in items_in_rect:
-            item.setSelected(True)  # Select new items in the rectangle
+            if isinstance(item, UMLClassBox):
+                item.setSelected(True)  # Select new items in the rectangle
 
     def update_snap(self):
         """
