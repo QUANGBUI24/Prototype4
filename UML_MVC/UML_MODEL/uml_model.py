@@ -1178,8 +1178,10 @@ class UMLModel:
         self.__console.print("\n[bold yellow]Please provide a name for the file you'd like to load.[/bold yellow]")
         self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
         # Display the list of saved files
-        save_list = self.__storage_manager._get_saved_list()
-        self.__user_view._display_saved_list(save_list)
+        saved_list = self.__storage_manager._get_saved_list()
+        is_saved_list_not_empty = self.__user_view._display_saved_list(saved_list)
+        if not is_saved_list_not_empty:
+            return
         self.__console.print("[bold yellow]==>[/bold yellow] ", end="")
         user_input = input()
         # Prevent loading NAME_LIST.json

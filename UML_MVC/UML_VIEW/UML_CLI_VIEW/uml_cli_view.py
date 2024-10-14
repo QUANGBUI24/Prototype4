@@ -368,7 +368,7 @@ class UMLView(Observer):
         """
         if len(saved_list) == 0:
             self.console.print("\n[bold red]No saved file exists![/bold red]")
-            return
+            return False
 
         table = Table(title="\n[bold white]Saved Files[bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
         table.add_column("File Name", justify="center", style="bold white")
@@ -379,6 +379,7 @@ class UMLView(Observer):
 
         # Print the saved files table
         self.console.print(table)
+        return True
     
     def _ask_user_choices(self, action: str) -> bool:
         """
