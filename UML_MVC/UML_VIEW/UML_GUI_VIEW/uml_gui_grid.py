@@ -810,7 +810,14 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             save_as_action = contextMenu.addAction("Save As")
             save_as_action.triggered.connect(self.save_as_gui)
 
+            # Add a separator before the end session button
+            contextMenu.addSeparator()
+            
             #################################  
+            
+            # End session button
+            end_session_action = contextMenu.addAction("Default State")
+            end_session_action.triggered.connect(self.end_session)
             
             contextMenu.exec_(event.globalPos())
             
@@ -1073,6 +1080,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 # Ensure later added text will use this font too
                 self.selected_class.default_text_font = font
                 self.selected_class.update_box()
+                
+    def end_session(self):
+        self.clear_current_scene()
+        self.interface.end_session()
 
     def set_grid_visible(self, visible):
         """

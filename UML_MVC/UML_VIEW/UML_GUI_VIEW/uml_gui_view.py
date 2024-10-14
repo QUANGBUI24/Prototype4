@@ -93,6 +93,7 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.replace_param_action.triggered.connect(self.replace_param_gui) 
         
         #################################################################
+        
         self.open_folder_action = self.findChild(QtWidgets.QAction, "Open")
         self.save_as_action = self.findChild(QtWidgets.QAction, "SaveAs")
         self.save_action = self.findChild(QtWidgets.QAction, "Save")
@@ -102,11 +103,18 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.save_action.triggered.connect(self.save_gui)
         
         #################################################################
+        
+        self.default_state_action = self.findChild(QtWidgets.QAction, "default_state")
+        self.default_state_action.triggered.connect(self.end_session_gui)
+        
+        #################################################################
+        
         self.export_pdf_action = self.findChild(QtWidgets.QAction, "export_pdf")
         self.export_png_action = self.findChild(QtWidgets.QAction, "export_png")
         
         self.export_pdf_action.triggered.connect(self.export_pdf_gui)
         self.export_png_action.triggered.connect(self.export_png_gui)
+        
         
     #################################################################
     ### EVENT FUNCTIONS ###
@@ -165,6 +173,9 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
     
     def save_gui(self):
         self.grid_view.save_gui()
+        
+    def end_session_gui(self):
+        self.grid_view.end_session()
 
     ## GRID EVENTS ##
 
