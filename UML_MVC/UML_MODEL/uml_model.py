@@ -1133,7 +1133,7 @@ class UMLModel:
         # Display the list of saved files
         saved_list = self.__storage_manager._get_saved_list()
         self.__user_view._display_saved_list(saved_list)
-        self.__console.print("[bold yellow]==>[/bold yellow] ", end="")
+        self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
         user_input = input()
         # Prevent user from overriding NAME_LIST.json
         if user_input == "NAME_LIST":
@@ -1178,8 +1178,10 @@ class UMLModel:
         self.__console.print("\n[bold yellow]Please provide a name for the file you'd like to load.[/bold yellow]")
         self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
         # Display the list of saved files
-        save_list = self.__storage_manager._get_saved_list()
-        self.__user_view._display_saved_list(save_list)
+        saved_list = self.__storage_manager._get_saved_list()
+        is_saved_list_not_empty = self.__user_view._display_saved_list(saved_list)
+        if not is_saved_list_not_empty:
+            return
         self.__console.print("[bold yellow]==>[/bold yellow] ", end="")
         user_input = input()
         # Prevent loading NAME_LIST.json
@@ -1206,10 +1208,20 @@ class UMLModel:
         The data is loaded and the program's state is updated.
         """
         # Load data from the file and update program state
-        main_data = self.__main_data = self.__storage_manager._load_data_from_json(file_name)
+        main_data = self.__main_data = self.__storage_manager._load_data_from_json_gui(file_path)
         self.__update_data_members_gui(main_data, graphical_view)
         self.__check_file_and_set_status(file_name)
         self._check_file_and_set_status_gui(file_path)
+        
+    def _sync_saved_file_between_cli_and_gui(self, file_name=None, file_path=None):
+        if file_name:
+            is_saved_file_exist = self._check_saved_file_exist(file_name)
+            if not is_saved_file_exist:
+                self.__storage_manager._add_name_to_saved_file(file_name)
+        if file_path:
+            is_saved_file_exist = self._check_saved_file_exist_gui(file_path)
+            if not is_saved_file_exist:
+                self.__storage_manager._add_name_to_saved_file_gui(file_path)
 
     # Update main data to store data to JSON file #
     def __update_main_data_from_loaded_file(self, user_input: str, class_data_list: List, relationship_data_list: List, file_path=None) -> Dict:
@@ -1334,6 +1346,9 @@ class UMLModel:
         self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
         saved_list = self.__storage_manager._get_saved_list()
         self.__user_view._display_saved_list(saved_list)
+        is_saved_list_not_empty = self.__user_view._display_saved_list(saved_list)
+        if not is_saved_list_not_empty:
+            return
         user_input = input()
         if user_input == "NAME_LIST":
             self.__console.print(f"\n[bold red]You can't delete file [bold white]'{user_input}.json'[/bold white][/bold red]")
@@ -1370,6 +1385,23 @@ class UMLModel:
         for element in saved_list:
             for name in element:
                 if file_name == name:
+                    return True
+        return False
+    
+    def _check_saved_file_exist_gui(self, file_path: str):
+        """
+        Checks if a saved file exists by looking for the file name in the saved list.
+
+        Args:
+            file_name (str): The name of the file to check.
+
+        Returns:
+            bool: True if the file exists, False otherwise.
+        """
+        saved_list = self.__storage_manager._get_saved_list_gui()
+        for element in saved_list:
+            for path in element:
+                if file_path == path:
                     return True
         return False
     

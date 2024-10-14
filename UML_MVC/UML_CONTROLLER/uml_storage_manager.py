@@ -5,6 +5,10 @@ import json
 import os
 from typing import List, Dict
 
+# Get the root directory where the main.py file exists
+root_directory = os.path.dirname(os.path.abspath(__file__))  # This gets the current script's directory
+root_directory = os.path.abspath(os.path.join(root_directory, "..", ".."))  # Move to the root directory (where main.py is)
+
 ###################################################################################################
 
 class UMLStorageManager:
@@ -116,7 +120,8 @@ class UMLStorageManager:
         Returns:
             None
         """
-        file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
+        # Create the file path to save the file in the root directory
+        file_path = os.path.join(root_directory, f"{file_name}.json")
         try:
             # If the file does not exist, create and write the data
             if not os.path.exists(file_path):
@@ -181,7 +186,33 @@ class UMLStorageManager:
             dict: The UML data loaded from the JSON file.
             None: If there is a file not found error or JSON decoding error.
         """
-        file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
+        # Create the file path to save the file in the root directory
+        file_path = os.path.join(root_directory, f"{file_name}.json")
+        try:
+            with open(file_name, "r") as file:
+                data = json.load(file)
+                return data
+        except FileNotFoundError:
+            # Handle the case where the file is not found
+            print(f"File {file_path} not found.")
+            return None
+        except json.JSONDecodeError:
+            # Handle JSON decoding errors
+            print(f"\nError decoding JSON from {file_path}.")
+            return None
+        
+    # Load UML data from a specified JSON file #
+    def _load_data_from_json_gui(self, file_path: str):
+        """
+        Load UML data from a specified JSON file.
+
+        Args:
+            file_name (str): The name of the file to load data from.
+
+        Returns:
+            dict: The UML data loaded from the JSON file.
+            None: If there is a file not found error or JSON decoding error.
+        """
         try:
             with open(file_path, "r") as file:
                 data = json.load(file)
@@ -206,13 +237,16 @@ class UMLStorageManager:
         Returns:
             None
         """
-        file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST.json"
+        # Create the file path to save the file in the root directory
+        file_path = os.path.join(root_directory, f"{file_name}.json")
         saved_list = self.__saved_file_name_list
+        saved_list_gui = self.__saved_file_name_list_gui
         # Avoid duplicate file names
         for pair in saved_list:
             if file_name in pair:
                 return
         saved_list.append({file_name: "off"})
+        saved_list_gui.append({file_path : "off"})
         try:
             # Write the updated saved list to the file
             with open(file_path, "w") as file:
