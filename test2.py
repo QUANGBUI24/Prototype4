@@ -1,109 +1,158 @@
 import sys
-from PyQt5.QtCore import Qt, QPointF
-from PyQt5.QtGui import QPen, QPainterPath, QPainter
-from PyQt5.QtWidgets import (
-    QApplication, QGraphicsScene, QGraphicsView, QGraphicsPathItem, 
-    QGraphicsTextItem, QGraphicsItem
-)
-from math import atan2, cos, sin
+from PyQt5 import QtCore, QtWidgets, QtGui
 
-class Arrow(QGraphicsPathItem):
-    def __init__(self, start_point, end_point, parent=None):
-        super().__init__(parent)
-        self.start_point = start_point
-        self.end_point = end_point
+class UMLHandle(QtWidgets.QGraphicsEllipseItem):
+    def __init__(self, box, handle_name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.box = box  # Keep reference to the UMLClassBox
+        self.handle_name = handle_name
 
-        # Create a QGraphicsTextItem for the arrow label
-        self.text_item = QGraphicsTextItem("Double click to edit", self)
-        self.text_item.setFlag(QGraphicsItem.ItemIsSelectable, True)
-        self.text_item.setFlag(QGraphicsItem.ItemIsMovable, True)
-        self.text_item.setTextInteractionFlags(Qt.NoTextInteraction)  # Start with no text interaction
+        # Set handle appearance
+        self.setRect(-5, -5, 10, 10)  # Small circle handles
+        self.setPen(QtGui.QPen(QtGui.QColor(30, 144, 255)))  # Blue border
+        self.setBrush(QtGui.QBrush(QtGui.QColor(255, 255, 255)))  # White fill
 
-        self.setPen(QPen(Qt.black, 2))
-        self.update_arrow()
+        # Set handle properties
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, False)
+        self.setAcceptHoverEvents(True)
 
-    def update_arrow(self):
-        path = QPainterPath(self.start_point)
-        path.lineTo(self.end_point)
+    def hoverEnterEvent(self, event):
+        """Change cursor when hovering over the handle."""
+        if self.handle_name in ['top_left', 'bottom_right']:
+            self.box.setCursor(QtCore.Qt.SizeFDiagCursor)
+        elif self.handle_name in ['top_right', 'bottom_left']:
+            self.box.setCursor(QtCore.Qt.SizeBDiagCursor)
+        event.accept()
 
-        # Calculate the angle of the arrow line
-        angle = atan2(self.end_point.y() - self.start_point.y(), self.end_point.x() - self.start_point.x())
-        
-        # Arrowhead dimensions
-        arrow_size = 10
-        arrow_p1 = QPointF(self.end_point.x() - arrow_size * cos(angle - 0.5), self.end_point.y() - arrow_size * sin(angle - 0.5))
-        arrow_p2 = QPointF(self.end_point.x() - arrow_size * cos(angle + 0.5), self.end_point.y() - arrow_size * sin(angle + 0.5))
-
-        # Add the arrowhead
-        path.moveTo(self.end_point)
-        path.lineTo(arrow_p1)
-        path.moveTo(self.end_point)
-        path.lineTo(arrow_p2)
-
-        self.setPath(path)
-
-        # Position the QGraphicsTextItem above the middle of the arrow
-        mid_point = (self.start_point + self.end_point) / 2
-        self.text_item.setPos(mid_point.x() - 50, mid_point.y() - 30)
-
-class ArrowScene(QGraphicsScene):
-    def __init__(self):
-        super().__init__()
-        self.setSceneRect(0, 0, 800, 600)
-        self.current_arrow = None
-        self.start_point = None
+    def hoverLeaveEvent(self, event):
+        """Reset cursor when leaving the handle."""
+        self.box.setCursor(QtCore.Qt.ArrowCursor)
+        event.accept()
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.RightButton:
-            self.start_point = event.scenePos()
-            self.current_arrow = Arrow(self.start_point, self.start_point)
-            self.addItem(self.current_arrow)
+        """Handle mouse press events for resizing the box."""
+        self.box.start_resizing(self.handle_name)
+        event.accept()
 
-        super().mousePressEvent(event)
+class UMLClassBox(QtWidgets.QGraphicsRectItem):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Set box appearance and default size
+        self.setRect(50, 50, 150, 100)
+        self.setPen(QtGui.QPen(QtGui.QColor(30, 144, 255)))
+        self.setBrush(QtGui.QBrush(QtGui.QColor(0, 255, 255)))
+
+        # Enable box selection and movement
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemSendsGeometryChanges)
+
+        # Track resizing state
+        self.is_resizing = False
+        self.current_handle = None
+        self.handle_offset = 20  # Move handles away from corners by 20 pixels
+
+        # Initialize handles_list to store the handles
+        self.handles = {}
+
+    def create_handles(self):
+        """Create handles for resizing the box."""
+        self.handles = {
+            'top_left': UMLHandle(self, 'top_left'),
+            'top_right': UMLHandle(self, 'top_right'),
+            'bottom_left': UMLHandle(self, 'bottom_left'),
+            'bottom_right': UMLHandle(self, 'bottom_right'),
+        }
+        for handle in self.handles.values():
+            self.scene().addItem(handle)  # Add handles to the scene
+
+        self.update_handle_positions()
+
+    def update_handle_positions(self):
+        """Update the position of the resize handles."""
+        rect = self.rect()
+        offset = self.handle_offset
+
+        # Move handles outside the box by the offset value
+        self.handles['top_left'].setPos(rect.topLeft().x() - offset, rect.topLeft().y() - offset)
+        self.handles['top_right'].setPos(rect.topRight().x() + offset, rect.topRight().y() - offset)
+        self.handles['bottom_left'].setPos(rect.bottomLeft().x() - offset, rect.bottomLeft().y() + offset)
+        self.handles['bottom_right'].setPos(rect.bottomRight().x() + offset, rect.bottomRight().y() + offset)
+
+    def start_resizing(self, handle_name):
+        """Start resizing the box based on the handle."""
+        self.is_resizing = True
+        self.current_handle = handle_name
 
     def mouseMoveEvent(self, event):
-        if self.current_arrow:
-            self.current_arrow.end_point = event.scenePos()
-            self.current_arrow.update_arrow()
+        """Handle resizing based on the handle being dragged."""
+        if self.is_resizing and self.current_handle:
+            pos = self.mapFromScene(event.scenePos())
+            new_rect = self.rect()
 
-        super().mouseMoveEvent(event)
+            if self.current_handle == 'top_left':
+                new_rect.setTopLeft(pos)
+            elif self.current_handle == 'top_right':
+                new_rect.setTopRight(pos)
+            elif self.current_handle == 'bottom_left':
+                new_rect.setBottomLeft(pos)
+            elif self.current_handle == 'bottom_right':
+                new_rect.setBottomRight(pos)
+
+            self.setRect(new_rect)
+            self.update_handle_positions()
+        else:
+            super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.RightButton and self.current_arrow:
-            # Finalize the arrow placement
-            self.current_arrow.end_point = event.scenePos()
-            self.current_arrow.update_arrow()
-            self.current_arrow = None
-
+        """Stop resizing when the mouse is released."""
+        self.is_resizing = False
+        self.current_handle = None
         super().mouseReleaseEvent(event)
 
-    def mouseDoubleClickEvent(self, event):
-        # Handle text editing on double-click
-        item = self.itemAt(event.scenePos(), self.views()[0].transform())
-        if isinstance(item, QGraphicsTextItem):
-            item.setTextInteractionFlags(Qt.TextEditorInteraction)
-            item.setFocus(Qt.MouseFocusReason)
+    def itemChange(self, change, value):
+        """Check when the UMLClassBox is added to the scene."""
+        if change == QtWidgets.QGraphicsItem.ItemSceneChange:
+            if self.scene() is not None:
+                self.create_handles()  # Create handles only after the box is added to the scene
+        return super().itemChange(change, value)
 
-        super().mouseDoubleClickEvent(event)
 
-    def focusOutEvent(self, event):
-        # Disable text editing once focus is lost
-        for item in self.items():
-            if isinstance(item, QGraphicsTextItem):
-                item.setTextInteractionFlags(Qt.NoTextInteraction)
-        super().focusOutEvent(event)
+class UMLScene(QtWidgets.QGraphicsScene):
+    """A custom QGraphicsScene that handles multiple UML boxes."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setSceneRect(0, 0, 800, 600)
 
-class ArrowView(QGraphicsView):
-    def __init__(self):
-        super().__init__()
-        self.setScene(ArrowScene())
-        self.setRenderHint(QPainter.Antialiasing)
+        # Create a UMLClassBox and add it to the scene
+        box = UMLClassBox()
+        self.addItem(box)
 
-def main():
-    app = QApplication(sys.argv)
-    view = ArrowView()
-    view.show()
-    sys.exit(app.exec_())
+
+class UMLView(QtWidgets.QGraphicsView):
+    """A custom QGraphicsView to visualize the UMLScene."""
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setScene(UMLScene())
+
+        # Enable antialiasing for smoother visuals
+        self.setRenderHint(QtGui.QPainter.Antialiasing)
+
+
+class UMLApp(QtWidgets.QApplication):
+    """The main application."""
+    def __init__(self, sys_argv):
+        super().__init__(sys_argv)
+
+        # Create the main window with a UMLView
+        self.main_window = QtWidgets.QMainWindow()
+        self.view = UMLView()
+        self.main_window.setCentralWidget(self.view)
+        self.main_window.resize(800, 600)
+        self.main_window.show()
+
 
 if __name__ == "__main__":
-    main()
+    app = UMLApp(sys.argv)
+    sys.exit(app.exec_())

@@ -536,6 +536,8 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                         self.is_resizing = True
                         self.update_box()
                         return
+                # Normal drag logic for the box if no handle is under the mouse
+                self.is_box_dragged = True
         super().mousePressEvent(event)
         
     def mouseMoveEvent(self, event):
@@ -635,10 +637,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         """
         # If the box was being dragged, snap it to the nearest grid and stop dragging
         if self.is_box_dragged:
+            self.is_box_dragged = False  # Reset dragging flag
             self.snap_to_grid()  # Snap the box to the nearest grid position
             event.accept()
-            self.is_box_dragged = False  # Reset dragging flag
-
         # If the box was being resized, stop the resizing process
         elif self.is_resizing:
             self.is_resizing = False  # Reset resizing flag
