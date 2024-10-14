@@ -673,13 +673,13 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Save to current active file, if no active file, prompt user to create new json file
         """
-        current_active_file_path = self.interface.get_active_file_gui()
-        if current_active_file_path == "No active file!":
+        current_active_file = self.interface.get_active_file()
+        if current_active_file is None:
             self.save_as_gui()
         else:
-            file_base_name = os.path.basename(current_active_file_path)
+            file_base_name = os.path.basename(current_active_file)
             file_name_only = os.path.splitext(file_base_name)[0]
-            self.interface.save_gui(file_name_only, current_active_file_path)     
+            self.interface.save_gui(file_name_only)     
     
     def clear_current_scene(self):
         """

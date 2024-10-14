@@ -45,34 +45,6 @@ class UMLStorageManager:
             print(f"\nError decoding JSON from {file_path}.")
             return None
         
-        # This function loads the saved file name list at the beginning of the program #
-    @staticmethod
-    def load_name_gui():
-        """
-        Load the list of saved file names from 'NAME_LIST.json' at the start of the program.
-        
-        Returns:
-            list: A list of dictionaries containing saved file names and their status ('on'/'off').
-            None: If there is a file not found error or JSON decoding error.
-        """
-        file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST_GUI.json"
-        try:
-            # Check if the file is empty
-            if os.stat(file_path).st_size == 0:
-                return []
-            # Load data from the JSON file
-            with open(file_path, "r") as file:
-                data = json.load(file)
-                return data
-        except FileNotFoundError:
-            # Handle the case where the file is not found
-            print(f"\nFile {file_path} not found.")
-            return None
-        except json.JSONDecodeError:
-            # Handle JSON decoding errors (e.g., if the file is not in proper JSON format)
-            print(f"\nError decoding JSON from {file_path}.")
-            return None
-        
     #################################################################
     
     # UML storage manager constructor #
@@ -80,8 +52,28 @@ class UMLStorageManager:
         """
         Initializes the UMLStorageManager by loading the saved file name list into memory.
         """
-        self.__saved_file_name_list: List[Dict] = self.load_name()
-        self.__saved_file_name_list_gui: List[Dict] = self.load_name_gui()
+        self.__saved_file_name_list: List[str] = self.load_name()
+        
+        # Active file tracking (default to None)
+        self.active_file = None
+        
+    def _set_active_file(self, file_name: str):
+        """
+        Set the active file for tracking.
+        
+        Args:
+            file_name (str): The file name or full path of the active file.
+        """
+        self.active_file = file_name
+
+    def _get_active_file(self) -> str:
+        """
+        Get the current active file.
+        
+        Returns:
+            str: The file name or full path of the active file.
+        """
+        return self.active_file
         
     # Getter to retrieve the list of saved file names #
     def _get_saved_list(self) -> List[Dict]:
@@ -92,15 +84,6 @@ class UMLStorageManager:
             List[Dict]: A list of dictionaries with file names and their statuses.
         """
         return self.__saved_file_name_list
-    
-    def _get_saved_list_gui(self) -> List[Dict]:
-        """
-        Retrieve the current list of saved file names and their statuses ('on'/'off').
-
-        Returns:
-            List[Dict]: A list of dictionaries with file names and their statuses.
-        """
-        return self.__saved_file_name_list_gui
         
     #################################################################
     ### MEMBER FUNCTIONS ###
@@ -124,6 +107,7 @@ class UMLStorageManager:
         try:
             # If the file does not exist, create and write the data
             if not os.path.exists(file_path):
+                self._set_active_file(file_name)
                 with open(file_path, "w") as json_file:
                     json.dump(main_data, json_file, indent=4)
                     return
@@ -185,6 +169,7 @@ class UMLStorageManager:
             dict: The UML data loaded from the JSON file.
             None: If there is a file not found error or JSON decoding error.
         """
+        self._set_active_file(file_name)
         # Create the file path to save the file in the root directory
         file_path = os.path.join(root_directory, f"{file_name}.json")
         try:
@@ -214,19 +199,18 @@ class UMLStorageManager:
         file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST.json"
         saved_list = self.__saved_file_name_list
         # Avoid duplicate file names
-        for pair in saved_list:
-            if file_name in pair:
-                return
-        saved_list.append({file_name: "off"})
+        if file_name in saved_list:
+            return
+        saved_list.append(file_name)
         try:
             # Write the updated saved list to the file
             with open(file_path, "w") as file:
                 json.dump(saved_list, file, indent=4)
         except FileNotFoundError:
-            print(f"\nFile {file_path} not found.")
+            print(f"\nFile {file_name} not found.")
             return None
         except json.JSONDecodeError:
-            print(f"\nError decoding JSON from {file_path}.")
+            print(f"\nError decoding JSON from {file_name}.")
             return None
         
     # Update the saved file list with new information #
@@ -245,58 +229,6 @@ class UMLStorageManager:
             # Write the updated saved list to the file
             with open(file_path, "w") as file:
                 json.dump(saved_list, file, indent=4)
-        except FileNotFoundError:
-            print(f"\nFile {file_path} not found.")
-            return None
-        except json.JSONDecodeError:
-            print(f"\nError decoding JSON from {file_path}.")
-            return None
-        
-    # Add name to saved list for GUI #
-    def _add_name_to_saved_file_gui(self, file_path: str):
-        """
-        Add a new file name to the saved file name list and store it in 'NAME_LIST_GUI.json'.
-
-        Args:
-            file_name (str): The name of the file to be added to the saved list.
-
-        Returns:
-            None
-        """
-        file_name_path = "UML_UTILITY/SAVED_FILES/NAME_LIST_GUI.json"
-        saved_list_gui = self.__saved_file_name_list_gui
-        # Avoid duplicate file names
-        for pair in saved_list_gui:
-            if file_path in pair:
-                return
-        saved_list_gui.append({file_path: "off"})
-        try:
-            # Write the updated saved list to the file
-            with open(file_name_path, "w") as file:
-                json.dump(saved_list_gui, file, indent=4)
-        except FileNotFoundError:
-            print(f"\nFile {file_name_path} not found.")
-            return None
-        except json.JSONDecodeError:
-            print(f"\nError decoding JSON from {file_name_path}.")
-            return None
-        
-    # Update the saved file list with new information #
-    def _update_saved_list_gui(self, saved_list_gui: List[Dict]):
-        """
-        Update the saved file name list and store it in 'NAME_LIST.json'.
-
-        Args:
-            saved_list (List[Dict]): The updated list of saved files.
-
-        Returns:
-            None
-        """
-        file_path = "UML_UTILITY/SAVED_FILES/NAME_LIST_GUI.json"
-        try:
-            # Write the updated saved list to the file
-            with open(file_path, "w") as file:
-                json.dump(saved_list_gui, file, indent=4)
         except FileNotFoundError:
             print(f"\nFile {file_path} not found.")
             return None

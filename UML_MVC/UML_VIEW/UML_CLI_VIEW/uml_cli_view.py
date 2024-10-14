@@ -373,10 +373,9 @@ class UMLView(Observer):
         table = Table(title="\n[bold white]Saved Files[bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
         table.add_column("File Name", justify="center", style="bold white")
 
-        for dictionary in saved_list:
-            for key in dictionary:
-                table.add_row(key)
-
+        for saved_file_name in saved_list:
+            table.add_row(saved_file_name)
+                
         # Print the saved files table
         self.console.print(table)
         return True

@@ -458,7 +458,7 @@ class UMLInterface:
         self.Model._save()
         
     # Save data GUI #
-    def save_gui(self, file_name, file_path):
+    def save_gui(self, file_name, full_path):
         """
         Saves the UML diagram data to a specified file and path for GUI-based saving.
 
@@ -466,7 +466,7 @@ class UMLInterface:
             file_name: The name of the file to save.
             file_path: The path where the file will be saved.
         """
-        self.Model._save_gui(file_name, file_path)
+        self.Model._save_gui(file_name, full_path)
         
     # Load data #
     def load(self):
@@ -495,16 +495,6 @@ class UMLInterface:
             str: The name of the active file.
         """
         return self.Model._get_active_file()
-    
-    # Get active file GUI #
-    def get_active_file_gui(self) -> str:
-        """
-        Retrieves the name of the currently active file in the UML editor.
-
-        Returns:
-            str: The name of the active file.
-        """
-        return self.Model._get_active_file_gui()
     
     # Saved file name check #
     def saved_file_name_check(self, file_name: str) -> bool:
@@ -599,7 +589,7 @@ class UMLInterface:
         while True:
             # Display the current active file in the interface
             current_active_file: str = self.get_active_file()
-            if current_active_file != "No active file!":
+            if current_active_file:
                 current_active_file = current_active_file + ".json"
             self.Console.print(f"\n[bold yellow](Current active file: [bold white]{current_active_file}[/bold white])[/bold yellow]")
             self.Console. print("\n[bold yellow]==>[/bold yellow] ", end="")

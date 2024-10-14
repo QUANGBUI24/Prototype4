@@ -1152,6 +1152,7 @@ class UMLModel:
         main_data = self.__update_main_data_from_loaded_file(user_input, class_data_list, relationship_data_list)
         # Save data to JSON file
         self.__storage_manager._save_data_to_json(user_input, main_data)
+        self.__storage_manager._update_saved_list(saved_list)
         self.__console.print(f"\n[bold green]Successfully saved data to [bold white]'{user_input}.json'![/bold white][/bold green]")
 
     # Save for GUI #
@@ -1167,7 +1168,7 @@ class UMLModel:
         class_data_list = []
         relationship_data_list = []
         # Update main data with class and relationship information
-        main_data = self.__update_main_data_from_loaded_file(file_name, class_data_list, relationship_data_list, file_path=full_path)
+        main_data = self.__update_main_data_from_loaded_file(file_name, class_data_list, relationship_data_list)
         # Save data to JSON via the GUI
         self.__storage_manager._save_data_to_json_gui(full_path, main_data)
 
@@ -1202,7 +1203,6 @@ class UMLModel:
         # Load data from the file and update program state
         main_data = self.__main_data = self.__storage_manager._load_data_from_json(user_input)
         self.__update_data_members(main_data)
-        self.__check_file_and_set_status(user_input)
         self.__console.print(f"\n[bold green]Successfully loaded data from [bold white]'{user_input}.json'[/bold white]![/bold green]")
         
     def _load_gui(self, file_name: str, file_path: str, graphical_view: GUIView):
@@ -1212,9 +1212,10 @@ class UMLModel:
         """
         # Load data from the file and update program state
         main_data = self.__main_data = self.__storage_manager._load_data_from_json(file_name)
+        is_path_exist = self._check_saved_file_exist(file_path)
+        if not is_path_exist:
+            self.__storage_manager._add_name_to_saved_file(file_name)
         self.__update_data_members_gui(main_data, graphical_view)
-        self.__check_file_and_set_status(file_name)
-        self._check_file_and_set_status_gui(file_path)
 
     # Update main data to store data to JSON file #
     def __update_main_data_from_loaded_file(self, user_input: str, class_data_list: List, relationship_data_list: List, file_path=None) -> Dict:
@@ -1234,8 +1235,6 @@ class UMLModel:
         main_data = self.__main_data
         # Add the file name to the saved list if it is a new one
         self.__storage_manager._add_name_to_saved_file(user_input)
-        if file_path is not None:
-            self.__storage_manager._add_name_to_saved_file_gui(file_path)
         # Format classes for JSON storage
         for class_name in self.__class_list:
             class_data_format = self._class_json_format(class_name)
@@ -1348,13 +1347,11 @@ class UMLModel:
             return
         is_file_exist = self._check_saved_file_exist(user_input)
         if not is_file_exist:
-            self.__console.print(f"[bold red]File [bold white]'{user_input}.json'[/bold white] does not exist![/bold red]")
+            self.__console.print(f"\n[bold red]File [bold white]'{user_input}.json'[/bold white] does not exist![/bold red]")
             return
         # Remove the file from saved list and filesystem
         save_list = self.__storage_manager._get_saved_list()
-        for dictionary in save_list:
-            if user_input in dictionary:
-                save_list.remove(dictionary)
+        save_list.remove(user_input)
         self.__storage_manager._update_saved_list(save_list)
         file_path = os.path.join(root_directory, f"{user_input}.json")
         os.remove(file_path)
@@ -1372,19 +1369,13 @@ class UMLModel:
             bool: True if the file exists, False otherwise.
         """
         saved_list = self.__storage_manager._get_saved_list()
-        for element in saved_list:
-            for name in element:
-                if file_name == name:
-                    return True
-        return False
+        return file_name in saved_list
     
     # End session and return to blank state #
     def _end_session(self):
         """
         Ends the current session and resets the program to its default blank state by resetting all data and turning off active files.
         """
-        self.__set_all_file_off()
-        self._set_all_file_off_gui()
         self._reset_storage()
         self.__console.print("\n[bold green]Successfully back to default program![/bold green]")
     
@@ -1396,27 +1387,7 @@ class UMLModel:
         Returns:
             str: The name of the active file, or 'No active file!' if none is active.
         """
-        saved_list = self.__storage_manager._get_saved_list()
-        for each_dictionary in saved_list:
-            for key, val in each_dictionary.items():
-                if val == "on":
-                    return key
-        return "No active file!"
-    
-    # Get active file #
-    def _get_active_file_gui(self) -> str:
-        """
-        Retrieves the name of the currently active file if one exists.
-
-        Returns:
-            str: The name of the active file, or 'No active file!' if none is active.
-        """
-        saved_list = self.__storage_manager._get_saved_list_gui()
-        for each_dictionary in saved_list:
-            for key, val in each_dictionary.items():
-                if val == "on":
-                    return key
-        return "No active file!"
+        return self.__storage_manager._get_active_file()
     
     # Clear data in the current active file #
     def _clear_current_active_data(self):
@@ -1428,7 +1399,7 @@ class UMLModel:
             self.__console.print("\n[bold red]No active file to clear data![bold red]")
             return
         current_active_file = self._get_active_file()
-        if current_active_file == "No active file!":
+        if current_active_file is None:
             self.__console.print("\n[bold red]No active file![bold red]")
             return
         self._reset_storage()
@@ -1440,91 +1411,7 @@ class UMLModel:
         """
         Exits the program, turning off any active file and cleaning up.
         """
-        self.__set_all_file_off()
-        self._set_all_file_off_gui()
         self.__console.print("\n[bold green]Exited Program[/bold green]")
-    
-    # Set all files' status to 'off' #
-    def __set_all_file_off(self):
-        """
-        Resets the status of all files in the saved list, setting their status to 'off' (inactive).
-        """
-        # CLI
-        saved_list = self.__storage_manager._get_saved_list()
-        for each_dictionary in saved_list:
-            for key in each_dictionary:
-                each_dictionary[key] = "off"
-        self.__storage_manager._update_saved_list(saved_list)
-
-    # Set a specific file's status #
-    def __set_file_status(self, file_name: str, status: str):
-        """
-        Sets the status of a specific file in the saved list.
-
-        Args:
-            file_name (str): The name of the file.
-            status (str): The new status to assign to the file ('on' or 'off').
-        """
-        saved_list = self.__storage_manager._get_saved_list()
-        for each_dictionary in saved_list:
-            for key in each_dictionary:
-                if key == file_name:
-                    each_dictionary[key] = status
-    
-    # Check and set file status #
-    def __check_file_and_set_status(self, file_name: str) -> str:
-        """
-        Ensures only the selected file is marked as 'on', setting all others to 'off'.
-
-        Args:
-            file_name (str): The name of the file to activate.
-        """
-        saved_list = self.__storage_manager._get_saved_list()
-        for each_dictionary in saved_list:
-            for key in each_dictionary:
-                if each_dictionary[key] == "on":
-                    each_dictionary[key] = "off"
-        self.__set_file_status(file_name, status="on")
-        self.__storage_manager._update_saved_list(saved_list)
-    
-    # Set all files' status to 'off' #
-    def _set_all_file_off_gui(self):
-        saved_list = self.__storage_manager._get_saved_list_gui()
-        for each_dictionary in saved_list:
-            for key in each_dictionary:
-                each_dictionary[key] = "off"
-        self.__storage_manager._update_saved_list_gui(saved_list)
-    
-    # Set a specific file's status #
-    def _set_file_status_gui(self, file_path: str, status: str):
-        """
-        Sets the status of a specific file in the saved list.
-
-        Args:
-            file_name (str): The name of the file.
-            status (str): The new status to assign to the file ('on' or 'off').
-        """
-        saved_list = self.__storage_manager._get_saved_list_gui()
-        for each_dictionary in saved_list:
-            for key in each_dictionary:
-                if key == file_path:
-                    each_dictionary[key] = status
-                    
-    # Check and set file status #
-    def _check_file_and_set_status_gui(self, file_path: str) -> str:
-        """
-        Ensures only the selected file is marked as 'on', setting all others to 'off'.
-
-        Args:
-            file_name (str): The name of the file to activate.
-        """
-        saved_list = self.__storage_manager._get_saved_list_gui()
-        for each_dictionary in saved_list:
-            for key in each_dictionary:
-                if each_dictionary[key] == "on":
-                    each_dictionary[key] = "off"
-        self._set_file_status_gui(file_path, status="on")
-        self.__storage_manager._update_saved_list_gui(saved_list)
     
     # Reset all storage (classes, relationships, and main data) #
     def _reset_storage(self):
@@ -1550,11 +1437,7 @@ class UMLModel:
             bool: True if the file name exists, False if it does not.
         """
         saved_list = self.__storage_manager._get_saved_list()
-        for each_pair in saved_list:
-            for file_name in each_pair:
-                if file_name == save_file_name:
-                    return True
-        return False
+        return save_file_name in saved_list
     
     # Update main data for every action #
     def _update_main_data_for_every_action(self):
