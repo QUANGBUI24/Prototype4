@@ -528,7 +528,7 @@ class UMLModel:
             self.__console.print("\n[bold red]Wrong format! Please try again![/bold red]")
             
     # Add relationship #
-    def _add_relationship(self, source_class_name: str, destination_class_name: str, rel_type: str, is_loading: bool):
+    def _add_relationship(self, source_class_name: str, destination_class_name: str, rel_type: str, is_loading: bool, is_gui: bool):
         """
         Adds a new relationship between two UML classes. Notifies observers of the relationship addition event.
 
@@ -538,12 +538,27 @@ class UMLModel:
             rel_type (str): The type of the relationship (e.g., aggregation, composition).
             is_loading (bool): Flag indicating whether the operation is part of loading saved data.
         """
+        if is_gui:
+            # Validate class and relationship existence
+            is_source_class_exist = self.__validate_class_existence(source_class_name, should_exist=True)
+            is_destination_class_exist = self.__validate_class_existence(destination_class_name, should_exist=True)
+            if not is_source_class_exist or not is_destination_class_exist:
+                return False
+            # Check if the relationship already exists
+            is_relationship_exist = self.__relationship_exist(source_class_name, destination_class_name)
+            if is_relationship_exist:
+                return False
+            # Validate relationship type
+            is_type_exist = self.__validate_type_existence(rel_type, should_exist=True)
+            if not is_type_exist:
+                return False
         # Create a new relationship and add it to the relationship list
         new_relationship = self.create_relationship(source_class_name, destination_class_name, rel_type)
         self.__relationship_list.append(new_relationship)
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.ADD_REL.value, data={"source": source_class_name, "dest": destination_class_name, "type": rel_type}, is_loading=is_loading)
+        return True
         
     # Delete relationship #
     def _delete_relationship(self, source_class_name: str, destination_class_name: str):

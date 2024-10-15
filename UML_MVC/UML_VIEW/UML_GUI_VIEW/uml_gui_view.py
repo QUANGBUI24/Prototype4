@@ -97,7 +97,16 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.delete_param_action.triggered.connect(self.delete_param_gui)
         self.rename_param_action.triggered.connect(self.rename_param_gui)
         self.replace_param_action.triggered.connect(self.replace_param_gui)
-
+        
+        #################################################################
+        # Actions for managing relationship (add, delete, replace type)
+        self.add_rel_action = self.findChild(QtWidgets.QAction, "add_rel")  # Add parameter
+        self.delete_rel_action = self.findChild(QtWidgets.QAction, "delete_rel")  # Delete parameter
+        
+        # Connect UML relationship actions to their respective methods
+        self.add_rel_action.triggered.connect(self.add_rel_gui)
+        # self.delete_rel_action.triggered.connect(self.delete_rel_gui)
+        
         #################################################################
         # File management actions (open folder, save, save as)
         self.open_folder_action = self.findChild(QtWidgets.QAction, "Open")  # Open folder
@@ -211,6 +220,14 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         Replace an existing parameter in a method with a new one.
         """
         self.grid_view.replace_param()
+    
+    #################################################################
+    ## RELATIONSHIP EVENTS ##
+    def add_rel_gui(self):
+        """
+        Add a relationship from source class to destination class with type.
+        """
+        self.grid_view.add_relationship()
 
     #################################################################
     ## FILE MANAGEMENT ##

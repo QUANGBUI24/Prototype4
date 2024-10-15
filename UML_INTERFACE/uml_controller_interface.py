@@ -378,7 +378,7 @@ class UMLInterface:
     ## RELATIONSHIP RELATED ##
     
     # Add relationship interface #
-    def add_relationship(self, source_class_name: str, destination_class_name: str, type: str):
+    def add_relationship_gui(self, source_class_name: str, destination_class_name: str, type: str):
         """
         Adds a relationship between two UML classes by delegating the operation to the model.
 
@@ -387,7 +387,7 @@ class UMLInterface:
             destination_class_name (str): The name of the destination class.
             type (str): The type of relationship.
         """
-        self.Model._add_relationship(source_class_name, destination_class_name, type, is_loading=False)
+        return self.Model._add_relationship(source_class_name=source_class_name, destination_class_name=destination_class_name, rel_type=type, is_loading=False, is_gui=True)
     
     # Delete relationship interface #
     def delete_relationship(self, source_class_name: str, destination_class_name: str):
