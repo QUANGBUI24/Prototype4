@@ -1369,6 +1369,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 
     def end_session(self):
         self.clear_current_scene()
+        self.class_name_list = []
         self.interface.end_session()
 
     def set_grid_visible(self, visible):
