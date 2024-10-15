@@ -622,7 +622,78 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-            
+    
+    def add_relationship(self, loaded_source_name=None, loaded_dest_name=None, loaded_rel_type=None, is_loading=False):
+        """
+        Add a relationship between UML class boxes, either during loading or interactively.
+
+        This function either loads a relationship into the UML diagram during the loading process or allows the user
+        to add a new relationship interactively through a dialog box. It updates the UML diagram accordingly.
+
+        Args:
+            loaded_source_name (str): The name of the source class for the relationship (used during loading).
+            loaded_dest_name (str): The name of the destination class for the relationship (used during loading).
+            loaded_rel_type (str): The type of relationship (e.g., inheritance, aggregation, etc.).
+            is_loading (bool): Whether the function is being called during the loading process.
+        """
+        if is_loading:
+            # Handle relationship loading process
+            source_class_box, dest_class_box = None, None
+            for item in self.scene().items():
+                if isinstance(item, UMLClassBox):
+                    if item.class_name_text.toPlainText() == loaded_source_name:
+                        source_class_box = item
+                    elif item.class_name_text.toPlainText() == loaded_dest_name:
+                        dest_class_box = item
+
+            if source_class_box and dest_class_box:
+                is_relationship_added = self.interface.add_relationship(loaded_source_name, loaded_dest_name, loaded_rel_type)
+                if is_relationship_added:
+                    self.update_relationships_in_view(source_class_box, dest_class_box, loaded_rel_type)
+                else:
+                    QtWidgets.QMessageBox.warning(None, "Warning", "Failed to add relationship!")
+            else:
+                QtWidgets.QMessageBox.warning(None, "Warning", "Source or destination class not found during loading!")
+        
+        else:
+            # Interactive relationship creation
+            if self.selected_class:
+                # Ask user for source class name
+                source_name, ok_source = QtWidgets.QInputDialog.getText(None, "Add Relationship", "Enter source class name:")
+                if not ok_source or not source_name:
+                    return  # User canceled or provided invalid input
+
+                # Ask user for destination class name
+                dest_name, ok_dest = QtWidgets.QInputDialog.getText(None, "Add Relationship", "Enter destination class name:")
+                if not ok_dest or not dest_name:
+                    return  # User canceled or provided invalid input
+
+                # Ask user for relationship type
+                rel_type, ok_type = QtWidgets.QInputDialog.getText(None, "Add Relationship", "Enter relationship type (e.g., Inheritance, Aggregation):")
+                if not ok_type or not rel_type:
+                    return  # User canceled or provided invalid input
+
+                # Ensure that the source and destination are not the same
+                if source_name == dest_name:
+                    QtWidgets.QMessageBox.warning(None, "Warning", "Cannot create a relationship from a class to itself!")
+                    return
+
+                # Check if both classes exist in the scene
+                source_class_box = self.find_class_box_by_name(source_name)
+                dest_class_box = self.find_class_box_by_name(dest_name)
+
+                if source_class_box and dest_class_box:
+                    # Add the relationship via the model/interface without type validation
+                    is_relationship_added = self.interface.add_relationship(source_name, dest_name, rel_type)
+                    if is_relationship_added:
+                        self.update_relationships_in_view(source_class_box, dest_class_box, rel_type)
+                    else:
+                        QtWidgets.QMessageBox.warning(None, "Warning", "Failed to add relationship!")
+                else:
+                    QtWidgets.QMessageBox.warning(None, "Warning", "Source or destination class not found!")
+            else:
+                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+
     def open_folder_gui(self):
         """
         Open a file dialog to allow the user to select a JSON file for loading into the application.
@@ -1017,6 +1088,22 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
     #################################################################
     ## UTILITY FUNCTIONS ##
+
+    def find_class_box_by_name(self, class_name: str):
+        """
+        Finds the UML class box in the scene by its class name.
+
+        Args:
+            class_name (str): The name of the class to search for.
+
+        Returns:
+            UMLClassBox: The class box if found, None otherwise.
+        """
+        for item in self.scene().items():
+            # Access the class name using class_name_text.toPlainText()
+            if isinstance(item, UMLClassBox) and item.class_name_text.toPlainText() == class_name:
+                return item
+        return None
     
     def select_items_in_rect(self, rect):
         """

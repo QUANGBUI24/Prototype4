@@ -90,6 +90,10 @@
    <addaction name="rename_param"/>
    <addaction name="replace_param"/>
    <addaction name="separator"/>
+   <addaction name="add_relationship"/>
+   <addaction name="delete_relationship"/>
+   <addaction name="change_relationship"/>
+   <addaction name="separator"/>
    <addaction name="default_state"/>
    <addaction name="export_pdf"/>
    <addaction name="export_png"/>
@@ -374,6 +378,21 @@
   <action name="replace_param">
    <property name="text">
     <string>Replace Parameter</string>
+   </property>
+  </action>
+  <action name="add_relationship">
+   <property name="text">
+    <string>Add Relationship</string>
+   </property>
+  </action>
+  <action name="delete_relationship">
+   <property name="text">
+    <string>Delete Relationship</string>
+   </property>
+  </action>
+  <action name="change_relationship">
+   <property name="text">
+    <string>Change Relationship</string>
    </property>
   </action>
   <action name="export_pdf">

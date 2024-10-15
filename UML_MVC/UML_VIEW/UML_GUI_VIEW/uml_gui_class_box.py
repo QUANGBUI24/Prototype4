@@ -20,7 +20,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     It contains attributes like class name, fields, methods, parameters, 
     and provides handles for resizing the box.
     """
-    def __init__(self, interface, class_name="ClassName", field_list=None, method_list=None, parameter_list=None, parent=None):
+    def __init__(self, interface, class_name="ClassName", field_list=None, method_list=None, parameter_list=None,relationship_list=None, parent=None):
         """
         Initialize the UMLTestBox with default settings, including the class name, fields, methods, and handles.
         
@@ -51,6 +51,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.parameter_list: Dict = parameter_list if parameter_list is not None else {}
         self.parameter_name_list: List = []
         
+        self.relationship_list: Dict = relationship_list if relationship_list is not None else {}
+        self.relationship_name_list: List = []
+
         self.handles_list: List = []
         self.connection_points_list: List = []
 
@@ -146,6 +149,8 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Align the methods and parameters within the UML box
         self.update_method_and_param_alignment()
+
+        self.update_relationships()
 
         # Update the separators between the class name, fields, and methods
         self.update_separators()
@@ -296,7 +301,34 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
                     # Update y_offset after positioning the parameter (incremented by the height of the parameter)
                     y_offset += param_text.boundingRect().height()
-            
+
+    def update_relationships(self):
+        """
+        Aligns relationships under methods and parameters.
+        """
+        y_offset = self.class_name_text.boundingRect().height() + self.get_field_text_height() + self.get_method_text_height() + self.get_total_param_text_height() + self.default_margin
+
+        for relationship_name in self.relationship_name_list:
+            relationship_text = self.relationship_list[relationship_name]
+
+            # Calculate the x-position for the relationship text
+            relationship_x_pos = self.rect().topLeft().x() + self.default_margin
+
+            # Set the position of the relationship text
+            relationship_text.setPos(relationship_x_pos, self.rect().topLeft().y() + y_offset)
+
+            # Increment y_offset for the next relationship
+            y_offset += relationship_text.boundingRect().height()
+
+     # Add relationships as text items under method and param sections
+    def add_relationship(self, source_class: str, destination_class: str, rel_type: str):
+        """
+        Adds a relationship text item under methods and parameters.
+        """
+        relationship_text = self.create_text_item(f"{rel_type} ({source_class} -> {destination_class})")
+        self.relationship_name_list.append(f"{source_class}->{destination_class}")
+        self.relationship_list[f"{source_class}->{destination_class}"] = relationship_text
+        self.update_box()
     #################################
     
     def create_separator(self, is_first=True):

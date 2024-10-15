@@ -98,6 +98,10 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.rename_param_action.triggered.connect(self.rename_param_gui)
         self.replace_param_action.triggered.connect(self.replace_param_gui)
 
+        # Actions for managing parameters (add, delete, rename, replace)
+        self.add_relationship_action = self.findChild(QtWidgets.QAction, "add_relationship")  # Add parameter
+        
+        self.add_relationship_action.triggered.connect(self.add_relationship_gui)
         #################################################################
         # File management actions (open folder, save, save as)
         self.open_folder_action = self.findChild(QtWidgets.QAction, "Open")  # Open folder
@@ -211,6 +215,12 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         Replace an existing parameter in a method with a new one.
         """
         self.grid_view.replace_param()
+
+    #################################################################
+    ## RELATIONSHIP EVENT ##
+
+    def add_relationship_gui(self):
+        self.grid_view.add_relationship()
 
     #################################################################
     ## FILE MANAGEMENT ##
