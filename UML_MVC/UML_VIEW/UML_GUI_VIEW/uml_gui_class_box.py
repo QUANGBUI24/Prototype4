@@ -79,7 +79,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         #################################
         
         # Define bounding rectangle of the class box
-        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width, self.default_box_height)
+        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width + self.default_margin * 3, self.default_box_height + self.default_margin)
         # Set border color (Dodger Blue)
         self.setPen(QtGui.QPen(QtGui.QColor(30,144,255)))  
         # Set background color (cyan)
@@ -348,30 +348,30 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             rel_x_pos = self.rect().topLeft().x() + self.default_margin
 
             # Display source only if "source: " is not already present
-            if not source_text.toPlainText().startswith("source:"):
-                source_label = f"source: {source_text.toPlainText()}"
+            if not source_text.toPlainText().startswith("Source:"):
+                source_label = f"Source: {source_text.toPlainText()}"
                 source_text.setPlainText(source_label)
 
             # Set position of source
             source_text.setPos(rel_x_pos, self.rect().topLeft().y() + y_offset)
 
             # Increment y_offset to display the destination below the source
-            y_offset += source_text.boundingRect().height() + self.default_margin
+            y_offset += source_text.boundingRect().height()
 
             # Display destination only if "dest: " is not already present
-            if not dest_text.toPlainText().startswith("dest:"):
-                dest_label = f"dest: {dest_text.toPlainText()}"
+            if not dest_text.toPlainText().startswith("Dest:"):
+                dest_label = f"Dest: {dest_text.toPlainText()}"
                 dest_text.setPlainText(dest_label)
 
             # Set position of destination
             dest_text.setPos(rel_x_pos, self.rect().topLeft().y() + y_offset)
 
             # Increment y_offset to display the type below the destination
-            y_offset += dest_text.boundingRect().height() + self.default_margin
+            y_offset += dest_text.boundingRect().height()
 
             # Display type only if "type: " is not already present
-            if not type_text.toPlainText().startswith("type:"):
-                type_label = f"type: {type_text.toPlainText()}"
+            if not type_text.toPlainText().startswith("Type:"):
+                type_label = f"Type: {type_text.toPlainText()}"
                 type_text.setPlainText(type_label)
 
             # Set position of type
