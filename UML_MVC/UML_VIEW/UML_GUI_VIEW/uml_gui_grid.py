@@ -738,7 +738,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.selected_class.source_class_list.remove(source)
         self.selected_class.dest_class_list.remove(dest)
 
-
     #################################################################
     def open_folder_gui(self):
         """
