@@ -721,7 +721,7 @@ class UMLModel:
             destination_name = each_relationship._get_destination_class()
             if source_name == current_name:
                 each_relationship._set_source_class(new_name)
-            elif destination_name == current_name:
+            if destination_name == current_name:
                 each_relationship._set_destination_class(new_name)
                 
     # Get method and parameter list of a chosen class #
@@ -1308,7 +1308,7 @@ class UMLModel:
                         self._add_parameter(class_name, method_name, param_name, is_loading=True)
         # Recreate relationships from the loaded data
         for each_dictionary in relationship_data:
-            self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
+            self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True, is_gui=False)
             
     def __update_data_members_gui(self, main_data: Dict, graphical_view: GUIView):
         """
@@ -1339,7 +1339,13 @@ class UMLModel:
                         graphical_view.add_param(class_name, method_name, param_name, is_loading=True)
         # Recreate relationships from the loaded data
         for each_dictionary in relationship_data:
-            graphical_view.add_relationship(class_name, each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
+            graphical_view.add_relationship(
+                loaded_class_name=each_dictionary["source"],
+                loaded_source_class=each_dictionary["source"],
+                loaded_dest_class=each_dictionary["destination"],
+                loaded_type=each_dictionary["type"],
+                is_loading=True
+            )
             
     # Extract class, field, method, and parameters from json file #
     def _extract_class_data(self, class_data: List[Dict]) -> List[Dict[str, Dict[str, List | Dict]]]:
