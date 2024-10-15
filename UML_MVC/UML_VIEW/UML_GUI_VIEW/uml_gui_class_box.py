@@ -79,7 +79,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         #################################
         
         # Define bounding rectangle of the class box
-        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width, self.default_box_height)
+        self.setRect(self.default_box_x, self.default_box_y, self.default_box_width + self.default_margin * 3, self.default_box_height + self.default_margin)
         # Set border color (Dodger Blue)
         self.setPen(QtGui.QPen(QtGui.QColor(30,144,255)))  
         # Set background color (cyan)
@@ -128,6 +128,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         - Updating the positions of resize handles.
         - Adjusting connection points for relationships.
         - Aligning fields, methods, and parameters.
+        - Aligning relationships.
         - Updating the separators between different sections (class name, fields, methods).
 
         This ensures that all elements in the UML box are correctly positioned and scaled 
@@ -188,10 +189,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Calculate the total height required for the box, including margins
         total_height = (class_name_height + fields_text_height + method_text_height 
-                        + parameter_text_height + relationship_text_height + self.default_margin * 2)
+                        + parameter_text_height + relationship_text_height + self.default_margin * 3)
 
         # Calculate the maximum width required by the content
-        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
+        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 3
 
         # If the box is not being resized manually or dragged, adjust the size of the box
         # Ensure the total height is greater than the current height before resizing
@@ -323,14 +324,8 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     
     def update_relationship_alignment(self):
         """
-        Aligns the relationship text items (source, dest, type) in the UML class box, displaying
-        each relationship in a column format as follows:
-        
-        source: source_name
-        dest: dest_name
-        type: type_name
-        
-        Each relationship is displayed below the previous one, with the y_offset adjusted accordingly.
+        Aligns the relationship text items (source, dest, type) in the UML class box, 
+        explicitly using labels for "Source: ", "Dest: ", and "Type: ".
         """
         # Starting y-position for the first relationship (below the class name, fields, and methods)
         y_offset = (self.class_name_text.boundingRect().height() 
@@ -339,6 +334,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                     + self.get_total_param_text_height() 
                     + self.default_margin)
 
+        # Iterate over the relationships in the list and reposition them
         for relationship in self.relationship_list:
             source_text = relationship["source"]
             dest_text = relationship["dest"]
@@ -347,39 +343,51 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             # Calculate the x-position for the relationship text (aligned to the left of the box)
             rel_x_pos = self.rect().topLeft().x() + self.default_margin
 
-            # Display source only if "source: " is not already present
-            if not source_text.toPlainText().startswith("source:"):
-                source_label = f"source: {source_text.toPlainText()}"
-                source_text.setPlainText(source_label)
+            # Check if the labels already exist before creating them
+            if "source_label" not in relationship:
+                source_label = self.create_text_item("Source: ", selectable=False)
+                relationship["source_label"] = source_label
+                self.scene().addItem(source_label)
+            else:
+                source_label = relationship["source_label"]
 
-            # Set position of source
-            source_text.setPos(rel_x_pos, self.rect().topLeft().y() + y_offset)
+            if "dest_label" not in relationship:
+                dest_label = self.create_text_item("Dest: ", selectable=False)
+                relationship["dest_label"] = dest_label
+                self.scene().addItem(dest_label)
+            else:
+                dest_label = relationship["dest_label"]
 
-            # Increment y_offset to display the destination below the source
-            y_offset += source_text.boundingRect().height() + self.default_margin
+            if "type_label" not in relationship:
+                type_label = self.create_text_item("Type: ", selectable=False)
+                relationship["type_label"] = type_label
+                self.scene().addItem(type_label)
+            else:
+                type_label = relationship["type_label"]
 
-            # Display destination only if "dest: " is not already present
-            if not dest_text.toPlainText().startswith("dest:"):
-                dest_label = f"dest: {dest_text.toPlainText()}"
-                dest_text.setPlainText(dest_label)
+            # Set the position of Source label and text
+            source_label.setPos(rel_x_pos, self.rect().topLeft().y() + y_offset)
+            source_text.setPos(rel_x_pos + source_label.boundingRect().width(), self.rect().topLeft().y() + y_offset)
 
-            # Set position of destination
-            dest_text.setPos(rel_x_pos, self.rect().topLeft().y() + y_offset)
+            # Increment y_offset to display Dest below the Source
+            y_offset += source_text.boundingRect().height()
 
-            # Increment y_offset to display the type below the destination
-            y_offset += dest_text.boundingRect().height() + self.default_margin
+            # Set the position of Dest label and text
+            dest_label.setPos(rel_x_pos, self.rect().topLeft().y() + y_offset)
+            dest_text.setPos(rel_x_pos + dest_label.boundingRect().width(), self.rect().topLeft().y() + y_offset)
 
-            # Display type only if "type: " is not already present
-            if not type_text.toPlainText().startswith("type:"):
-                type_label = f"type: {type_text.toPlainText()}"
-                type_text.setPlainText(type_label)
+            # Increment y_offset to display Type below the Dest
+            y_offset += dest_text.boundingRect().height()
 
-            # Set position of type
-            type_text.setPos(rel_x_pos, self.rect().topLeft().y() + y_offset)
+            # Set the position of Type label and text
+            type_label.setPos(rel_x_pos, self.rect().topLeft().y() + y_offset)
+            type_text.setPos(rel_x_pos + type_label.boundingRect().width(), self.rect().topLeft().y() + y_offset)
 
             # Increment y_offset for the next relationship
             y_offset += type_text.boundingRect().height() + self.default_margin
-    
+
+
+
     #################################
     
     def create_separator(self, is_first=True, is_second=True):

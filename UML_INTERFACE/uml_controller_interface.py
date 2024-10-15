@@ -111,6 +111,18 @@ class UMLInterface:
     
     ## DATA RELATED FOR GUI AND TESTING ##
     
+    # Get chosen relationship #
+    def get_chosen_relationship(self, source_class_name: str, destination_class_name: str):
+        return self.Model._get_chosen_relationship(source_class_name, destination_class_name)
+    
+    # Get the relationship type between two classes #
+    def get_chosen_relationship_type(self, source_class_name: str, destination_class_name: str):
+        return self.Model._get_chosen_relationship_type(source_class_name, destination_class_name)
+    
+    # Check if relationship exist or not #
+    def relationship_exist(self, source_class_name: str, destination_class_name: str):
+        return self.Model._relationship_exist(source_class_name, destination_class_name)
+    
     # Get class list #
     def get_class_list(self):
         """
@@ -398,7 +410,7 @@ class UMLInterface:
             source_class_name (str): The name of the source class.
             destination_class_name (str): The name of the destination class.
         """
-        self.Model._delete_relationship(source_class_name, destination_class_name)
+        return self.Model._delete_relationship(source_class_name, destination_class_name)
         
     # Change relationship type interface #
     def change_type(self, source_class_name: str, destination_class_name: str, new_type: str):

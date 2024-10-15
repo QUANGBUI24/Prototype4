@@ -514,7 +514,7 @@ class UMLModel:
             if not is_source_class_exist or not is_destination_class_exist:
                 return
             # Check if the relationship already exists
-            is_relationship_exist = self.__relationship_exist(source_class_name, destination_class_name)
+            is_relationship_exist = self._relationship_exist(source_class_name, destination_class_name)
             if is_relationship_exist:
                 self.__console.print(f"\n[bold red]Relationship between class [bold white]'{source_class_name}'[/bold white] and class [bold white]'{destination_class_name}'[/bold white] already exists![/bold red]")
                 return
@@ -545,7 +545,7 @@ class UMLModel:
             if not is_source_class_exist or not is_destination_class_exist:
                 return False
             # Check if the relationship already exists
-            is_relationship_exist = self.__relationship_exist(source_class_name, destination_class_name)
+            is_relationship_exist = self._relationship_exist(source_class_name, destination_class_name)
             if is_relationship_exist:
                 return False
             # Validate relationship type
@@ -561,7 +561,7 @@ class UMLModel:
         return True
         
     # Delete relationship #
-    def _delete_relationship(self, source_class_name: str, destination_class_name: str):
+    def _delete_relationship(self, source_class_name: str, destination_class_name: str) -> bool | str:
         """
         Deletes an existing relationship between two UML classes. Notifies observers of the relationship deletion event.
 
@@ -572,18 +572,21 @@ class UMLModel:
         # Validate class existence and relationship
         is_source_class_exist = self.__validate_class_existence(source_class_name, should_exist=True)
         is_destination_class_exist = self.__validate_class_existence(destination_class_name, should_exist=True)
-        if not is_source_class_exist or not is_destination_class_exist:
-            return
-        is_relationship_exist = self.__relationship_exist(source_class_name, destination_class_name)
+        if not is_source_class_exist:
+            return False
+        if not is_destination_class_exist:
+            return False
+        is_relationship_exist = self._relationship_exist(source_class_name, destination_class_name)
         if not is_relationship_exist:
             self.__console.print(f"\n[bold red]Relationship between class [bold white]'{source_class_name}'[/bold white] and class [bold white]'{destination_class_name}'[/bold white] does not exist![bold red]")
-            return
+            return False
         # Delete the relationship
-        current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
+        current_relationship = self._get_chosen_relationship(source_class_name, destination_class_name)
         self.__relationship_list.remove(current_relationship)
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.DELETE_REL.value, data={"source": source_class_name, "dest": destination_class_name})
+        return True
         
     # Change type #
     def _change_type(self, source_class_name: str, destination_class_name: str, new_type: str):
@@ -604,7 +607,7 @@ class UMLModel:
         if not is_source_class_name_exist or not is_destination_class_name_exist:
             return
         # Check if the new type is the same as the current type
-        current_type = self.__get_chosen_relationship_type(source_class_name, destination_class_name)
+        current_type = self._get_chosen_relationship_type(source_class_name, destination_class_name)
         if current_type == new_type:
             self.__console.print(f"\n[bold red]New type [bold white]'{new_type}'[/bold white] is identical to the existing type of the current relationship![/bold red]")
             return
@@ -613,7 +616,7 @@ class UMLModel:
         if not is_type_exist:
             return
         # Update the relationship type
-        current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
+        current_relationship = self._get_chosen_relationship(source_class_name, destination_class_name)
         if current_relationship is None:
             return
         current_relationship._set_type(new_type)
@@ -979,7 +982,7 @@ class UMLModel:
         return True
 
     # Check if relationship exists between source and destination class #
-    def __relationship_exist(self, source_class_name: str, destination_class_name: str) -> bool:
+    def _relationship_exist(self, source_class_name: str, destination_class_name: str) -> bool:
         """
         Checks if a relationship exists between the source and destination classes.
 
@@ -997,7 +1000,7 @@ class UMLModel:
         return False
     
     # Get the chosen relationship #
-    def __get_chosen_relationship(self, source_class_name: str, destination_class_name: str) -> Relationship:
+    def _get_chosen_relationship(self, source_class_name: str, destination_class_name: str) -> Relationship:
         """
         Retrieves the relationship between the specified source and destination classes.
 
@@ -1015,7 +1018,7 @@ class UMLModel:
         return None
     
     # Get the relationship type between two classes #
-    def __get_chosen_relationship_type(self, source_class_name: str, destination_class_name: str) -> str | None:
+    def _get_chosen_relationship_type(self, source_class_name: str, destination_class_name: str) -> str | None:
         """
         Retrieves the type of the relationship between two classes.
 
@@ -1026,7 +1029,7 @@ class UMLModel:
         Returns:
             str | None: The relationship type, or None if no relationship exists.
         """
-        current_relationship = self.__get_chosen_relationship(source_class_name, destination_class_name)
+        current_relationship = self._get_chosen_relationship(source_class_name, destination_class_name)
         if current_relationship is not None:
             return current_relationship._get_type()
         self.__console.print(f"\n[bold red]No relationship between class [bold white]'{source_class_name}'[/bold white] and class [bold white]'{destination_class_name}'[/bold white]![/bold red]")
@@ -1318,6 +1321,7 @@ class UMLModel:
             main_data (Dict): The data dictionary loaded from a JSON file.
         """
         class_data = main_data["classes"]
+        relationship_data = main_data["relationships"]
         # Reset the current storage before loading new data
         self._reset_storage()
         # Set the new main data
@@ -1336,7 +1340,10 @@ class UMLModel:
                     graphical_view.add_method(class_name, method_name, is_loading=True)
                     for param_name in param_list:
                         graphical_view.add_param(class_name, method_name, param_name, is_loading=True)
-    
+        # Recreate relationships from the loaded data
+        for each_dictionary in relationship_data:
+            graphical_view.add_relationship(class_name, each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
+            
     # Extract class, field, method, and parameters from json file #
     def _extract_class_data(self, class_data: List[Dict]) -> List[Dict[str, Dict[str, List | Dict]]]:
         """

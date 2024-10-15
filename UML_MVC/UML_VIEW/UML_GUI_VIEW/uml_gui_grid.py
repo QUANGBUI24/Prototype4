@@ -631,10 +631,30 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
-    def add_relationship(self, is_loading=False):
+    def add_relationship(self, loaded_class_name=None, loaded_source_class=None, loaded_dest_class=None, loaded_type=None, is_loading=False):
+        if is_loading:
+            # Find the UML class box by the loaded class name in the scene
+            for item in self.scene().items():
+                if isinstance(item, UMLClassBox) and item.class_name_text.toPlainText() == loaded_class_name:
+                    selected_class_box = item  # Found the class box
+                    is_rel_added = self.interface.add_relationship_gui(source_class_name=loaded_source_class, destination_class_name=loaded_dest_class, type=loaded_type)
+                    if is_rel_added:
+                        selected_class_box.source_class_list.append(loaded_source_class)
+                        selected_class_box.dest_class_list.append(loaded_dest_class)
+                        source_text = selected_class_box.create_text_item(loaded_source_class, selectable=True, color=selected_class_box.text_color)
+                        dest_text = selected_class_box.create_text_item(loaded_dest_class, selectable=True, color=selected_class_box.text_color)
+                        type_text = selected_class_box.create_text_item(loaded_type, selectable=True, color=selected_class_box.text_color)
+                        selected_class_box.relationship_list.append({"source" : source_text, "dest" : dest_text, "type" : type_text})
+                        if len(selected_class_box.relationship_list) == 1:  # If this is the first method, create a separator
+                            selected_class_box.create_separator(is_first=False, is_second=False)
+                        selected_class_box.update_box()
         if self.selected_class:
             source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class", "Select source class:", self.class_name_list, 0, False)
             if ok and source_class:
+                if source_class != self.selected_class.class_name_text.toPlainText():
+                    # Display a warning 
+                    QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
+                    return
                 dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
                 if ok and dest_class:
                     # Convert enum members to a list of names
@@ -655,7 +675,70 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         else:
                             # Display a warning if users enter wrong format
                             QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
-    
+        else:
+            # Show a warning if there are no class selected
+            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+                            
+    def delete_relationship(self):
+        if self.selected_class:
+            if self.selected_class.relationship_list:
+                source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class To Delete", "Select source class:", self.class_name_list, 0, False)
+                if ok and source_class:
+                    if source_class != self.selected_class.class_name_text.toPlainText():
+                        # Display a warning
+                        QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
+                        return
+                    dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class To Delete", "Select destination class:", self.class_name_list, 0, False)
+                    if ok and dest_class:
+                        is_rel_exist = self.interface.relationship_exist(source_class, dest_class)
+                        if not is_rel_exist:
+                            # Display a warning if users enter wrong format
+                            QtWidgets.QMessageBox.warning(None, "Warning", f"There is no relationship between '{source_class}' class and '{dest_class} class!")
+                            return
+                        is_rel_deleted = self.interface.delete_relationship(source_class, dest_class)
+                        if is_rel_deleted:
+                            self.find_and_remove_relationship_helper(source_class, dest_class)              
+                            self.selected_class.update_box()
+            else:
+                QtWidgets.QMessageBox.warning(None, "Warning", "No relationship exists!")
+        else:
+            # Show a warning if there are no class selected
+            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+                        
+    def find_and_remove_relationship_helper(self, source, dest):
+        """
+        Helper function to find and remove a relationship from the selected UML class box.
+        Compares the text of the source and destination classes and removes them from the scene.
+        
+        Parameters:
+        - source (str): The source class name.
+        - dest (str): The destination class name.
+        """
+        # Iterate through the relationships in the class
+        for each_relationship in self.selected_class.relationship_list:
+            # Compare the text content of the source and destination
+            if (each_relationship["source"].toPlainText() == source and 
+                each_relationship["dest"].toPlainText() == dest):
+                
+                # Remove the source, destination, and type from the scene
+                self.scene().removeItem(each_relationship["source"])
+                self.scene().removeItem(each_relationship["dest"])
+                self.scene().removeItem(each_relationship["type"])
+                
+                # Also remove the explicit labels
+                self.scene().removeItem(each_relationship["source_label"])
+                self.scene().removeItem(each_relationship["dest_label"])
+                self.scene().removeItem(each_relationship["type_label"])
+                
+                # Remove the relationship from the list
+                self.selected_class.relationship_list.remove(each_relationship)
+                break  # Break after removing the relationship to avoid concurrent modification issues
+        
+        # Remove the source and destination class from their respective lists
+        self.selected_class.source_class_list.remove(source)
+        self.selected_class.dest_class_list.remove(dest)
+
+
     #################################################################
     def open_folder_gui(self):
         """
@@ -828,7 +911,17 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             rename_parameter_button.triggered.connect(self.rename_param)
             replace_parameter_button.triggered.connect(self.replace_param)
 
+            # Add a separator to separate method options from relationship options
+            contextMenu.addSeparator()
+            
             #################################
+            add_rel_button = contextMenu.addAction("Add Relationship")  # Add a parameter
+            delete_rel_button = contextMenu.addAction("Delete Relationship")  # Delete a parameter
+            
+            add_rel_button.triggered.connect(self.add_relationship)
+            delete_rel_button.triggered.connect(self.delete_relationship)
+            
+            
             # Execute the context menu at the global position (where the right-click happened)
             contextMenu.exec_(event.globalPos())
 
