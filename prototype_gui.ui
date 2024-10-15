@@ -90,6 +90,9 @@
    <addaction name="rename_param"/>
    <addaction name="replace_param"/>
    <addaction name="separator"/>
+   <addaction name="add_rel"/>
+   <addaction name="delete_rel"/>
+   <addaction name="separator"/>
    <addaction name="default_state"/>
    <addaction name="export_pdf"/>
    <addaction name="export_png"/>
@@ -389,6 +392,16 @@
   <action name="default_state">
    <property name="text">
     <string>Default State</string>
+   </property>
+  </action>
+  <action name="add_rel">
+   <property name="text">
+    <string>Add Relationship</string>
+   </property>
+  </action>
+  <action name="delete_rel">
+   <property name="text">
+    <string>Delete Relationship</string>
    </property>
   </action>
  </widget>

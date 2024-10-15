@@ -4,6 +4,7 @@ import os
 from PyQt5 import QtWidgets, QtGui, QtCore, QtPrintSupport
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
+from UML_ENUM_CLASS.uml_enum import RelationshipType
 
 ###################################################################################################
 
@@ -29,6 +30,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
         # Interface to communicate with UMLCoreManager
         self.interface = interface  
+        
+        # Class name list
+        self.class_name_list = []
         
         # Initialize grid properties
         self.grid_visible = True  # Flag to show/hide the grid
@@ -126,6 +130,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             is_class_added = self.interface.add_class(loaded_class_name)
             if is_class_added:
                 class_box = UMLClassBox(self.interface, class_name=loaded_class_name)
+                self.class_name_list.append(loaded_class_name)
                 self.scene().addItem(class_box)
         else:
             # Display a dialog asking the user for the new class name
@@ -133,6 +138,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             if ok and input_class_name:
                 is_class_added = self.interface.add_class(input_class_name)
                 if is_class_added:
+                    self.class_name_list.append(input_class_name)
                     class_box = UMLClassBox(self.interface, class_name=input_class_name)
                     self.scene().addItem(class_box)
                 else:
@@ -147,6 +153,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             input_class_name = self.selected_class.class_name_text.toPlainText()
             is_class_deleted = self.interface.delete_class(input_class_name)
             if is_class_deleted:
+                self.class_name_list.remove(input_class_name)
                 self.scene().removeItem(self.selected_class)
                 self.selected_class = None
             else:
@@ -169,6 +176,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             if ok and new_class_name:
                 is_class_renamed = self.interface.rename_class(old_class_name, new_class_name)
                 if is_class_renamed:
+                    self.class_name_list[self.class_name_list.index(old_class_name)] = new_class_name
                     self.selected_class.class_name_text.setPlainText(new_class_name)
                     self.selected_class.update_box()
                 else:
@@ -623,6 +631,32 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
+    def add_relationship(self, is_loading=False):
+        if self.selected_class:
+            source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class", "Select source class:", self.class_name_list, 0, False)
+            if ok and source_class:
+                dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
+                if ok and dest_class:
+                    # Convert enum members to a list of names
+                    enum_items = [enum.value for enum in RelationshipType]
+                    relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose Relationship Type", "Select type:", enum_items, 0, False)
+                    if ok and relationship_type:
+                        is_rel_added = self.interface.add_relationship_gui(source_class_name=source_class, destination_class_name=dest_class, type=relationship_type)
+                        if is_rel_added:
+                            self.selected_class.source_class_list.append(source_class)
+                            self.selected_class.dest_class_list.append(dest_class)
+                            source_text = self.selected_class.create_text_item(source_class, selectable=True, color=self.selected_class.text_color)
+                            dest_text = self.selected_class.create_text_item(dest_class, selectable=True, color=self.selected_class.text_color)
+                            type_text = self.selected_class.create_text_item(relationship_type, selectable=True, color=self.selected_class.text_color)
+                            self.selected_class.relationship_list.append({"source" : source_text, "dest" : dest_text, "type" : type_text})
+                            if len(self.selected_class.relationship_list) == 1:  # If this is the first method, create a separator
+                                self.selected_class.create_separator(is_first=False, is_second=False)
+                            self.selected_class.update_box()
+                        else:
+                            # Display a warning if users enter wrong format
+                            QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
+    
+    #################################################################
     def open_folder_gui(self):
         """
         Open a file dialog to allow the user to select a JSON file for loading into the application.
