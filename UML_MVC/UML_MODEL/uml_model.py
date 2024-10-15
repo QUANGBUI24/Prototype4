@@ -1318,6 +1318,7 @@ class UMLModel:
             main_data (Dict): The data dictionary loaded from a JSON file.
         """
         class_data = main_data["classes"]
+        relationship_data = main_data["relationships"]
         # Reset the current storage before loading new data
         self._reset_storage()
         # Set the new main data
@@ -1336,7 +1337,10 @@ class UMLModel:
                     graphical_view.add_method(class_name, method_name, is_loading=True)
                     for param_name in param_list:
                         graphical_view.add_param(class_name, method_name, param_name, is_loading=True)
-    
+        # Recreate relationships from the loaded data
+        for each_dictionary in relationship_data:
+            graphical_view.add_relationship(class_name, each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True)
+            
     # Extract class, field, method, and parameters from json file #
     def _extract_class_data(self, class_data: List[Dict]) -> List[Dict[str, Dict[str, List | Dict]]]:
         """

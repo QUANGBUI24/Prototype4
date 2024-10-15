@@ -631,7 +631,23 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
-    def add_relationship(self, is_loading=False):
+    def add_relationship(self, loaded_class_name=None, loaded_source_class=None, loaded_dest_class=None, loaded_type=None, is_loading=False):
+        if is_loading:
+            # Find the UML class box by the loaded class name in the scene
+            for item in self.scene().items():
+                if isinstance(item, UMLClassBox) and item.class_name_text.toPlainText() == loaded_class_name:
+                    selected_class_box = item  # Found the class box
+                    is_rel_added = self.interface.add_relationship_gui(source_class_name=loaded_source_class, destination_class_name=loaded_dest_class, type=loaded_type)
+                    if is_rel_added:
+                        selected_class_box.source_class_list.append(loaded_source_class)
+                        selected_class_box.dest_class_list.append(loaded_dest_class)
+                        source_text = selected_class_box.create_text_item(loaded_source_class, selectable=True, color=selected_class_box.text_color)
+                        dest_text = selected_class_box.create_text_item(loaded_dest_class, selectable=True, color=selected_class_box.text_color)
+                        type_text = selected_class_box.create_text_item(loaded_type, selectable=True, color=selected_class_box.text_color)
+                        selected_class_box.relationship_list.append({"source" : source_text, "dest" : dest_text, "type" : type_text})
+                        if len(selected_class_box.relationship_list) == 1:  # If this is the first method, create a separator
+                            selected_class_box.create_separator(is_first=False, is_second=False)
+                        selected_class_box.update_box()
         if self.selected_class:
             source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class", "Select source class:", self.class_name_list, 0, False)
             if ok and source_class:
