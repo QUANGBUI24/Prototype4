@@ -105,7 +105,7 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         
         # Connect UML relationship actions to their respective methods
         self.add_rel_action.triggered.connect(self.add_rel_gui)
-        # self.delete_rel_action.triggered.connect(self.delete_rel_gui)
+        self.delete_rel_action.triggered.connect(self.delete_rel_gui)
         
         #################################################################
         # File management actions (open folder, save, save as)
@@ -228,7 +228,13 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         Add a relationship from source class to destination class with type.
         """
         self.grid_view.add_relationship()
-
+        
+    def delete_rel_gui(self):
+        """
+        Delete a relationship from source class to destination class.
+        """
+        self.grid_view.delete_relationship()
+        
     #################################################################
     ## FILE MANAGEMENT ##
     def open_folder_gui(self):
