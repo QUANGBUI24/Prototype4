@@ -100,13 +100,15 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         
         #################################################################
         # Actions for managing relationship (add, delete, replace type)
-        self.add_rel_action = self.findChild(QtWidgets.QAction, "add_rel")  # Add parameter
-        self.delete_rel_action = self.findChild(QtWidgets.QAction, "delete_rel")  # Delete parameter
+        self.add_rel_action = self.findChild(QtWidgets.QAction, "add_rel")  # Add relationship
+        self.delete_rel_action = self.findChild(QtWidgets.QAction, "delete_rel")  # Delete relationship
+        self.change_rel_type_action = self.findChild(QtWidgets.QAction, "change_type")  # Delete relationship
         
         # Connect UML relationship actions to their respective methods
         self.add_rel_action.triggered.connect(self.add_rel_gui)
         self.delete_rel_action.triggered.connect(self.delete_rel_gui)
-        
+        self.change_rel_type_action.triggered.connect(self.change_rel_type)
+         
         #################################################################
         # File management actions (open folder, save, save as)
         self.open_folder_action = self.findChild(QtWidgets.QAction, "Open")  # Open folder
@@ -234,6 +236,12 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         Delete a relationship from source class to destination class.
         """
         self.grid_view.delete_relationship()
+        
+    def change_rel_type(self):
+        """
+        Change a relationship type of an existing relationship.
+        """
+        self.grid_view.change_relationship_type()
         
     #################################################################
     ## FILE MANAGEMENT ##

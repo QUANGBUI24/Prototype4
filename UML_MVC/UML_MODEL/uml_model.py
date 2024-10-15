@@ -598,31 +598,28 @@ class UMLModel:
             destination_class_name (str): The name of the destination class.
             new_type (str): The new type for the relationship (e.g., change from aggregation to composition).
         """
-        # Validate class existence and relationship
-        if source_class_name == destination_class_name:
-            self.__console.print("\n[bold red]No relationship from a class to itself![/bold red]")
-            return
         is_source_class_name_exist = self.__validate_class_existence(source_class_name, should_exist=True)
         is_destination_class_name_exist = self.__validate_class_existence(destination_class_name, should_exist=True)
         if not is_source_class_name_exist or not is_destination_class_name_exist:
-            return
+            return False
         # Check if the new type is the same as the current type
         current_type = self._get_chosen_relationship_type(source_class_name, destination_class_name)
         if current_type == new_type:
             self.__console.print(f"\n[bold red]New type [bold white]'{new_type}'[/bold white] is identical to the existing type of the current relationship![/bold red]")
-            return
+            return False
         # Validate new type existence
         is_type_exist = self.__validate_type_existence(new_type, should_exist=True)
         if not is_type_exist:
-            return
+            return False
         # Update the relationship type
         current_relationship = self._get_chosen_relationship(source_class_name, destination_class_name)
         if current_relationship is None:
-            return
+            return False
         current_relationship._set_type(new_type)
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.TYPE_MOD.value, data={"source": source_class_name, "dest": destination_class_name, "new_type": new_type})
+        return True
          
     #################################################################    
     ### HELPER FUNCTIONS ###  
