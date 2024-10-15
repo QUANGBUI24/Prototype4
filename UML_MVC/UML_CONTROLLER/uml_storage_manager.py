@@ -4,6 +4,9 @@
 import json
 import os
 from typing import List, Dict
+# Get the root directory where the main.py file exists
+root_directory = os.path.dirname(os.path.abspath(__file__))  # This gets the current script's directory
+root_directory = os.path.abspath(os.path.join(root_directory, "..", ".."))  # Move to the root directory (where main.py is)
 
 ###################################################################################################
 
@@ -116,7 +119,7 @@ class UMLStorageManager:
         Returns:
             None
         """
-        file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
+        file_path = os.path.join(root_directory, f"{file_name}.json")
         try:
             # If the file does not exist, create and write the data
             if not os.path.exists(file_path):

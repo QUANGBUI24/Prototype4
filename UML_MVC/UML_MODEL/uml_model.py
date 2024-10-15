@@ -18,6 +18,9 @@ from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relati
 from UML_MVC.UML_CONTROLLER.uml_storage_manager import UMLStorageManager as Storage
 from UML_ENUM_CLASS.uml_enum import InterfaceOptions, RelationshipType
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_grid import GridGraphicsView as GUIView
+# Get the root directory where the main.py file exists
+root_directory = os.path.dirname(os.path.abspath(__file__))  # This gets the current script's directory
+root_directory = os.path.abspath(os.path.join(root_directory, "..", ".."))  # Move to the root directory (where main.py is)
 
 ###################################################################################################
 
@@ -1354,7 +1357,7 @@ class UMLModel:
             if user_input in dictionary:
                 save_list.remove(dictionary)
         self.__storage_manager._update_saved_list(save_list)
-        file_path = f"UML_UTILITY/SAVED_FILES/{user_input}.json"
+        file_path = os.path.join(root_directory, f"{user_input}.json")
         os.remove(file_path)
         self.__console.print(f"\n[bold green]Successfully removed file [bold white]'{user_input}.json'[/bold white][/bold green]")
     
