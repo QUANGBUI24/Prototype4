@@ -207,7 +207,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         This function either loads a field into the UML class during the loading process or allows the user
         to add a new field through a dialog box. It updates the UML class box and its internal lists.
 
-        Args:
+        Parameters:
             loaded_class_name (str): The name of the class to which the field is added (used during loading).
             loaded_field_name (str): The name of the field being added (used during loading).
             is_loading (bool): Whether the function is being called during the loading process.
@@ -322,7 +322,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         This function either loads a method into the UML class during the loading process or allows the user
         to add a new method through a dialog box. It updates the UML class box and its internal lists.
 
-        Args:
+        Parameters:
             loaded_class_name (str): The name of the class to which the method is added (used during loading).
             loaded_method_name (str): The name of the method being added (used during loading).
             is_loading (bool): Whether the function is being called during the loading process.
@@ -446,7 +446,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         This function either loads a parameter into a method during the loading process 
         or allows the user to add a new parameter interactively through a dialog.
 
-        Args:
+        Parameters:
             loaded_class_name (str): The class name where the parameter is being added.
             loaded_method_name (str): The method name where the parameter is being added.
             loaded_param_name (str): The parameter name being added.
@@ -645,148 +645,210 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def add_relationship(self, loaded_class_name=None, loaded_source_class=None, loaded_dest_class=None, loaded_type=None, is_loading=False):
+        """
+        Add a relationship between two UML classes.
+
+        This function adds a relationship between a source class and a destination class, either by loading the data
+        from a saved file or by prompting the user to enter the required information.
+
+        Parameters:
+            loaded_class_name (str): The name of the class being loaded (used when loading from a file).
+            loaded_source_class (str): The source class for the relationship (used when loading from a file).
+            loaded_dest_class (str): The destination class for the relationship (used when loading from a file).
+            loaded_type (str): The type of relationship (e.g., inheritance, association) (used when loading from a file).
+            is_loading (bool): If True, load the relationship from a saved file.
+
+        Steps:
+        1. If loading, find the UML class in the scene and add the relationship to the class.
+        2. If not loading, prompt the user to select a source class, destination class, and relationship type.
+        3. Add the selected relationship to the UML class and update the display.
+        """
         if is_loading:
             # Find the UML class box by the loaded class name in the scene
             for item in self.scene().items():
                 if isinstance(item, UMLClassBox) and item.class_name_text.toPlainText() == loaded_class_name:
                     selected_class_box = item  # Found the class box
+                    # Add the relationship via the interface
                     is_rel_added = self.interface.add_relationship_gui(source_class_name=loaded_source_class, destination_class_name=loaded_dest_class, type=loaded_type)
                     if is_rel_added:
+                        # Append the source and destination class names to their respective lists
                         selected_class_box.source_class_list.append(loaded_source_class)
                         selected_class_box.dest_class_list.append(loaded_dest_class)
+                        # Create text items for the source, destination, and type
                         source_text = selected_class_box.create_text_item(loaded_source_class, selectable=True, color=selected_class_box.text_color)
                         dest_text = selected_class_box.create_text_item(loaded_dest_class, selectable=True, color=selected_class_box.text_color)
                         type_text = selected_class_box.create_text_item(loaded_type, selectable=True, color=selected_class_box.text_color)
-                        selected_class_box.relationship_list.append({"source" : source_text, "dest" : dest_text, "type" : type_text})
-                        if len(selected_class_box.relationship_list) == 1:  # If this is the first method, create a separator
+                        # Append the relationship data to the class's relationship list
+                        selected_class_box.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
+                        if len(selected_class_box.relationship_list) == 1:
+                            # If this is the first relationship, create a separator
                             selected_class_box.create_separator(is_first=False, is_second=False)
+                        # Update the class box
                         selected_class_box.update_box()
         else:
             if self.selected_class:
+                # Prompt the user to select a source class
                 source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class", "Select source class:", self.class_name_list, 0, False)
                 if ok and source_class:
+                    # Ensure the source class is the same as the current class's name
                     if source_class != self.selected_class.class_name_text.toPlainText():
-                        # Display a warning 
                         QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
                         return
+                    # Prompt the user to select a destination class
                     dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
                     if ok and dest_class:
-                        # Convert enum members to a list of names
+                        # Prompt the user to select the relationship type
                         enum_items = [enum.value for enum in RelationshipType]
                         relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose Relationship Type", "Select type:", enum_items, 0, False)
                         if ok and relationship_type:
+                            # Add the relationship via the interface
                             is_rel_added = self.interface.add_relationship_gui(source_class_name=source_class, destination_class_name=dest_class, type=relationship_type)
                             if is_rel_added:
+                                # Append the source and destination class names to their respective lists
                                 self.selected_class.source_class_list.append(source_class)
                                 self.selected_class.dest_class_list.append(dest_class)
+                                # Create text items for the source, destination, and type
                                 source_text = self.selected_class.create_text_item(source_class, selectable=True, color=self.selected_class.text_color)
                                 dest_text = self.selected_class.create_text_item(dest_class, selectable=True, color=self.selected_class.text_color)
                                 type_text = self.selected_class.create_text_item(relationship_type, selectable=True, color=self.selected_class.text_color)
-                                self.selected_class.relationship_list.append({"source" : source_text, "dest" : dest_text, "type" : type_text})
-                                if len(self.selected_class.relationship_list) == 1:  # If this is the first method, create a separator
+                                # Append the relationship data to the class's relationship list
+                                self.selected_class.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
+                                if len(self.selected_class.relationship_list) == 1:
+                                    # If this is the first relationship, create a separator
                                     self.selected_class.create_separator(is_first=False, is_second=False)
+                                # Update the class box
                                 self.selected_class.update_box()
                             else:
-                                # Display a warning if users enter wrong format
                                 QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
             else:
-                # Show a warning if there are no class selected
+                # Show a warning if no class is selected
                 QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-                            
+
     def delete_relationship(self):
+        """
+        Delete an existing relationship from the UML class.
+
+        This function prompts the user to select a source class and destination class for the relationship to be deleted.
+        The relationship is removed if it exists, and the UML class box is updated.
+
+        Steps:
+        1. Prompt the user to select a source class and destination class.
+        2. Check if the relationship exists and delete it if found.
+        3. Update the UML class box display.
+        """
         if self.selected_class:
             if self.selected_class.relationship_list:
+                # Prompt the user to select a source class for the relationship to be deleted
                 source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class To Delete", "Select source class:", self.class_name_list, 0, False)
                 if ok and source_class:
+                    # Ensure the source class matches the current class name
                     if source_class != self.selected_class.class_name_text.toPlainText():
-                        # Display a warning
                         QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
                         return
+                    # Prompt the user to select a destination class
                     dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class To Delete", "Select destination class:", self.class_name_list, 0, False)
+                    if ok and dest_class:
+                        # Check if the relationship exists
+                        is_rel_exist = self.interface.relationship_exist(source_class, dest_class)
+                        if not is_rel_exist:
+                            QtWidgets.QMessageBox.warning(None, "Warning", f"There is no relationship between '{source_class}' class and '{dest_class}' class!")
+                            return
+                        # Delete the relationship if found
+                        is_rel_deleted = self.interface.delete_relationship(source_class, dest_class)
+                        if is_rel_deleted:
+                            self.find_and_remove_relationship_helper(source_class, dest_class)
+            else:
+                QtWidgets.QMessageBox.warning(None, "Warning", "No relationship exists!")
+        else:
+            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+
+    def change_relationship_type(self):
+        """
+        Change the type of an existing relationship between two UML classes.
+
+        This function allows the user to modify the relationship type between a source and destination class.
+        The updated relationship type is applied, and the UML class box is updated.
+
+        Steps:
+        1. Prompt the user to select the source and destination classes.
+        2. Check if the relationship exists and allow the user to select a new type.
+        3. Update the UML class box with the new relationship type.
+        """
+        if self.selected_class:
+            if self.selected_class.relationship_list:
+                # Prompt the user to select a source class
+                source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class To Change Type", "Select source class:", self.class_name_list, 0, False)
+                if ok and source_class:
+                    if source_class != self.selected_class.class_name_text.toPlainText():
+                        QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
+                        return
+                    # Prompt the user to select a destination class
+                    dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class To Change Type", "Select destination class:", self.class_name_list, 0, False)
                     if ok and dest_class:
                         is_rel_exist = self.interface.relationship_exist(source_class, dest_class)
                         if not is_rel_exist:
-                            # Display a warning if users enter wrong format
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"There is no relationship between '{source_class}' class and '{dest_class} class!")
+                            QtWidgets.QMessageBox.warning(None, "Warning", f"There is no relationship between '{source_class}' class and '{dest_class}' class!")
                             return
-                        is_rel_deleted = self.interface.delete_relationship(source_class, dest_class)
-                        if is_rel_deleted:
-                            self.find_and_remove_relationship_helper(source_class, dest_class)              
+                        # Prompt the user to select a new relationship type
+                        enum_items = [enum.value for enum in RelationshipType]
+                        relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose New Relationship Type", "Select type:", enum_items, 0, False)
+                        if ok and relationship_type:
+                            is_type_changed = self.interface.change_type(source_class, dest_class, relationship_type)
+                            if is_type_changed:
+                                self.find_and_replace_relationship_type_helper(source_class, dest_class, relationship_type)
+                            else:
+                                QtWidgets.QMessageBox.warning(None, "Warning", f"New relationship type is identical to current type {relationship_type}!")
             else:
                 QtWidgets.QMessageBox.warning(None, "Warning", "No relationship exists!")
         else:
-            # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-            
-    def change_relationship_type(self):
-        if self.selected_class:
-            if self.selected_class.relationship_list:
-                    source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class To Change Type", "Select source class:", self.class_name_list, 0, False)
-                    if ok and source_class:
-                        if source_class != self.selected_class.class_name_text.toPlainText():
-                            # Display a warning
-                            QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
-                            return
-                        dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class To Change Type", "Select destination class:", self.class_name_list, 0, False)
-                        if ok and dest_class:
-                            is_rel_exist = self.interface.relationship_exist(source_class, dest_class)
-                            if not is_rel_exist:
-                                # Display a warning
-                                QtWidgets.QMessageBox.warning(None, "Warning", f"There is no relationship between '{source_class}' class and '{dest_class} class!")
-                                return
-                            enum_items = [enum.value for enum in RelationshipType]
-                            relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose New Relationship Type", "Select type:", enum_items, 0, False)
-                            if ok and relationship_type:
-                                is_type_changed = self.interface.change_type(source_class, dest_class, relationship_type)
-                                if is_type_changed:
-                                    self.find_and_replace_relationship_type_helper(source_class, dest_class, relationship_type)
-                                else:
-                                    QtWidgets.QMessageBox.warning(None, "Warning", f"New relationship type is identical to current type {relationship_type}!")
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No relationship exists!")
-        else:
-            # Show a warning if there are no class selected
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-    
+
     def find_and_replace_relationship_type_helper(self, source_class, dest_class, new_type):
+        """
+        Helper function to find and replace the relationship type between two UML classes.
+
+        Parameters:
+            source_class (str): The source class for the relationship.
+            dest_class (str): The destination class for the relationship.
+            new_type (str): The new relationship type.
+        """
+        # Iterate through the relationships to find the one that matches the source and destination
         for each_relationship in self.selected_class.relationship_list:
             if (each_relationship["source"].toPlainText() == source_class and 
                 each_relationship["dest"].toPlainText() == dest_class):
+                # Remove the old type and replace it with the new one
                 self.scene().removeItem(each_relationship["type"])
                 each_relationship["type"] = self.selected_class.create_text_item(new_type, selectable=True, color=self.selected_class.text_color)
                 break
         self.selected_class.update_box()
-    
+
     def find_and_remove_relationship_helper(self, source_class, dest_class):
         """
-        Helper function to find and remove a relationship from the selected UML class box.
-        Compares the text of the source and destination classes and removes them from the scene.
-        
+        Helper function to find and remove a relationship between two UML classes.
+
+        This function removes the source, destination, and type text items from the scene and updates the UML class box.
+
         Parameters:
-        - source (str): The source class name.
-        - dest (str): The destination class name.
+            source_class (str): The source class for the relationship.
+            dest_class (str): The destination class for the relationship.
         """
-        # Iterate through the relationships in the class
         for each_relationship in self.selected_class.relationship_list:
-            # Compare the text content of the source and destination
+            # Find the relationship that matches the source and destination classes
             if (each_relationship["source"].toPlainText() == source_class and 
                 each_relationship["dest"].toPlainText() == dest_class):
-                
-                # Remove the source, destination, and type from the scene
+                # Remove the text items for source, destination, and type from the scene
                 self.scene().removeItem(each_relationship["source"])
                 self.scene().removeItem(each_relationship["dest"])
                 self.scene().removeItem(each_relationship["type"])
-                
-                # Also remove the explicit labels
+                # Also remove any associated labels
                 self.scene().removeItem(each_relationship["source_label"])
                 self.scene().removeItem(each_relationship["dest_label"])
                 self.scene().removeItem(each_relationship["type_label"])
-                
                 # Remove the relationship from the list
                 self.selected_class.relationship_list.remove(each_relationship)
-                break  # Break after removing the relationship to avoid concurrent modification issues
+                break
         
-        # Remove the source and destination class from their respective lists
+        # Remove the source and destination class names from their respective lists
         self.selected_class.source_class_list.remove(source_class)
         self.selected_class.dest_class_list.remove(dest_class)
         self.selected_class.update_box()
@@ -886,21 +948,24 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             """
 
             #################################
-            # BOX COLOR OPTION
+            # BOX COLOR OPTION ##
+            
             # Add an option to change the color of the class box
             change_box_color_button = contextMenu.addAction("Box Color")
             # Connect the action to the change_box_color method, which will open a color dialog
             change_box_color_button.triggered.connect(self.change_box_color)
 
             #################################
-            # TEXT COLOR OPTION
+            # TEXT COLOR OPTION ##
+            
             # Add an option to change the text color inside the class box
             change_text_color_button = contextMenu.addAction("Text Color")
             # Connect the action to the change_text_color method, which opens a color dialog
             change_text_color_button.triggered.connect(self.change_text_color)
 
             #################################
-            # TEXT FONT OPTION
+            # TEXT FONT OPTION ##
+            
             # Add an option to change the font of the text inside the class box
             change_text_font_button = contextMenu.addAction("Text Font")
             # Connect the action to the change_text_font_and_size method, allowing the user to change the font and size
@@ -910,7 +975,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
 
             #################################
-            # CLASS MANAGEMENT OPTIONS
+            # CLASS MANAGEMENT OPTIONS ##
+            
             # Add an option to rename the selected class
             rename_class_button = contextMenu.addAction("Rename Class")
             # Connect the rename class action to the rename_class method
@@ -920,7 +986,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
 
             #################################
-            # FIELD OPTIONS
+            ## FIELD OPTIONS ##
+            
             # Add options to manage fields within the selected class
             add_field_button = contextMenu.addAction("Add Field")  # Add a field
             delete_field_button = contextMenu.addAction("Delete Field")  # Delete a field
@@ -935,7 +1002,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
 
             #################################
-            # METHOD OPTIONS
+            # METHOD OPTIONS ##
+            
             # Add options to manage methods within the selected class
             add_method_button = contextMenu.addAction("Add Method")  # Add a method
             delete_method_button = contextMenu.addAction("Delete Method")  # Delete a method
@@ -950,7 +1018,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
 
             #################################
-            # PARAMETER OPTIONS
+            # PARAMETER OPTIONS ##
+            
             # Add options to manage parameters within the selected class
             add_parameter_button = contextMenu.addAction("Add Parameter")  # Add a parameter
             delete_parameter_button = contextMenu.addAction("Delete Parameter")  # Delete a parameter
@@ -967,10 +1036,14 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
             
             #################################
+            # PARAMETER OPTIONS ##
+            
+            # Add options to manage relationship within the selected class
             add_rel_button = contextMenu.addAction("Add Relationship")  # Add relationship
             delete_rel_button = contextMenu.addAction("Delete Relationship")  # Delete relationship
             change_type_button = contextMenu.addAction("Change Type")  # Change relationship type
             
+            # Connect relationship actions to their respective methods
             add_rel_button.triggered.connect(self.add_relationship)
             delete_rel_button.triggered.connect(self.delete_relationship)
             change_type_button.triggered.connect(self.change_relationship_type)
