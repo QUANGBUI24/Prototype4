@@ -188,10 +188,10 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Calculate the total height required for the box, including margins
         total_height = (class_name_height + fields_text_height + method_text_height 
-                        + parameter_text_height + relationship_text_height + self.default_margin * 2)
+                        + parameter_text_height + relationship_text_height + self.default_margin * 3)
 
         # Calculate the maximum width required by the content
-        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 2
+        max_width = max(self.default_box_width, self.get_maximum_width()) + self.default_margin * 3
 
         # If the box is not being resized manually or dragged, adjust the size of the box
         # Ensure the total height is greater than the current height before resizing
