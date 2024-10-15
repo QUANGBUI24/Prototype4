@@ -184,7 +184,8 @@ class UMLStorageManager:
             dict: The UML data loaded from the JSON file.
             None: If there is a file not found error or JSON decoding error.
         """
-        file_path = f"UML_UTILITY/SAVED_FILES/{file_name}.json"
+        # Create the file path to save the file in the root directory
+        file_path = os.path.join(root_directory, f"{file_name}.json")
         try:
             with open(file_path, "r") as file:
                 data = json.load(file)
