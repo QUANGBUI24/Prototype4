@@ -3,7 +3,7 @@
 import os
 from PyQt5 import QtWidgets, QtGui, QtCore, QtPrintSupport
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
-from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
+# from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
 from UML_ENUM_CLASS.uml_enum import RelationshipType
 
 ###################################################################################################

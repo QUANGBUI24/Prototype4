@@ -1,36 +1,56 @@
 {
     "classes": [
         {
-            "name": "AAA",
+            "name": "House",
             "fields": [],
             "methods": []
         },
         {
-            "name": "BBB",
+            "name": "Human",
+            "fields": [],
+            "methods": []
+        },
+        {
+            "name": "Animal",
+            "fields": [],
+            "methods": []
+        },
+        {
+            "name": "TEST",
             "fields": [],
             "methods": []
         }
     ],
     "relationships": [
         {
-            "source": "BBB",
-            "destination": "BBB",
+            "source": "Human",
+            "destination": "Human",
             "type": "Aggregation"
         },
         {
-            "source": "BBB",
-            "destination": "AAA",
+            "source": "Human",
+            "destination": "Animal",
             "type": "Composition"
         },
         {
-            "source": "AAA",
-            "destination": "AAA",
+            "source": "Animal",
+            "destination": "Animal",
             "type": "Realization"
         },
         {
-            "source": "AAA",
-            "destination": "BBB",
+            "source": "Animal",
+            "destination": "Human",
             "type": "Inheritance"
+        },
+        {
+            "source": "House",
+            "destination": "Animal",
+            "type": "Realization"
+        },
+        {
+            "source": "House",
+            "destination": "Human",
+            "type": "Composition"
         }
     ]
 }
