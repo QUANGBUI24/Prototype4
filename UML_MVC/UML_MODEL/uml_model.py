@@ -18,6 +18,9 @@ from UML_CORE.UML_RELATIONSHIP.uml_relationship import UMLRelationship as Relati
 from UML_MVC.UML_CONTROLLER.uml_storage_manager import UMLStorageManager as Storage
 from UML_ENUM_CLASS.uml_enum import InterfaceOptions, RelationshipType
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_grid import GridGraphicsView as GUIView
+# Get the root directory where the main.py file exists
+root_directory = os.path.dirname(os.path.abspath(__file__))  # This gets the current script's directory
+root_directory = os.path.abspath(os.path.join(root_directory, "..", ".."))  # Move to the root directory (where main.py is)
 
 ###################################################################################################
 
@@ -1333,6 +1336,9 @@ class UMLModel:
         self.__console.print("\n[bold yellow]Please choose a file you want to delete.[/bold yellow]")
         self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
         saved_list = self.__storage_manager._get_saved_list()
+        is_saved_list_not_empty = self.__user_view._display_saved_list(saved_list)
+        if not is_saved_list_not_empty:
+            return
         self.__user_view._display_saved_list(saved_list)
         user_input = input()
         if user_input == "NAME_LIST":
@@ -1351,7 +1357,7 @@ class UMLModel:
             if user_input in dictionary:
                 save_list.remove(dictionary)
         self.__storage_manager._update_saved_list(save_list)
-        file_path = f"UML_UTILITY/SAVED_FILES/{user_input}.json"
+        file_path = os.path.join(root_directory, f"{user_input}.json")
         os.remove(file_path)
         self.__console.print(f"\n[bold green]Successfully removed file [bold white]'{user_input}.json'[/bold white][/bold green]")
     
