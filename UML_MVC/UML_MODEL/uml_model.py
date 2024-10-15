@@ -1210,6 +1210,9 @@ class UMLModel:
         """
         # Load data from the file and update program state
         main_data = self.__main_data = self.__storage_manager._load_data_from_json(file_name)
+        is_file_exist = self._check_saved_file_exist_gui(file_name)
+        if not is_file_exist:
+            self.__storage_manager._add_name_to_saved_file_gui(file_path)
         self.__update_data_members_gui(main_data, graphical_view)
         self.__check_file_and_set_status(file_name)
         self._check_file_and_set_status_gui(file_path)
@@ -1376,6 +1379,24 @@ class UMLModel:
         for element in saved_list:
             for name in element:
                 if file_name == name:
+                    return True
+        return False
+    
+    # Check if a saved file exists #
+    def _check_saved_file_exist_gui(self, file_path: str):
+        """
+        Checks if a saved file exists by looking for the file name in the saved list.
+
+        Args:
+            file_name (str): The name of the file to check.
+
+        Returns:
+            bool: True if the file exists, False otherwise.
+        """
+        saved_list = self.__storage_manager._get_saved_list_gui()
+        for element in saved_list:
+            for path in element:
+                if file_path == path:
                     return True
         return False
     
