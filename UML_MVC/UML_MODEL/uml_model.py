@@ -1333,6 +1333,9 @@ class UMLModel:
         self.__console.print("\n[bold yellow]Please choose a file you want to delete.[/bold yellow]")
         self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
         saved_list = self.__storage_manager._get_saved_list()
+        is_saved_list_not_empty = self.__user_view._display_saved_list(saved_list)
+        if not is_saved_list_not_empty:
+            return
         self.__user_view._display_saved_list(saved_list)
         user_input = input()
         if user_input == "NAME_LIST":
