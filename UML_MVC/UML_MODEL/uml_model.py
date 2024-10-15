@@ -1382,8 +1382,6 @@ class UMLModel:
             for full_path in dictionary:
                 file_name_with_ext = os.path.basename(full_path)
                 file_name_without_ext, extension = os.path.splitext(file_name_with_ext)
-                print(f"File name: {file_name_without_ext}")
-                print(f"File path: {full_path}")
                 if file_name_without_ext == user_input:
                     save_list_gui.remove(dictionary)
                     
