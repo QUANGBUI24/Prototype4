@@ -15,48 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1556</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="New"/>
-    <addaction name="Open"/>
-    <addaction name="separator"/>
-    <addaction name="Save"/>
-    <addaction name="SaveAs"/>
-    <addaction name="separator"/>
-    <addaction name="Quit"/>
-   </widget>
-   <widget class="QMenu" name="menuEdit">
-    <property name="title">
-     <string>Edit</string>
-    </property>
-    <addaction name="Copy"/>
-    <addaction name="Cut"/>
-    <addaction name="Paste"/>
-    <addaction name="separator"/>
-    <addaction name="Edit"/>
-   </widget>
-   <widget class="QMenu" name="menuHelp">
-    <property name="title">
-     <string>Help</string>
-    </property>
-    <addaction name="About"/>
-    <addaction name="Instructions"/>
-   </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuEdit"/>
-   <addaction name="menuHelp"/>
-  </widget>
   <widget class="QToolBar" name="left_tool_bar">
    <property name="font">
     <font>
@@ -101,6 +59,27 @@
    <addaction name="change_grid_color"/>
    <addaction name="toggle_mode"/>
    <addaction name="toggle_grid"/>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1556</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="Open"/>
+    <addaction name="separator"/>
+    <addaction name="Save"/>
+    <addaction name="SaveAs"/>
+    <addaction name="separator"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <action name="actionSave">
    <property name="text">
