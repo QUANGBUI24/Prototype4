@@ -1150,6 +1150,10 @@ class UMLModel:
         relationship_data_list = []
         # Update main data with class and relationship information
         main_data = self.__update_main_data_from_loaded_file(user_input, class_data_list, relationship_data_list)
+        self.__storage_manager._update_saved_list(saved_list)
+        current_active_file = self._get_active_file()
+        if current_active_file == "No active file!":
+            self.__set_file_status(user_input, "on")
         # Save data to JSON file
         self.__storage_manager._save_data_to_json(user_input, main_data)
         self.__console.print(f"\n[bold green]Successfully saved data to [bold white]'{user_input}.json'![/bold white][/bold green]")
@@ -1337,12 +1341,11 @@ class UMLModel:
         Allows the user to delete a saved file. Prompts the user for the file to delete and updates the saved file list.
         """
         self.__console.print("\n[bold yellow]Please choose a file you want to delete.[/bold yellow]")
-        self.__console.print("[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
+        self.__console.print("\n[bold yellow]Type [bold white]'quit'[/bold white] to go back to main menu:[/bold yellow]")
         saved_list = self.__storage_manager._get_saved_list()
         is_saved_list_not_empty = self.__user_view._display_saved_list(saved_list)
         if not is_saved_list_not_empty:
             return
-        self.__user_view._display_saved_list(saved_list)
         user_input = input()
         if user_input == "NAME_LIST":
             self.__console.print(f"\n[bold red]You can't delete file [bold white]'{user_input}.json'[/bold white][/bold red]")
