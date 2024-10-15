@@ -386,8 +386,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             # Increment y_offset for the next relationship
             y_offset += type_text.boundingRect().height() + self.default_margin
 
-
-
     #################################
     
     def create_separator(self, is_first=True, is_second=True):
