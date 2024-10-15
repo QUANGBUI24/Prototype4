@@ -412,42 +412,6 @@ class UMLInterface:
         """
         self.Model._change_type(source_class_name, destination_class_name, new_type)
     
-    ## DISPLAY RELATED ##
-    
-    # Display saved file list #
-    def display_saved_list(self):
-        """
-        Displays the list of saved UML files by delegating the operation to the model.
-        """
-        self.Model._display_saved_list()
-        
-    # Display classes #
-    def display_classes(self, main_data):
-        """
-        Displays the list of UML classes using the view.
-
-        Args:
-            main_data: The main data structure containing the UML classes and relationships.
-        """
-        self.View._display_wrapper(main_data)
-        
-    # Display single class #
-    def display_single_class(self, class_name: str):
-        """
-        Displays the details of a single UML class by delegating the operation to the model.
-
-        Args:
-            class_name (str): The name of the class to display.
-        """
-        self.Model._display_single_class_detail(class_name)
-        
-    # Display relationship #
-    def display_relationship(self):
-        """
-        Displays the list of UML relationships by delegating the operation to the model.
-        """
-        self.Model._display_relationship_list()
-    
     ## SAVE/LOAD RELATED ##
     
     # Save data #
