@@ -1150,10 +1150,10 @@ class UMLModel:
         relationship_data_list = []
         # Update main data with class and relationship information
         main_data = self.__update_main_data_from_loaded_file(user_input, class_data_list, relationship_data_list)
-        self.__storage_manager._update_saved_list(saved_list)
         current_active_file = self._get_active_file()
         if current_active_file == "No active file!":
-            self.__set_file_status(user_input, "on")
+            self._set_file_status(user_input, "on")
+        self.__storage_manager._update_saved_list(saved_list)
         # Save data to JSON file
         self.__storage_manager._save_data_to_json(user_input, main_data)
         self.__console.print(f"\n[bold green]Successfully saved data to [bold white]'{user_input}.json'![/bold white][/bold green]")
@@ -1174,11 +1174,14 @@ class UMLModel:
         main_data = self.__update_main_data_from_loaded_file(file_name, class_data_list, relationship_data_list, file_path=full_path)
         current_active_file = self._get_active_file()
         if current_active_file == "No active file!":
-            self.__set_file_status(file_name, "on")
-            
+            self._set_file_status(file_name, "on")
         current_active_file_gui = self._get_active_file_gui()
         if current_active_file_gui == "No active file!":
             self._set_file_status_gui(full_path, "on")
+        saved_list = self.__storage_manager._get_saved_list()
+        self.__storage_manager._update_saved_list(saved_list)
+        saved_list_gui = self.__storage_manager._get_saved_list_gui()
+        self.__storage_manager._update_saved_list_gui(saved_list_gui)
         # Save data to JSON via the GUI
         self.__storage_manager._save_data_to_json_gui(full_path, main_data)
 
@@ -1221,9 +1224,12 @@ class UMLModel:
         """
         # Load data from the file and update program state
         main_data = self.__main_data = self.__storage_manager._load_data_from_json(file_name)
-        is_file_exist = self._check_saved_file_exist_gui(file_name)
-        if not is_file_exist:
+        is_file_exist_gui = self._check_saved_file_exist_gui(file_name)
+        if not is_file_exist_gui:
             self.__storage_manager._add_name_to_saved_file_gui(file_path)
+        is_file_exist = self._check_saved_file_exist(file_name)
+        if not is_file_exist:
+            self.__storage_manager._add_name_to_saved_file(file_name)
         self.__update_data_members_gui(main_data, graphical_view)
         self.__check_file_and_set_status(file_name)
         self._check_file_and_set_status_gui(file_path)
@@ -1364,12 +1370,25 @@ class UMLModel:
         if not is_file_exist:
             self.__console.print(f"[bold red]File [bold white]'{user_input}.json'[/bold white] does not exist![/bold red]")
             return
-        # Remove the file from saved list and filesystem
+       # Remove the file from saved list and filesystem
         save_list = self.__storage_manager._get_saved_list()
-        for dictionary in save_list:
+        for dictionary in save_list.copy():
             if user_input in dictionary:
                 save_list.remove(dictionary)
+
+        # Remove file path in NAME_LIST_GUI.json
+        save_list_gui = self.__storage_manager._get_saved_list_gui()
+        for dictionary in save_list_gui.copy():
+            for full_path in dictionary:
+                file_name_with_ext = os.path.basename(full_path)
+                file_name_without_ext, extension = os.path.splitext(file_name_with_ext)
+                print(f"File name: {file_name_without_ext}")
+                print(f"File path: {full_path}")
+                if file_name_without_ext == user_input:
+                    save_list_gui.remove(dictionary)
+                    
         self.__storage_manager._update_saved_list(save_list)
+        self.__storage_manager._update_saved_list_gui(save_list_gui)
         file_path = os.path.join(root_directory, f"{user_input}.json")
         os.remove(file_path)
         self.__console.print(f"\n[bold green]Successfully removed file [bold white]'{user_input}.json'[/bold white][/bold green]")
@@ -1489,7 +1508,7 @@ class UMLModel:
         self.__storage_manager._update_saved_list(saved_list)
 
     # Set a specific file's status #
-    def __set_file_status(self, file_name: str, status: str):
+    def _set_file_status(self, file_name: str, status: str):
         """
         Sets the status of a specific file in the saved list.
 
@@ -1516,7 +1535,7 @@ class UMLModel:
             for key in each_dictionary:
                 if each_dictionary[key] == "on":
                     each_dictionary[key] = "off"
-        self.__set_file_status(file_name, status="on")
+        self._set_file_status(file_name, status="on")
         self.__storage_manager._update_saved_list(saved_list)
     
     # Set all files' status to 'off' #
