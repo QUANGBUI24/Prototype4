@@ -698,14 +698,52 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         is_rel_deleted = self.interface.delete_relationship(source_class, dest_class)
                         if is_rel_deleted:
                             self.find_and_remove_relationship_helper(source_class, dest_class)              
-                            self.selected_class.update_box()
             else:
                 QtWidgets.QMessageBox.warning(None, "Warning", "No relationship exists!")
         else:
             # Show a warning if there are no class selected
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
-                        
-    def find_and_remove_relationship_helper(self, source, dest):
+            
+    def change_relationship_type(self):
+        if self.selected_class:
+            if self.selected_class.relationship_list:
+                    source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class To Change Type", "Select source class:", self.class_name_list, 0, False)
+                    if ok and source_class:
+                        if source_class != self.selected_class.class_name_text.toPlainText():
+                            # Display a warning
+                            QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
+                            return
+                        dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class To Change Type", "Select destination class:", self.class_name_list, 0, False)
+                        if ok and dest_class:
+                            is_rel_exist = self.interface.relationship_exist(source_class, dest_class)
+                            if not is_rel_exist:
+                                # Display a warning
+                                QtWidgets.QMessageBox.warning(None, "Warning", f"There is no relationship between '{source_class}' class and '{dest_class} class!")
+                                return
+                            enum_items = [enum.value for enum in RelationshipType]
+                            relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose New Relationship Type", "Select type:", enum_items, 0, False)
+                            if ok and relationship_type:
+                                is_type_changed = self.interface.change_type(source_class, dest_class, relationship_type)
+                                if is_type_changed:
+                                    self.find_and_replace_relationship_type_helper(source_class, dest_class, relationship_type)
+                                else:
+                                    QtWidgets.QMessageBox.warning(None, "Warning", f"New relationship type is identical to current type {relationship_type}!")
+            else:
+                QtWidgets.QMessageBox.warning(None, "Warning", "No relationship exists!")
+        else:
+            # Show a warning if there are no class selected
+            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+    
+    def find_and_replace_relationship_type_helper(self, source_class, dest_class, new_type):
+        for each_relationship in self.selected_class.relationship_list:
+            if (each_relationship["source"].toPlainText() == source_class and 
+                each_relationship["dest"].toPlainText() == dest_class):
+                self.scene().removeItem(each_relationship["type"])
+                each_relationship["type"] = self.selected_class.create_text_item(new_type, selectable=True, color=self.selected_class.text_color)
+                break
+        self.selected_class.update_box()
+    
+    def find_and_remove_relationship_helper(self, source_class, dest_class):
         """
         Helper function to find and remove a relationship from the selected UML class box.
         Compares the text of the source and destination classes and removes them from the scene.
@@ -717,8 +755,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Iterate through the relationships in the class
         for each_relationship in self.selected_class.relationship_list:
             # Compare the text content of the source and destination
-            if (each_relationship["source"].toPlainText() == source and 
-                each_relationship["dest"].toPlainText() == dest):
+            if (each_relationship["source"].toPlainText() == source_class and 
+                each_relationship["dest"].toPlainText() == dest_class):
                 
                 # Remove the source, destination, and type from the scene
                 self.scene().removeItem(each_relationship["source"])
@@ -735,9 +773,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 break  # Break after removing the relationship to avoid concurrent modification issues
         
         # Remove the source and destination class from their respective lists
-        self.selected_class.source_class_list.remove(source)
-        self.selected_class.dest_class_list.remove(dest)
-
+        self.selected_class.source_class_list.remove(source_class)
+        self.selected_class.dest_class_list.remove(dest_class)
+        self.selected_class.update_box()
 
     #################################################################
     def open_folder_gui(self):
@@ -915,12 +953,13 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
             
             #################################
-            add_rel_button = contextMenu.addAction("Add Relationship")  # Add a parameter
-            delete_rel_button = contextMenu.addAction("Delete Relationship")  # Delete a parameter
+            add_rel_button = contextMenu.addAction("Add Relationship")  # Add relationship
+            delete_rel_button = contextMenu.addAction("Delete Relationship")  # Delete relationship
+            change_type_button = contextMenu.addAction("Change Type")  # Change relationship type
             
             add_rel_button.triggered.connect(self.add_relationship)
             delete_rel_button.triggered.connect(self.delete_relationship)
-            
+            change_type_button.triggered.connect(self.change_relationship_type)
             
             # Execute the context menu at the global position (where the right-click happened)
             contextMenu.exec_(event.globalPos())

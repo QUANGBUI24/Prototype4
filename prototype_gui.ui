@@ -92,6 +92,7 @@
    <addaction name="separator"/>
    <addaction name="add_rel"/>
    <addaction name="delete_rel"/>
+   <addaction name="change_type"/>
    <addaction name="separator"/>
    <addaction name="default_state"/>
    <addaction name="export_pdf"/>
@@ -402,6 +403,11 @@
   <action name="delete_rel">
    <property name="text">
     <string>Delete Relationship</string>
+   </property>
+  </action>
+  <action name="change_type">
+   <property name="text">
+    <string>Change Relationship Type</string>
    </property>
   </action>
  </widget>

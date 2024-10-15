@@ -422,7 +422,7 @@ class UMLInterface:
             destination_class_name (str): The name of the destination class.
             new_type (str): The new type of relationship.
         """
-        self.Model._change_type(source_class_name, destination_class_name, new_type)
+        return self.Model._change_type(source_class_name, destination_class_name, new_type)
     
     ## SAVE/LOAD RELATED ##
     
