@@ -1,31 +1,36 @@
 {
     "classes": [
         {
-            "name": "a",
+            "name": "AAA",
             "fields": [],
             "methods": []
         },
         {
-            "name": "b",
+            "name": "BBB",
             "fields": [],
             "methods": []
         }
     ],
     "relationships": [
         {
-            "source": "a",
-            "destination": "a",
+            "source": "BBB",
+            "destination": "BBB",
             "type": "Aggregation"
         },
         {
-            "source": "a",
-            "destination": "b",
-            "type": "Inheritance"
+            "source": "BBB",
+            "destination": "AAA",
+            "type": "Composition"
         },
         {
-            "source": "b",
-            "destination": "a",
-            "type": "Composition"
+            "source": "AAA",
+            "destination": "AAA",
+            "type": "Realization"
+        },
+        {
+            "source": "AAA",
+            "destination": "BBB",
+            "type": "Inheritance"
         }
     ]
 }

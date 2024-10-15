@@ -176,6 +176,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             if ok and new_class_name:
                 is_class_renamed = self.interface.rename_class(old_class_name, new_class_name)
                 if is_class_renamed:
+                    self.change_name_in_relationship_after_rename_class(old_class_name, new_class_name)
                     self.class_name_list[self.class_name_list.index(old_class_name)] = new_class_name
                     self.selected_class.class_name_text.setPlainText(new_class_name)
                     self.selected_class.update_box()
@@ -183,9 +184,21 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     QtWidgets.QMessageBox.warning(None, "Warning", f"New class name'{new_class_name}' has already existed!")
             else:
                 QtWidgets.QMessageBox.warning(None, "Warning", f"Class name'{old_class_name}' does not exist!")
-                
         else:
             QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+    
+    def change_name_in_relationship_after_rename_class(self, old_class_name, new_class_name):
+        for item in self.scene().items():
+            if isinstance(item, UMLClassBox):
+                if item.relationship_list:
+                    for each_relationship in item.relationship_list:
+                        if each_relationship["source"].toPlainText() == old_class_name:
+                            self.scene().removeItem(each_relationship["source"])
+                            each_relationship["source"] = item.create_text_item(new_class_name, selectable=True, color=item.text_color)
+                        if each_relationship["dest"].toPlainText() == old_class_name:
+                            self.scene().removeItem(each_relationship["dest"])
+                            each_relationship["dest"] = item.create_text_item(new_class_name, selectable=True, color=item.text_color)
+                    item.update_box()
             
     def add_field(self, loaded_class_name=None, loaded_field_name=None, is_loading=False):
         """
@@ -648,36 +661,37 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         if len(selected_class_box.relationship_list) == 1:  # If this is the first method, create a separator
                             selected_class_box.create_separator(is_first=False, is_second=False)
                         selected_class_box.update_box()
-        if self.selected_class:
-            source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class", "Select source class:", self.class_name_list, 0, False)
-            if ok and source_class:
-                if source_class != self.selected_class.class_name_text.toPlainText():
-                    # Display a warning 
-                    QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
-                    return
-                dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
-                if ok and dest_class:
-                    # Convert enum members to a list of names
-                    enum_items = [enum.value for enum in RelationshipType]
-                    relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose Relationship Type", "Select type:", enum_items, 0, False)
-                    if ok and relationship_type:
-                        is_rel_added = self.interface.add_relationship_gui(source_class_name=source_class, destination_class_name=dest_class, type=relationship_type)
-                        if is_rel_added:
-                            self.selected_class.source_class_list.append(source_class)
-                            self.selected_class.dest_class_list.append(dest_class)
-                            source_text = self.selected_class.create_text_item(source_class, selectable=True, color=self.selected_class.text_color)
-                            dest_text = self.selected_class.create_text_item(dest_class, selectable=True, color=self.selected_class.text_color)
-                            type_text = self.selected_class.create_text_item(relationship_type, selectable=True, color=self.selected_class.text_color)
-                            self.selected_class.relationship_list.append({"source" : source_text, "dest" : dest_text, "type" : type_text})
-                            if len(self.selected_class.relationship_list) == 1:  # If this is the first method, create a separator
-                                self.selected_class.create_separator(is_first=False, is_second=False)
-                            self.selected_class.update_box()
-                        else:
-                            # Display a warning if users enter wrong format
-                            QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
         else:
-            # Show a warning if there are no class selected
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
+            if self.selected_class:
+                source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class", "Select source class:", self.class_name_list, 0, False)
+                if ok and source_class:
+                    if source_class != self.selected_class.class_name_text.toPlainText():
+                        # Display a warning 
+                        QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
+                        return
+                    dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
+                    if ok and dest_class:
+                        # Convert enum members to a list of names
+                        enum_items = [enum.value for enum in RelationshipType]
+                        relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose Relationship Type", "Select type:", enum_items, 0, False)
+                        if ok and relationship_type:
+                            is_rel_added = self.interface.add_relationship_gui(source_class_name=source_class, destination_class_name=dest_class, type=relationship_type)
+                            if is_rel_added:
+                                self.selected_class.source_class_list.append(source_class)
+                                self.selected_class.dest_class_list.append(dest_class)
+                                source_text = self.selected_class.create_text_item(source_class, selectable=True, color=self.selected_class.text_color)
+                                dest_text = self.selected_class.create_text_item(dest_class, selectable=True, color=self.selected_class.text_color)
+                                type_text = self.selected_class.create_text_item(relationship_type, selectable=True, color=self.selected_class.text_color)
+                                self.selected_class.relationship_list.append({"source" : source_text, "dest" : dest_text, "type" : type_text})
+                                if len(self.selected_class.relationship_list) == 1:  # If this is the first method, create a separator
+                                    self.selected_class.create_separator(is_first=False, is_second=False)
+                                self.selected_class.update_box()
+                            else:
+                                # Display a warning if users enter wrong format
+                                QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
+            else:
+                # Show a warning if there are no class selected
+                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
                             
     def delete_relationship(self):
         if self.selected_class:
