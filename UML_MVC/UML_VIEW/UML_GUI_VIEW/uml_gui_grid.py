@@ -912,6 +912,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         item = self.itemAt(event.pos())
         if isinstance(item, UMLClassBox):
             self.selected_class = item
+        else:
+            self.selected_class = None
 
         # Panning logic for middle mouse button
         if event.button() == QtCore.Qt.MiddleButton:
