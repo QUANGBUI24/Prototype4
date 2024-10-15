@@ -528,7 +528,7 @@ class UMLModel:
             self.__console.print("\n[bold red]Wrong format! Please try again![/bold red]")
             
     # Add relationship #
-    def _add_relationship(self, source_class_name: str, destination_class_name: str, rel_type: str, is_loading: bool, is_gui: bool):
+    def _add_relationship(self, source_class_name: str, destination_class_name: str, rel_type: str, is_loading: bool, is_gui: bool=None):
         """
         Adds a new relationship between two UML classes. Notifies observers of the relationship addition event.
 

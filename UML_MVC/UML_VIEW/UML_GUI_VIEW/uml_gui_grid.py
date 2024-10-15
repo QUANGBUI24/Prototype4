@@ -1,5 +1,6 @@
 ###################################################################################################
 
+import re
 import os
 from PyQt5 import QtWidgets, QtGui, QtCore, QtPrintSupport
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
@@ -136,6 +137,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Display a dialog asking the user for the new class name
             input_class_name, ok = QtWidgets.QInputDialog.getText(None, "Add Class", "Enter class name:")
             if ok and input_class_name:
+                is_class_name_valid = self.is_valid_input(input_class_name)
+                if not is_class_name_valid:
+                    QtWidgets.QMessageBox.warning(None, "Warning", f"Class name {input_class_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                    return
                 is_class_added = self.interface.add_class(input_class_name)
                 if is_class_added:
                     self.class_name_list.append(input_class_name)
@@ -174,6 +179,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             old_class_name = self.selected_class.class_name_text.toPlainText()
             new_class_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Class", f"Enter new name for class '{old_class_name}'")
             if ok and new_class_name:
+                is_class_name_valid = self.is_valid_input(new_class_name)
+                if not is_class_name_valid:
+                    QtWidgets.QMessageBox.warning(None, "Warning", f"Class name {new_class_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                    return
                 is_class_renamed = self.interface.rename_class(old_class_name, new_class_name)
                 if is_class_renamed:
                     self.change_name_in_relationship_after_rename_class(old_class_name, new_class_name)
@@ -236,6 +245,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
                 # If the user confirms and provides a valid name, create and add the field
                 if ok and field_name:
+                    is_field_name_valid = self.is_valid_input(field_name)
+                    if not is_field_name_valid:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Field name {field_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                        return
                     selected_class_name = self.selected_class.class_name_text.toPlainText()
                     is_field_added = self.interface.add_field(selected_class_name, field_name)
                     if is_field_added:
@@ -298,6 +311,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     # Ask for the new name for the selected field
                     new_field_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Field", f"Enter new name for the field '{old_field_name}':")
                     if ok and new_field_name:
+                        is_field_name_valid = self.is_valid_input(new_field_name)
+                        if not is_field_name_valid:
+                            QtWidgets.QMessageBox.warning(None, "Warning", f"Field name {new_field_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                            return
                         selected_class_name = self.selected_class.class_name_text.toPlainText()
                         is_field_renamed = self.interface.rename_field(selected_class_name, old_field_name, new_field_name)
                         if is_field_renamed:
@@ -354,6 +371,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
                 # If the user confirms and provides a valid method name, add it to the UML box
                 if ok and method_name:
+                    is_method_name_valid = self.is_valid_input(method_name)
+                    if not is_method_name_valid:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Method name {method_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                        return
                     selected_class_name = self.selected_class.class_name_text.toPlainText()
                     is_method_added = self.interface.add_method(selected_class_name, method_name)
                     if is_method_added:
@@ -422,8 +443,11 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             if ok and old_method_name:
                 # Prompt for the new name
                 new_method_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Method", f"Enter new name for the method '{old_method_name}':")
-                
                 if ok and new_method_name:
+                    is_method_name_valid = self.is_valid_input(new_method_name)
+                    if not is_method_name_valid:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Method name {new_method_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                        return
                     selected_class_name = self.selected_class.class_name_text.toPlainText()
                     is_method_renamed = self.interface.rename_method(selected_class_name, old_method_name, new_method_name)
                     if is_method_renamed:
@@ -479,6 +503,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         # Ask for the parameter name
                         param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
                         if ok and param_name:
+                            is_param_name_valid = self.is_valid_input(param_name)
+                            if not is_param_name_valid:
+                                QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                                return
                             selected_class_name = self.selected_class.class_name_text.toPlainText()
                             is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
                             if is_param_added:
@@ -567,6 +595,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                             # Ask for the new parameter name
                             new_param_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Parameter", "Enter new parameter name:")
                             if ok and new_param_name:
+                                is_param_name_valid = self.is_valid_input(new_param_name)
+                                if not is_param_name_valid:
+                                    QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {new_param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                                    return
                                 selected_class_name = self.selected_class.class_name_text.toPlainText()
                                 is_param_renamed = self.interface.rename_parameter(selected_class_name, method_name, old_param_name, new_param_name)
                                 if is_param_renamed:
@@ -617,6 +649,11 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         new_param_list = [param.strip() for param in param_string.split(",") if param.strip()]
                         # Check for duplicate parameter names
                         unique_param_names = list(set(new_param_list))
+                        for each_param in unique_param_names:
+                            is_param_name_valid = self.is_valid_input(each_param)
+                            if not is_param_name_valid:
+                                QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {each_param} is invalid! Only allow a-zA-Z, number, and underscore!")
+                                return
                         if len(unique_param_names) != len(new_param_list):
                             duplicates = [param for param in new_param_list if new_param_list.count(param) > 1]
                             QtWidgets.QMessageBox.warning(None, "Warning", f"New list contain duplicate{duplicates}!")
@@ -1269,7 +1306,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             super().keyPressEvent(event)
 
-
     #################################################################
     ## UTILITY FUNCTIONS ##
     
@@ -1367,8 +1403,30 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 self.selected_class.default_text_font = font
                 self.selected_class.update_box()
                 
+    def is_valid_input(self, user_input):
+        """
+        Check if the user input contains only letters, numbers, and underscores.
+
+        Args:
+        user_input (str): The input string to validate.
+
+        Returns:
+        bool: True if input is valid (contains only a-z, A-Z, 0-9, and _), False otherwise.
+        """
+        # Regular expression pattern to allow only a-z, A-Z, 0-9, and _
+        pattern = r'^[a-zA-Z0-9_]+$'
+
+        # Match the input string against the pattern
+        if re.match(pattern, user_input):
+            return True
+        else:
+            return False
+                
     def end_session(self):
         self.clear_current_scene()
+        self.set_grid_visible(True)
+        self.reset_view()
+        self.set_light_mode()
         self.class_name_list = []
         self.interface.end_session()
 
