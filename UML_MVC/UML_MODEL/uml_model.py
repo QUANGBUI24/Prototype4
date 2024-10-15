@@ -1172,6 +1172,13 @@ class UMLModel:
         relationship_data_list = []
         # Update main data with class and relationship information
         main_data = self.__update_main_data_from_loaded_file(file_name, class_data_list, relationship_data_list, file_path=full_path)
+        current_active_file = self._get_active_file()
+        if current_active_file == "No active file!":
+            self.__set_file_status(file_name, "on")
+            
+        current_active_file_gui = self._get_active_file_gui()
+        if current_active_file_gui == "No active file!":
+            self._set_file_status_gui(full_path, "on")
         # Save data to JSON via the GUI
         self.__storage_manager._save_data_to_json_gui(full_path, main_data)
 
@@ -1529,6 +1536,7 @@ class UMLModel:
             file_name (str): The name of the file.
             status (str): The new status to assign to the file ('on' or 'off').
         """
+        
         saved_list = self.__storage_manager._get_saved_list_gui()
         for each_dictionary in saved_list:
             for key in each_dictionary:
