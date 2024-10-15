@@ -651,6 +651,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         if self.selected_class:
             source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class", "Select source class:", self.class_name_list, 0, False)
             if ok and source_class:
+                if source_class != self.selected_class.class_name_text.toPlainText():
+                    # Display a warning if users enter wrong format
+                    QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
+                    return
                 dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
                 if ok and dest_class:
                     # Convert enum members to a list of names
