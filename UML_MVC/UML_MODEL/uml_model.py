@@ -583,7 +583,7 @@ class UMLModel:
         # Check if the class and method exist
         is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=True)
         if not is_class_and_method_exist:
-            return False
+            return 
         # Prompt the user to input new parameter names
         self.__console.print("\n[bold yellow]Enter the names for the new parameter list, each name must be separated by spaces:[/bold yellow]\n\n[bold white]==>[/bold white] ")
         user_input = input()
@@ -601,7 +601,7 @@ class UMLModel:
             duplicates = [param for param in new_param_name_list if new_param_name_list.count(param) > 1]
             self.__console.print(f"\n[bold red]Duplicates: [bold white]{set(duplicates)}[/bold white][/bold red]")
             self.__console.print("\n[bold red]Please modify the parameter list manually to ensure uniqueness.[/bold red]")
-            return False
+            return 
         # Create parameter objects for the new list and replace the old list
         new_param_list: List[Parameter] = []
         for param_name in new_param_name_list:
@@ -612,7 +612,7 @@ class UMLModel:
         # Update main data and notify observers
         self._update_main_data_for_every_action()
         self._notify_observers(event_type=InterfaceOptions.REPLACE_PARAM.value, data={"class_name": class_name, "method_name": method_name, "new_list": new_param_list})
-        return True
+        return 
     
     def _replace_param_list_gui(self, class_name: str, method_name: str, new_param_name_list: List):
         # Check if the class and method exist
