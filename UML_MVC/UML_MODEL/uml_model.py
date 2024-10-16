@@ -1431,7 +1431,7 @@ class UMLModel:
         The data is loaded and the program's state is updated.
         """
         # Load data from the file and update program state
-        main_data = self.__main_data = self.__storage_manager._load_data_from_json(file_name)
+        main_data = self.__main_data = self.__storage_manager._load_data_from_json_gui(file_path)
         is_file_exist_gui = self._check_saved_file_exist_gui(file_name)
         if not is_file_exist_gui:
             self.__storage_manager._add_name_to_saved_file_gui(file_path)

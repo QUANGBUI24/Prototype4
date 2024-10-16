@@ -199,6 +199,32 @@ class UMLStorageManager:
             print(f"\nError decoding JSON from {file_path}.")
             return None
         
+    # Load UML data from a specified JSON file #
+    def _load_data_from_json_gui(self, file_path: str):
+        """
+        Load UML data from a specified JSON file.
+
+        Args:
+            file_name (str): The name of the file to load data from.
+
+        Returns:
+            dict: The UML data loaded from the JSON file.
+            None: If there is a file not found error or JSON decoding error.
+        """
+        # Create the file path to save the file in the root directory
+        try:
+            with open(file_path, "r") as file:
+                data = json.load(file)
+                return data
+        except FileNotFoundError:
+            # Handle the case where the file is not found
+            print(f"File {file_path} not found.")
+            return None
+        except json.JSONDecodeError:
+            # Handle JSON decoding errors
+            print(f"\nError decoding JSON from {file_path}.")
+            return None
+        
     # Add a new file name to the saved file list #
     def _add_name_to_saved_file(self, file_name: str):
         """
