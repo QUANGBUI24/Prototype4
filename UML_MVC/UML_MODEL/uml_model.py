@@ -1391,6 +1391,7 @@ class UMLModel:
         saved_list_gui = self.__storage_manager._get_saved_list_gui()
         self.__storage_manager._update_saved_list_gui(saved_list_gui)
         # Save data to JSON via the GUI
+        self.__storage_manager._save_data_to_json(file_name, main_data)
         self.__storage_manager._save_data_to_json_gui(full_path, main_data)
 
     # Load data #
@@ -1438,6 +1439,7 @@ class UMLModel:
         is_file_exist = self._check_saved_file_exist(file_name)
         if not is_file_exist:
             self.__storage_manager._add_name_to_saved_file(file_name)
+        self.__storage_manager._save_data_to_json(file_name, main_data)
         self.__update_data_members_gui(main_data, graphical_view)
         self.__check_file_and_set_status(file_name)
         self._check_file_and_set_status_gui(file_path)
