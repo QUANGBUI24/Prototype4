@@ -136,14 +136,14 @@
     <string>F4</string>
    </property>
   </action>
-  <action name="actionEdit_Mode">
-   <property name="text">
-    <string>Edit Mode</string>
+  <action name="toggle_mode">
+   <property name="icon">
+    <iconset>
+     <normalon>bulb.png</normalon>
+    </iconset>
    </property>
-  </action>
-  <action name="actionView_Mode">
    <property name="text">
-    <string>View Mode</string>
+    <string>Dark/Light Mode</string>
    </property>
   </action>
   <action name="Edit">
@@ -256,23 +256,6 @@
    </property>
    <property name="shortcut">
     <string>Del</string>
-   </property>
-  </action>
-  <action name="toggle_mode">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Dark/Light Mode</string>
-   </property>
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>10</pointsize>
-    </font>
    </property>
   </action>
   <action name="rename_class">

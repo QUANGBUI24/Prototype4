@@ -1105,11 +1105,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
 
             #################################
-            # SESSION MANAGEMENT OPTION
-            # Add an option to reset the session to the default state (clear everything)
-            new_file_action = contextMenu.addAction("New File")
-            new_file_action.triggered.connect(self.new_file)
-
             # Execute the context menu at the global position (where the right-click happened)
             contextMenu.exec_(event.globalPos())
             
@@ -1131,8 +1126,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 self.scale(1.1, 1.1)
             elif delta < 0 and current_scale > zoom_limit:
                 self.scale(0.9, 0.9)
-
-            self.update_snap()  # Snap items to grid
             self.viewport().update()
             event.accept()
         else:
@@ -1294,14 +1287,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         for item in items_in_rect:
             if isinstance(item, UMLClassBox):
                 item.setSelected(True)  # Select new items in the rectangle
-
-    def update_snap(self):
-        """
-        Snap all items to the grid after scaling.
-        """
-        for item in self.scene().items():
-            if isinstance(item, UMLClassBox):
-                item.snap_to_grid()
                 
     def is_valid_input(self, user_input):
         """
