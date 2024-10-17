@@ -101,7 +101,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
             # Display a dialog asking the user for the new class name
             input_class_name, ok = QtWidgets.QInputDialog.getText(None, "Add Class", "Enter class name:")
             if ok and input_class_name:
-                is_class_name_valid = self.is_valid_input(input_class_name)
+                is_class_name_valid = self.interface.is_valid_input(class_name=input_class_name)
                 if not is_class_name_valid:
                     QtWidgets.QMessageBox.warning(None, "Warning", f"Class name {input_class_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                     return
@@ -143,7 +143,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
             old_class_name = self.selected_class.class_name_text.toPlainText()
             new_class_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Class", f"Enter new name for class '{old_class_name}'")
             if ok and new_class_name:
-                is_class_name_valid = self.is_valid_input(new_class_name)
+                is_class_name_valid = self.interface.is_valid_input(new_name=new_class_name)
                 if not is_class_name_valid:
                     QtWidgets.QMessageBox.warning(None, "Warning", f"Class name {new_class_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                     return
@@ -209,7 +209,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                 field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
                 # If the user confirms and provides a valid name, create and add the field
                 if ok and field_name:
-                    is_field_name_valid = self.is_valid_input(field_name)
+                    is_field_name_valid = self.interface.is_valid_input(field_name=field_name)
                     if not is_field_name_valid:
                         QtWidgets.QMessageBox.warning(None, "Warning", f"Field name {field_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                         return
@@ -275,7 +275,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     # Ask for the new name for the selected field
                     new_field_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Field", f"Enter new name for the field '{old_field_name}':")
                     if ok and new_field_name:
-                        is_field_name_valid = self.is_valid_input(new_field_name)
+                        is_field_name_valid = self.interface.is_valid_input(new_name=new_field_name)
                         if not is_field_name_valid:
                             QtWidgets.QMessageBox.warning(None, "Warning", f"Field name {new_field_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                             return
@@ -335,7 +335,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
 
                 # If the user confirms and provides a valid method name, add it to the UML box
                 if ok and method_name:
-                    is_method_name_valid = self.is_valid_input(method_name)
+                    is_method_name_valid = self.interface.is_valid_input(method_name=method_name)
                     if not is_method_name_valid:
                         QtWidgets.QMessageBox.warning(None, "Warning", f"Method name {method_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                         return
@@ -408,7 +408,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     # Prompt for the new name
                     new_method_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Method", f"Enter new name for the method '{old_method_name}':")
                     if ok and new_method_name:
-                        is_method_name_valid = self.is_valid_input(new_method_name)
+                        is_method_name_valid = self.interface.is_valid_input(new_name=new_method_name)
                         if not is_method_name_valid:
                             QtWidgets.QMessageBox.warning(None, "Warning", f"Method name {new_method_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                             return
@@ -469,7 +469,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         # Ask for the parameter name
                         param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
                         if ok and param_name:
-                            is_param_name_valid = self.is_valid_input(param_name)
+                            is_param_name_valid = self.interface.is_valid_input(parameter_name=param_name)
                             if not is_param_name_valid:
                                 QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                                 return
@@ -561,7 +561,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                             # Ask for the new parameter name
                             new_param_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Parameter", "Enter new parameter name:")
                             if ok and new_param_name:
-                                is_param_name_valid = self.is_valid_input(new_param_name)
+                                is_param_name_valid = self.interface.is_valid_input(new_name=new_param_name)
                                 if not is_param_name_valid:
                                     QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {new_param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                                     return
@@ -616,7 +616,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         # Check for duplicate parameter names
                         unique_param_names = list(set(new_param_list))
                         for each_param in unique_param_names:
-                            is_param_name_valid = self.is_valid_input(each_param)
+                            is_param_name_valid = self.interface.is_valid_input(parameter_name=each_param)
                             if not is_param_name_valid:
                                 QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {each_param} is invalid! Only allow a-zA-Z, number, and underscore!")
                                 return
@@ -1177,25 +1177,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         for item in items_in_rect:
             if isinstance(item, UMLClassBox):
                 item.setSelected(True)  # Select new items in the rectangle
-                
-    def is_valid_input(self, user_input):
-        """
-        Check if the user input contains only letters, numbers, and underscores.
-
-        Args:
-        user_input (str): The input string to validate.
-
-        Returns:
-        bool: True if input is valid (contains only a-z, A-Z, 0-9, and _), False otherwise.
-        """
-        # Regular expression pattern to allow only a-z, A-Z, 0-9, and _
-        pattern = r'^[a-zA-Z0-9_]+$'
-
-        # Match the input string against the pattern
-        if re.match(pattern, user_input):
-            return True
-        else:
-            return False
                 
     def new_file(self):
         reply = QtWidgets.QMessageBox.question(self, "New File",

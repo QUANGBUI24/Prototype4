@@ -558,7 +558,33 @@ class UMLInterface:
         Notifies all observers of changes in the model for the observer pattern implementation.
         """
         self.Model._notify_observer()
+    
+    # Check for valid input
+    def is_valid_input(self, class_name=None, field_name=None, 
+                        method_name=None, parameter_name=None, 
+                        source_class=None, destination_class=None, 
+                        type=None, new_name=None):
+        """
+        Check if the user input contains only letters, numbers, and underscores for all provided parameters.
 
+        Args:
+            class_name (str, optional): The name of the class to validate.
+            field_name (str, optional): The name of the field to validate.
+            method_name (str, optional): The name of the method to validate.
+            parameter_name (str, optional): The name of the parameter to validate.
+            source_class (str, optional): The source class name to validate.
+            destination_class (str, optional): The destination class name to validate.
+            type (str, optional): The type of relationship.
+            new_name (str, optional): The new name to validate (e.g., for renaming a class).
+
+        Returns:
+            bool: True if all provided inputs are valid (contain only a-z, A-Z, 0-9, and _), False otherwise.
+        """
+        return self.Model._is_valid_input(class_name=class_name, field_name=field_name,
+                                          method_name=method_name, parameter_name=parameter_name,
+                                          source_class=source_class, destination_class=destination_class,
+                                          type=type, new_name=new_name)
+        
     #################################################################
     
     ## USER INTERFACE ##
