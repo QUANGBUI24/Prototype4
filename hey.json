@@ -9,11 +9,6 @@
             "name": "Animal",
             "fields": [],
             "methods": []
-        },
-        {
-            "name": "House",
-            "fields": [],
-            "methods": []
         }
     ],
     "relationships": []
