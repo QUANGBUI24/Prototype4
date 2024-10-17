@@ -2,14 +2,14 @@
 
 import re
 import os
-from PyQt5 import QtWidgets, QtGui, QtCore, QtPrintSupport
+from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
 # from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
 from UML_ENUM_CLASS.uml_enum import RelationshipType
 
 ###################################################################################################
 
-class GridGraphicsView(QtWidgets.QGraphicsView):
+class UMLGraphicsView(QtWidgets.QGraphicsView):
     """
     A custom graphics view that displays a grid pattern and handles user interactions.
     Inherits from QGraphicsView.
@@ -18,9 +18,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     #################################################################
     ### CONSTRUCTOR ###
 
-    def __init__(self, interface, parent=None, grid_size=15, color=QtGui.QColor(200, 200, 200)):
+    def __init__(self, interface, parent=None):
         """
-        Initializes a new GridGraphicsView instance.
+        Initializes a new UMLGraphicsView instance.
 
         Parameters:
         - parent (QWidget): The parent widget.
@@ -35,11 +35,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Class name list
         self.class_name_list = []
         
-        # Initialize grid properties
-        self.grid_visible = True  # Flag to show/hide the grid
+        # Initialize canvas properties
         self.is_dark_mode = False  # Flag for light/dark mode
-        self.grid_size = grid_size  # Grid spacing
-        self.grid_color = color  # Grid line color
 
         # Set initial view properties
         self.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -48,12 +45,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
         # Panning state variables
         self.is_panning = False  # Flag to indicate if panning is active
-        # self.is_using_rubber_band = None
-        self.last_mouse_pos = None  # Last mouse position during panning
-        
-        # For the rectangular selection feature
-        self.rubber_band = None  # Selection rectangle
-        self.origin_point = QtCore.QPointF()  # Starting point of the selection
 
         # Track selected class or arrow
         self.selected_class = None
@@ -93,33 +84,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             painter.fillRect(rect, QtGui.QColor(30, 30, 30))
         else:
             painter.fillRect(rect, QtGui.QColor(255, 255, 255))
-
-        if self.grid_visible:
-            # Set pen for grid lines
-            pen = QtGui.QPen(self.grid_color)
-            pen.setWidth(1)
-            painter.setPen(pen)
-
-            # Calculate starting points for grid lines
-            left = int(rect.left()) - (int(rect.left()) % self.grid_size)
-            top = int(rect.top()) - (int(rect.top()) % self.grid_size)
-
-            # Draw vertical grid lines
-            for x in range(left, int(rect.right()), self.grid_size):
-                painter.drawLine(x, int(rect.top()), x, int(rect.bottom()))
-
-            # Draw horizontal grid lines
-            for y in range(top, int(rect.bottom()), self.grid_size):
-                painter.drawLine(int(rect.left()), y, int(rect.right()), y)
-
-            # Draw origin lines
-            origin_pen = QtGui.QPen(QtGui.QColor(255, 0, 0))
-            origin_pen.setWidth(2)
-            painter.setPen(origin_pen)
-            painter.drawLine(int(rect.left()), 0, int(rect.right()), 0)  # Horizontal line at y=0
-            painter.drawLine(0, int(rect.top()), 0, int(rect.bottom()))  # Vertical line at x=0
-
-            painter.setPen(pen)  # Reset pen
     
     #################################################################
     ## CLASS OPERATION ##
@@ -137,7 +101,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             # Display a dialog asking the user for the new class name
             input_class_name, ok = QtWidgets.QInputDialog.getText(None, "Add Class", "Enter class name:")
             if ok and input_class_name:
-                is_class_name_valid = self.is_valid_input(input_class_name)
+                is_class_name_valid = self.interface.is_valid_input(class_name=input_class_name)
                 if not is_class_name_valid:
                     QtWidgets.QMessageBox.warning(None, "Warning", f"Class name {input_class_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                     return
@@ -179,7 +143,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             old_class_name = self.selected_class.class_name_text.toPlainText()
             new_class_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Class", f"Enter new name for class '{old_class_name}'")
             if ok and new_class_name:
-                is_class_name_valid = self.is_valid_input(new_class_name)
+                is_class_name_valid = self.interface.is_valid_input(new_name=new_class_name)
                 if not is_class_name_valid:
                     QtWidgets.QMessageBox.warning(None, "Warning", f"Class name {new_class_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                     return
@@ -245,7 +209,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 field_name, ok = QtWidgets.QInputDialog.getText(None, "Add Field", "Enter field name:")
                 # If the user confirms and provides a valid name, create and add the field
                 if ok and field_name:
-                    is_field_name_valid = self.is_valid_input(field_name)
+                    is_field_name_valid = self.interface.is_valid_input(field_name=field_name)
                     if not is_field_name_valid:
                         QtWidgets.QMessageBox.warning(None, "Warning", f"Field name {field_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                         return
@@ -311,7 +275,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     # Ask for the new name for the selected field
                     new_field_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Field", f"Enter new name for the field '{old_field_name}':")
                     if ok and new_field_name:
-                        is_field_name_valid = self.is_valid_input(new_field_name)
+                        is_field_name_valid = self.interface.is_valid_input(new_name=new_field_name)
                         if not is_field_name_valid:
                             QtWidgets.QMessageBox.warning(None, "Warning", f"Field name {new_field_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                             return
@@ -371,7 +335,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
                 # If the user confirms and provides a valid method name, add it to the UML box
                 if ok and method_name:
-                    is_method_name_valid = self.is_valid_input(method_name)
+                    is_method_name_valid = self.interface.is_valid_input(method_name=method_name)
                     if not is_method_name_valid:
                         QtWidgets.QMessageBox.warning(None, "Warning", f"Method name {method_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                         return
@@ -444,7 +408,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                     # Prompt for the new name
                     new_method_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Method", f"Enter new name for the method '{old_method_name}':")
                     if ok and new_method_name:
-                        is_method_name_valid = self.is_valid_input(new_method_name)
+                        is_method_name_valid = self.interface.is_valid_input(new_name=new_method_name)
                         if not is_method_name_valid:
                             QtWidgets.QMessageBox.warning(None, "Warning", f"Method name {new_method_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                             return
@@ -505,7 +469,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         # Ask for the parameter name
                         param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
                         if ok and param_name:
-                            is_param_name_valid = self.is_valid_input(param_name)
+                            is_param_name_valid = self.interface.is_valid_input(parameter_name=param_name)
                             if not is_param_name_valid:
                                 QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                                 return
@@ -597,7 +561,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                             # Ask for the new parameter name
                             new_param_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Parameter", "Enter new parameter name:")
                             if ok and new_param_name:
-                                is_param_name_valid = self.is_valid_input(new_param_name)
+                                is_param_name_valid = self.interface.is_valid_input(new_name=new_param_name)
                                 if not is_param_name_valid:
                                     QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {new_param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
                                     return
@@ -652,7 +616,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                         # Check for duplicate parameter names
                         unique_param_names = list(set(new_param_list))
                         for each_param in unique_param_names:
-                            is_param_name_valid = self.is_valid_input(each_param)
+                            is_param_name_valid = self.interface.is_valid_input(parameter_name=each_param)
                             if not is_param_name_valid:
                                 QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {each_param} is invalid! Only allow a-zA-Z, number, and underscore!")
                                 return
@@ -987,33 +951,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             """
 
             #################################
-            # BOX COLOR OPTION ##
-            
-            # Add an option to change the color of the class box
-            change_box_color_button = contextMenu.addAction("Box Color")
-            # Connect the action to the change_box_color method, which will open a color dialog
-            change_box_color_button.triggered.connect(self.change_box_color)
-
-            #################################
-            # TEXT COLOR OPTION ##
-            
-            # Add an option to change the text color inside the class box
-            change_text_color_button = contextMenu.addAction("Text Color")
-            # Connect the action to the change_text_color method, which opens a color dialog
-            change_text_color_button.triggered.connect(self.change_text_color)
-
-            #################################
-            # TEXT FONT OPTION ##
-            
-            # Add an option to change the font of the text inside the class box
-            change_text_font_button = contextMenu.addAction("Text Font")
-            # Connect the action to the change_text_font_and_size method, allowing the user to change the font and size
-            change_text_font_button.triggered.connect(self.change_text_font_and_size)
-            
-            # Add a separator for better organization of the menu
-            contextMenu.addSeparator()
-
-            #################################
             # CLASS MANAGEMENT OPTIONS ##
             
             # Add an option to rename the selected class
@@ -1115,28 +1052,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
 
             #################################
-            # FILE MANAGEMENT OPTIONS
-            # Add an option to open a folder (load a UML diagram)
-            open_action = contextMenu.addAction("Open")
-            open_action.triggered.connect(self.open_folder_gui)
-
-            # Add an option to save the current UML diagram
-            save_action = contextMenu.addAction("Save")
-            save_action.triggered.connect(self.save_gui)
-
-            # Add an option to save the UML diagram as a new file
-            save_as_action = contextMenu.addAction("Save As")
-            save_as_action.triggered.connect(self.save_as_gui)
-
-            # Add a separator before the end session button
-            contextMenu.addSeparator()
-
-            #################################
-            # SESSION MANAGEMENT OPTION
-            # Add an option to reset the session to the default state (clear everything)
-            end_session_action = contextMenu.addAction("Default State")
-            end_session_action.triggered.connect(self.end_session)
-
             # Execute the context menu at the global position (where the right-click happened)
             contextMenu.exec_(event.globalPos())
             
@@ -1158,8 +1073,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
                 self.scale(1.1, 1.1)
             elif delta < 0 and current_scale > zoom_limit:
                 self.scale(0.9, 0.9)
-
-            self.update_snap()  # Snap items to grid
             self.viewport().update()
             event.accept()
         else:
@@ -1170,37 +1083,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Handle mouse press events for starting selection, panning, or determining item selection.
         Prevent the rubber band selection from activating when clicking on UMLClassBox handles.
         """
-        #################################################################
-        #################################################################
-        
-        # item = self.itemAt(event.pos())
-        # if isinstance(item, UMLClassBox):
-        #     self.selected_class = item
-        #     # First check if the click is on a resize handle before allowing rubber band
-        #     for handle in self.selected_class.handles_list.values():
-        #         if handle.isUnderMouse():
-        #             # self.is_using_rubber_band = False
-        #             event.accept()  # Accept the event to ensure rubber band logic does not proceed
-        #             return
-        #     # If no handle is under the mouse, allow selection
-        #     # self.is_using_rubber_band = False
-        # else:
-        #     # self.is_using_rubber_band = True
-        #     self.selected_class = None
-
-        # # If no handle is under the mouse and it’s a left-click
-        # if event.button() == QtCore.Qt.LeftButton and not self.selected_class and # self.is_using_rubber_band:
-        #     print("1 - Able to use rubber band!!!!")
-        #     # Start the rubber band selection
-        #     self.origin_point = self.mapToScene(event.pos())
-        #     self.rubber_band = QtWidgets.QRubberBand(QtWidgets.QRubberBand.Rectangle, self.viewport())
-        #     self.rubber_band.setGeometry(QtCore.QRect(event.pos(), event.pos()))
-        #     self.rubber_band.show()
-        #     event.accept()
-        
-        #################################################################
-        #################################################################
-        
         item = self.itemAt(event.pos())
         if isinstance(item, UMLClassBox):
             self.selected_class = item
@@ -1229,16 +1111,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Parameters:
         - event (QMouseEvent): The mouse event, providing the current mouse position, buttons pressed, etc.
         """
-        #################################################################
-        #################################################################
-        # if not self.selected_class and # self.is_using_rubber_band and self.rubber_band:
-        #     print("2 - Able to use rubber band!!!!")
-        #     # Update the rubber band rectangle as the mouse moves
-        #     rect = QtCore.QRectF(self.origin_point, self.mapToScene(event.pos())).normalized()
-        #     self.rubber_band.setGeometry(self.mapFromScene(rect).boundingRect())
-        #################################################################
-        #################################################################
-        
         if self.is_panning and self.last_mouse_pos is not None:
             # If panning is active, calculate the delta (movement) of the mouse
             delta = event.pos() - self.last_mouse_pos
@@ -1255,7 +1127,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Call the parent class's mouseMoveEvent to ensure default behavior
         super().mouseMoveEvent(event)
 
-
     def mouseReleaseEvent(self, event):
         """
         Handle mouse release events to end panning or finalize the rectangular selection.
@@ -1267,22 +1138,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         Parameters:
         - event (QMouseEvent): The mouse event, providing information about the button released and the position.
         """
-        #################################################################
-        #################################################################
-        # if self.rubber_band:
-        #     # Get the final rectangle defined by the rubber band
-        #     rubber_band_rect = self.rubber_band.geometry()
-        #     # Convert the rubber band rectangle from view coordinates to scene coordinates
-        #     selection_rect = self.mapToScene(rubber_band_rect).boundingRect()
-        #     # Hide and delete the rubber band
-        #     self.rubber_band.hide()
-        #     self.rubber_band = None
-        #     # Select all items within the rubber band rectangle
-        #     self.select_items_in_rect(selection_rect)
-        #     # self.is_using_rubber_band = False
-        #################################################################
-        #################################################################
-
         if event.button() == QtCore.Qt.MiddleButton and self.is_panning:
             # End panning mode when the middle mouse button is released
             self.is_panning = False
@@ -1322,115 +1177,19 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         for item in items_in_rect:
             if isinstance(item, UMLClassBox):
                 item.setSelected(True)  # Select new items in the rectangle
-
-    def update_snap(self):
-        """
-        Snap all items to the grid after scaling.
-        """
-        for item in self.scene().items():
-            if isinstance(item, UMLClassBox):
-                item.snap_to_grid()
                 
-    def change_box_color(self):
-        """
-        Open a color dialog to select a new box color.
-        """
-        if self.selected_class:
-            # Get the current brush color, or set a default color if not set
-            current_color = self.selected_class.brush().color() if self.selected_class.brush().color().isValid() else QtGui.QColor("cyan")
-        
-            # Open color dialog and pass current color as the initial color
-            color = QtWidgets.QColorDialog.getColor(
-                initial=current_color, 
-                parent=None,  # Set this to your main window
-                title="Select Box Color"
-            )
-        
-            # If a valid color is chosen, set the new brush color for the class box
-            if color.isValid():
-                self.selected_class.setBrush(QtGui.QBrush(color))
-                
-    def change_text_color(self):
-        """
-        Open a color dialog to select a new text color and apply it to the selected UML class box's text.
-        """
-        if self.selected_class:
-            # Get the current text color, or set a default color if not set
-            current_color = self.selected_class.class_name_text.defaultTextColor() if self.selected_class.class_name_text.defaultTextColor().isValid() else QtGui.QColor("black")
-            # Open color dialog and pass the current color as the initial color
-            color = QtWidgets.QColorDialog.getColor(
-                initial=current_color, 
-                parent=None,  # Optionally set this to your main window for modal behavior
-                title="Select Text Color"
-            )
-            # If a valid color is chosen, set the new color for the text
-            if color.isValid():
-                if self.selected_class.field_list:
-                    for field_text in self.selected_class.field_list.values():
-                        field_text.setDefaultTextColor(color)
-                if self.selected_class.method_list:
-                    for method_text in self.selected_class.method_list.values():
-                        method_text.setDefaultTextColor(color)
-                if self.selected_class.parameter_list:
-                    for param_text in self.selected_class.parameter_list.values():
-                        param_text.setDefaultTextColor(color)
-                self.selected_class.class_name_text.setDefaultTextColor(color)
-                # Ensure later added text will use this color too
-                self.selected_class.text_color = color
-                self.selected_class.update_box()
-                
-    def change_text_font_and_size(self):
-        """
-        Open a font dialog to select a new text font and size then apply it to the selected UML class box's text.
-        The font will be applied based on the currently selected text color.
-        """
-        if self.selected_class:
-            # Open the font dialog and allow the user to select a font and size
-            font, ok = QtWidgets.QFontDialog.getFont(self.selected_class.class_name_text.font())
-            
-            if ok:
-                # Apply the selected font to all text elements in the UMLClassBox
-                if self.selected_class.field_list:
-                    for field_text in self.selected_class.field_list.values():
-                        field_text.setFont(font)
-                if self.selected_class.method_list:
-                    for method_text in self.selected_class.method_list.values():
-                        method_text.setFont(font)
-                if self.selected_class.parameter_list:
-                    for param_text in self.selected_class.parameter_list.values():
-                        param_text.setFont(font)
-                self.selected_class.class_name_text.setFont(font)
-
-                # Ensure later added text will use this font too
-                self.selected_class.default_text_font = font
-                self.selected_class.update_box()
-                
-    def is_valid_input(self, user_input):
-        """
-        Check if the user input contains only letters, numbers, and underscores.
-
-        Args:
-        user_input (str): The input string to validate.
-
-        Returns:
-        bool: True if input is valid (contains only a-z, A-Z, 0-9, and _), False otherwise.
-        """
-        # Regular expression pattern to allow only a-z, A-Z, 0-9, and _
-        pattern = r'^[a-zA-Z0-9_]+$'
-
-        # Match the input string against the pattern
-        if re.match(pattern, user_input):
-            return True
-        else:
-            return False
-                
-    def end_session(self):
-        self.clear_current_scene()
-        self.set_grid_visible(True)
-        self.reset_view()
-        self.set_light_mode()
-        self.class_name_list = []
-        self.interface.end_session()
+    def new_file(self):
+        reply = QtWidgets.QMessageBox.question(self, "New File",
+                                            "Any unsaved work will be deleted! Are you sure you want to create a new file? ",
+                                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Save)
+        # If the user chooses 'Yes', the program will create a new file
+        if reply == QtWidgets.QMessageBox.Yes:
+            self.clear_current_scene()
+            self.set_light_mode()
+            self.class_name_list = []
+            self.interface.new_file()
+        elif reply == QtWidgets.QMessageBox.Save:
+            self.save_gui()
 
     def set_grid_visible(self, visible):
         """
@@ -1442,29 +1201,10 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         self.grid_visible = visible
         self.viewport().update()
 
-    def set_grid_color(self, color):
-        """
-        Update the color of the grid lines.
-
-        Parameters:
-        - color (QColor): The new color for the grid lines.
-        """
-        self.grid_color = color
-        self.viewport().update()
-
-    def reset_view(self):
-        """
-        Reset the zoom and position to the initial state.
-        """
-        self.grid_size = 15
-        self.resetTransform()
-        self.centerOn(0, 0)
-
     def set_light_mode(self):
         """
         Set the view to light mode.
         """
-        self.grid_color = QtGui.QColor(200, 200, 200)
         self.is_dark_mode = False
         self.viewport().update()
         self.scene().update()
@@ -1473,7 +1213,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Set the view to dark mode.
         """
-        self.grid_color = QtGui.QColor(255, 255, 0)
         self.is_dark_mode = True
         self.viewport().update()
         self.scene().update()
@@ -1486,104 +1225,3 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             self.set_light_mode()
         else:
             self.set_dark_mode()
-            
-    def export_pdf(self):
-        """
-        Export the current scene to a PDF file.
-
-        This method creates a high-resolution PDF file that contains the entire scene.
-        The user is prompted to select the save location and file name for the PDF file, 
-        and the scene is rendered onto the PDF using a QPainter object.
-
-        Steps:
-        1. The user selects a file location and name using QFileDialog.
-        2. The scene is rendered into the PDF file using a QPrinter object.
-        3. The file is saved to the selected location.
-        
-        Raises:
-            None: This method handles errors internally (e.g., user cancels the file save dialog).
-        """
-        # Create a printer object for high-resolution PDF export
-        printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
-        
-        # Set output file name for PDF
-        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
-        
-        # Open a QFileDialog to let the user select the location and file name
-        output_pdf_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Save PDF", "", "PDF Files (*.pdf)")
-    
-         # Check if the user canceled the dialog or did not select a file
-        if not output_pdf_path:
-            return  # Exit if the user cancels the dialog
-
-        # Ensure the file has a .pdf extension
-        if not output_pdf_path.endswith(".pdf"):
-            output_pdf_path += ".pdf"
-            
-        # Set the output file name for the PDF
-        printer.setOutputFileName(output_pdf_path)
-            
-        # Create a QPainter to paint the scene on the printer
-        painter = QtGui.QPainter(printer)
-        
-        # Render the scene into the PDF file
-        self.scene().render(painter)
-        
-        # Finish the painting and save the PDF
-        painter.end()
-        
-        QtWidgets.QMessageBox.information(None, "Export", f"The scene has been exported to {output_pdf_path }.pdf")
-        
-    def export_png(self):
-        """
-        Export the entire GridView scene to a high-resolution PNG image file.
-        
-        This method captures the entire scene of the GridView, and allows the user to select 
-        a location and name for saving the PNG file with improved resolution.
-        
-        Steps:
-        1. The user selects a file location and name using QFileDialog.
-        2. A QImage object is created to fit the entire scene.
-        3. The scene is rendered into the QImage using a QPainter.
-        4. The image is saved as a PNG file.
-        """
-        # Open a QFileDialog to let the user select the location and file name for the PNG
-        output_png_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Save PNG", "", "PNG Files (*.png)")
-
-        # Check if the user canceled the dialog or did not select a file
-        if not output_png_path:
-            return  # Exit if the user cancels the dialog
-
-        # Ensure the file has a .png extension
-        if not output_png_path.endswith(".png"):
-            output_png_path += ".png"
-
-        # Get the bounding rectangle of the entire scene to capture everything
-        scene_rect = self.scene().itemsBoundingRect()
-
-        # Increase resolution by scaling the QImage size
-        scale_factor = 1  # Increase this to generate a higher-resolution PNG
-        image_width = int(scene_rect.width() * scale_factor)
-        image_height = int(scene_rect.height() * scale_factor)
-
-        # Create a high-resolution QImage
-        image = QtGui.QImage(image_width, image_height, QtGui.QImage.Format_ARGB32)
-        image.fill(QtCore.Qt.white)  # Optional: Fill background with white
-
-        # Create a QPainter to paint the scene onto the QImage
-        painter = QtGui.QPainter(image)
-
-        # Apply scaling to render at a higher resolution
-        painter.scale(scale_factor, scale_factor)
-
-        # Render the scene onto the QImage
-        self.scene().render(painter)
-
-        # End the QPainter
-        painter.end()
-
-        # Save the image to the selected PNG file location
-        image.save(output_png_path, "PNG")
-
-        # Inform the user that the export was successful
-        QtWidgets.QMessageBox.information(None, "Export", f"The scene has been exported to {output_png_path}")
