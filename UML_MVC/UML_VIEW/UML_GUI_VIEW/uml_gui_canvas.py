@@ -2,14 +2,14 @@
 
 import re
 import os
-from PyQt5 import QtWidgets, QtGui, QtCore, QtPrintSupport
+from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
 # from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
 from UML_ENUM_CLASS.uml_enum import RelationshipType
 
 ###################################################################################################
 
-class GridGraphicsView(QtWidgets.QGraphicsView):
+class UMLGraphicsView(QtWidgets.QGraphicsView):
     """
     A custom graphics view that displays a grid pattern and handles user interactions.
     Inherits from QGraphicsView.
@@ -18,9 +18,9 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     #################################################################
     ### CONSTRUCTOR ###
 
-    def __init__(self, interface, parent=None, grid_size=15, color=QtGui.QColor(200, 200, 200)):
+    def __init__(self, interface, parent=None):
         """
-        Initializes a new GridGraphicsView instance.
+        Initializes a new UMLGraphicsView instance.
 
         Parameters:
         - parent (QWidget): The parent widget.
@@ -35,11 +35,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Class name list
         self.class_name_list = []
         
-        # Initialize grid properties
-        self.grid_visible = True  # Flag to show/hide the grid
+        # Initialize canvas properties
         self.is_dark_mode = False  # Flag for light/dark mode
-        self.grid_size = grid_size  # Grid spacing
-        self.grid_color = color  # Grid line color
 
         # Set initial view properties
         self.setRenderHint(QtGui.QPainter.Antialiasing)
@@ -48,8 +45,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
 
         # Panning state variables
         self.is_panning = False  # Flag to indicate if panning is active
-        # self.is_using_rubber_band = None
-        self.last_mouse_pos = None  # Last mouse position during panning
 
         # Track selected class or arrow
         self.selected_class = None
@@ -89,33 +84,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             painter.fillRect(rect, QtGui.QColor(30, 30, 30))
         else:
             painter.fillRect(rect, QtGui.QColor(255, 255, 255))
-
-        if self.grid_visible:
-            # Set pen for grid lines
-            pen = QtGui.QPen(self.grid_color)
-            pen.setWidth(1)
-            painter.setPen(pen)
-
-            # Calculate starting points for grid lines
-            left = int(rect.left()) - (int(rect.left()) % self.grid_size)
-            top = int(rect.top()) - (int(rect.top()) % self.grid_size)
-
-            # Draw vertical grid lines
-            for x in range(left, int(rect.right()), self.grid_size):
-                painter.drawLine(x, int(rect.top()), x, int(rect.bottom()))
-
-            # Draw horizontal grid lines
-            for y in range(top, int(rect.bottom()), self.grid_size):
-                painter.drawLine(int(rect.left()), y, int(rect.right()), y)
-
-            # Draw origin lines
-            origin_pen = QtGui.QPen(QtGui.QColor(255, 0, 0))
-            origin_pen.setWidth(2)
-            painter.setPen(origin_pen)
-            painter.drawLine(int(rect.left()), 0, int(rect.right()), 0)  # Horizontal line at y=0
-            painter.drawLine(0, int(rect.top()), 0, int(rect.bottom()))  # Vertical line at x=0
-
-            painter.setPen(pen)  # Reset pen
     
     #################################################################
     ## CLASS OPERATION ##
@@ -1256,7 +1224,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Set the view to light mode.
         """
-        self.grid_color = QtGui.QColor(200, 200, 200)
         self.is_dark_mode = False
         self.viewport().update()
         self.scene().update()
@@ -1265,7 +1232,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         Set the view to dark mode.
         """
-        self.grid_color = QtGui.QColor(255, 255, 0)
         self.is_dark_mode = True
         self.viewport().update()
         self.scene().update()
