@@ -146,17 +146,6 @@
     <string>Dark/Light Mode</string>
    </property>
   </action>
-  <action name="Edit">
-   <property name="text">
-    <string>Edit Mode</string>
-   </property>
-   <property name="statusTip">
-    <string>Enter the edit mode</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+D</string>
-   </property>
-  </action>
   <action name="actionView_Mode_2">
    <property name="text">
     <string>View Mode</string>
@@ -187,30 +176,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
-   </property>
-  </action>
-  <action name="Instructions">
-   <property name="text">
-    <string>Instructions</string>
-   </property>
-   <property name="statusTip">
-    <string>See instructions</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+I</string>
-   </property>
-  </action>
-  <action name="Cut">
-   <property name="text">
-    <string>Cut</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+X</string>
-   </property>
-  </action>
-  <action name="About">
-   <property name="text">
-    <string>About</string>
    </property>
   </action>
   <action name="add_class">
