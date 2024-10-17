@@ -1228,7 +1228,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         # Call the parent class's mouseMoveEvent to ensure default behavior
         super().mouseMoveEvent(event)
 
-
     def mouseReleaseEvent(self, event):
         """
         Handle mouse release events to end panning or finalize the rectangular selection.
@@ -1337,7 +1336,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             self.interface.new_file()
         elif reply == QtWidgets.QMessageBox.Save:
             self.save_gui()
-
 
     def set_grid_visible(self, visible):
         """

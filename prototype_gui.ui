@@ -37,6 +37,25 @@
    </widget>
    <addaction name="menuFile"/>
   </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="toggle_mode"/>
+  </widget>
   <action name="actionSave">
    <property name="text">
     <string>Save</string>
@@ -225,11 +244,6 @@
     </font>
    </property>
   </action>
-  <action name="change_grid_color">
-   <property name="text">
-    <string>Change Grid Color</string>
-   </property>
-  </action>
   <action name="delete_class">
    <property name="text">
     <string>Delete Class</string>
@@ -244,11 +258,6 @@
     <string>Del</string>
    </property>
   </action>
-  <action name="reset_view">
-   <property name="text">
-    <string>Reset View</string>
-   </property>
-  </action>
   <action name="toggle_mode">
    <property name="checkable">
     <bool>true</bool>
@@ -257,7 +266,13 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Toggle Mode</string>
+    <string>Dark/Light Mode</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>MV Boli</family>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
   <action name="rename_class">
