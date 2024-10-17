@@ -15,28 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1556</width>
-     <height>21</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="New"/>
-    <addaction name="Open"/>
-    <addaction name="separator"/>
-    <addaction name="Save"/>
-    <addaction name="SaveAs"/>
-    <addaction name="separator"/>
-   </widget>
-   <addaction name="menuFile"/>
-  </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="font">
     <font>
