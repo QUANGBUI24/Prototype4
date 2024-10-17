@@ -38,6 +38,7 @@
    <addaction name="SaveAs"/>
    <addaction name="separator"/>
    <addaction name="toggle_mode"/>
+   <addaction name="Help"/>
   </widget>
   <action name="actionSave">
    <property name="text">
@@ -290,6 +291,15 @@
   <action name="change_type">
    <property name="text">
     <string>Change Relationship Type</string>
+   </property>
+  </action>
+  <action name="Help">
+   <property name="icon">
+    <iconset>
+     <normaloff>UML_ICONS/help-web-button.png</normaloff>UML_ICONS/help-web-button.png</iconset>
+   </property>
+   <property name="text">
+    <string>Help</string>
    </property>
   </action>
  </widget>

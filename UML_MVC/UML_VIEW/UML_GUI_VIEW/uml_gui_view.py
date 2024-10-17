@@ -119,6 +119,10 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         #################################################################
         self.new_file_action = self.findChild(QtWidgets.QAction, "New")
         self.new_file_action.triggered.connect(self.new_file_gui)
+        
+        #################################################################
+        self.help_action = self.findChild(QtWidgets.QAction, "Help")
+        self.help_action.triggered.connect(self.show_instructions)
 
     #################################################################
     ### EVENT FUNCTIONS ###
@@ -286,3 +290,21 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
             self.grid_view.save_gui()
         else:
             event.ignore()  # Ignore the close event to keep the application running
+            
+    def show_instructions(self):
+        instruction_text = """
+        Instructions:
+        1. Use the left mouse button to select and drag class box.
+        2. Right-click to open the context menu with additional options.
+        3. Use the toolbar for more actions like save, load, and edit.
+        4. Press Ctrl+S to quickly save your progress.
+        """
+        
+        # Create the pop-up window
+        msg_box = QtWidgets.QMessageBox()
+        msg_box.setWindowTitle("Instructions")
+        msg_box.setText(instruction_text)
+        msg_box.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        
+        # Show the pop-up window
+        msg_box.exec_()
