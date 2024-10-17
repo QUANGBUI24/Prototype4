@@ -503,11 +503,11 @@ class UMLInterface:
         self.Model._clear_current_active_data()
     
     # Go back to blank program #
-    def end_session(self):
+    def new_file(self):
         """
         Ends the current session and resets the program to a blank state by delegating the operation to the model.
         """
-        self.Model._end_session()
+        self.Model._new_file()
         
     # Sort class list #
     def sort_class_list(self):

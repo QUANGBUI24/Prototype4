@@ -987,33 +987,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             """
 
             #################################
-            # BOX COLOR OPTION ##
-            
-            # Add an option to change the color of the class box
-            change_box_color_button = contextMenu.addAction("Box Color")
-            # Connect the action to the change_box_color method, which will open a color dialog
-            change_box_color_button.triggered.connect(self.change_box_color)
-
-            #################################
-            # TEXT COLOR OPTION ##
-            
-            # Add an option to change the text color inside the class box
-            change_text_color_button = contextMenu.addAction("Text Color")
-            # Connect the action to the change_text_color method, which opens a color dialog
-            change_text_color_button.triggered.connect(self.change_text_color)
-
-            #################################
-            # TEXT FONT OPTION ##
-            
-            # Add an option to change the font of the text inside the class box
-            change_text_font_button = contextMenu.addAction("Text Font")
-            # Connect the action to the change_text_font_and_size method, allowing the user to change the font and size
-            change_text_font_button.triggered.connect(self.change_text_font_and_size)
-            
-            # Add a separator for better organization of the menu
-            contextMenu.addSeparator()
-
-            #################################
             # CLASS MANAGEMENT OPTIONS ##
             
             # Add an option to rename the selected class
@@ -1134,8 +1107,8 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             #################################
             # SESSION MANAGEMENT OPTION
             # Add an option to reset the session to the default state (clear everything)
-            end_session_action = contextMenu.addAction("Default State")
-            end_session_action.triggered.connect(self.end_session)
+            new_file_action = contextMenu.addAction("New File")
+            new_file_action.triggered.connect(self.new_file)
 
             # Execute the context menu at the global position (where the right-click happened)
             contextMenu.exec_(event.globalPos())
@@ -1331,80 +1304,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             if isinstance(item, UMLClassBox):
                 item.snap_to_grid()
                 
-    def change_box_color(self):
-        """
-        Open a color dialog to select a new box color.
-        """
-        if self.selected_class:
-            # Get the current brush color, or set a default color if not set
-            current_color = self.selected_class.brush().color() if self.selected_class.brush().color().isValid() else QtGui.QColor("cyan")
-        
-            # Open color dialog and pass current color as the initial color
-            color = QtWidgets.QColorDialog.getColor(
-                initial=current_color, 
-                parent=None,  # Set this to your main window
-                title="Select Box Color"
-            )
-        
-            # If a valid color is chosen, set the new brush color for the class box
-            if color.isValid():
-                self.selected_class.setBrush(QtGui.QBrush(color))
-                
-    def change_text_color(self):
-        """
-        Open a color dialog to select a new text color and apply it to the selected UML class box's text.
-        """
-        if self.selected_class:
-            # Get the current text color, or set a default color if not set
-            current_color = self.selected_class.class_name_text.defaultTextColor() if self.selected_class.class_name_text.defaultTextColor().isValid() else QtGui.QColor("black")
-            # Open color dialog and pass the current color as the initial color
-            color = QtWidgets.QColorDialog.getColor(
-                initial=current_color, 
-                parent=None,  # Optionally set this to your main window for modal behavior
-                title="Select Text Color"
-            )
-            # If a valid color is chosen, set the new color for the text
-            if color.isValid():
-                if self.selected_class.field_list:
-                    for field_text in self.selected_class.field_list.values():
-                        field_text.setDefaultTextColor(color)
-                if self.selected_class.method_list:
-                    for method_text in self.selected_class.method_list.values():
-                        method_text.setDefaultTextColor(color)
-                if self.selected_class.parameter_list:
-                    for param_text in self.selected_class.parameter_list.values():
-                        param_text.setDefaultTextColor(color)
-                self.selected_class.class_name_text.setDefaultTextColor(color)
-                # Ensure later added text will use this color too
-                self.selected_class.text_color = color
-                self.selected_class.update_box()
-                
-    def change_text_font_and_size(self):
-        """
-        Open a font dialog to select a new text font and size then apply it to the selected UML class box's text.
-        The font will be applied based on the currently selected text color.
-        """
-        if self.selected_class:
-            # Open the font dialog and allow the user to select a font and size
-            font, ok = QtWidgets.QFontDialog.getFont(self.selected_class.class_name_text.font())
-            
-            if ok:
-                # Apply the selected font to all text elements in the UMLClassBox
-                if self.selected_class.field_list:
-                    for field_text in self.selected_class.field_list.values():
-                        field_text.setFont(font)
-                if self.selected_class.method_list:
-                    for method_text in self.selected_class.method_list.values():
-                        method_text.setFont(font)
-                if self.selected_class.parameter_list:
-                    for param_text in self.selected_class.parameter_list.values():
-                        param_text.setFont(font)
-                self.selected_class.class_name_text.setFont(font)
-
-                # Ensure later added text will use this font too
-                self.selected_class.default_text_font = font
-                self.selected_class.update_box()
-                
     def is_valid_input(self, user_input):
         """
         Check if the user input contains only letters, numbers, and underscores.
@@ -1424,13 +1323,21 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         else:
             return False
                 
-    def end_session(self):
-        self.clear_current_scene()
-        self.set_grid_visible(True)
-        self.reset_view()
-        self.set_light_mode()
-        self.class_name_list = []
-        self.interface.end_session()
+    def new_file(self):
+        reply = QtWidgets.QMessageBox.question(self, "New File",
+                                            "Any unsaved work will be deleted! Are you sure you want to create a new file? ",
+                                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Save,
+                                            QtWidgets.QMessageBox.No)
+
+        # If the user chooses 'Yes', the program will create a new file
+        if reply == QtWidgets.QMessageBox.Yes:
+            self.clear_current_scene()
+            self.set_light_mode()
+            self.class_name_list = []
+            self.interface.new_file()
+        elif reply == QtWidgets.QMessageBox.Save:
+            self.save_gui()
+
 
     def set_grid_visible(self, visible):
         """
@@ -1441,24 +1348,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
         """
         self.grid_visible = visible
         self.viewport().update()
-
-    def set_grid_color(self, color):
-        """
-        Update the color of the grid lines.
-
-        Parameters:
-        - color (QColor): The new color for the grid lines.
-        """
-        self.grid_color = color
-        self.viewport().update()
-
-    def reset_view(self):
-        """
-        Reset the zoom and position to the initial state.
-        """
-        self.grid_size = 15
-        self.resetTransform()
-        self.centerOn(0, 0)
 
     def set_light_mode(self):
         """
@@ -1486,104 +1375,3 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             self.set_light_mode()
         else:
             self.set_dark_mode()
-            
-    def export_pdf(self):
-        """
-        Export the current scene to a PDF file.
-
-        This method creates a high-resolution PDF file that contains the entire scene.
-        The user is prompted to select the save location and file name for the PDF file, 
-        and the scene is rendered onto the PDF using a QPainter object.
-
-        Steps:
-        1. The user selects a file location and name using QFileDialog.
-        2. The scene is rendered into the PDF file using a QPrinter object.
-        3. The file is saved to the selected location.
-        
-        Raises:
-            None: This method handles errors internally (e.g., user cancels the file save dialog).
-        """
-        # Create a printer object for high-resolution PDF export
-        printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
-        
-        # Set output file name for PDF
-        printer.setOutputFormat(QtPrintSupport.QPrinter.PdfFormat)
-        
-        # Open a QFileDialog to let the user select the location and file name
-        output_pdf_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Save PDF", "", "PDF Files (*.pdf)")
-    
-         # Check if the user canceled the dialog or did not select a file
-        if not output_pdf_path:
-            return  # Exit if the user cancels the dialog
-
-        # Ensure the file has a .pdf extension
-        if not output_pdf_path.endswith(".pdf"):
-            output_pdf_path += ".pdf"
-            
-        # Set the output file name for the PDF
-        printer.setOutputFileName(output_pdf_path)
-            
-        # Create a QPainter to paint the scene on the printer
-        painter = QtGui.QPainter(printer)
-        
-        # Render the scene into the PDF file
-        self.scene().render(painter)
-        
-        # Finish the painting and save the PDF
-        painter.end()
-        
-        QtWidgets.QMessageBox.information(None, "Export", f"The scene has been exported to {output_pdf_path }.pdf")
-        
-    def export_png(self):
-        """
-        Export the entire GridView scene to a high-resolution PNG image file.
-        
-        This method captures the entire scene of the GridView, and allows the user to select 
-        a location and name for saving the PNG file with improved resolution.
-        
-        Steps:
-        1. The user selects a file location and name using QFileDialog.
-        2. A QImage object is created to fit the entire scene.
-        3. The scene is rendered into the QImage using a QPainter.
-        4. The image is saved as a PNG file.
-        """
-        # Open a QFileDialog to let the user select the location and file name for the PNG
-        output_png_path, _ = QtWidgets.QFileDialog.getSaveFileName(None, "Save PNG", "", "PNG Files (*.png)")
-
-        # Check if the user canceled the dialog or did not select a file
-        if not output_png_path:
-            return  # Exit if the user cancels the dialog
-
-        # Ensure the file has a .png extension
-        if not output_png_path.endswith(".png"):
-            output_png_path += ".png"
-
-        # Get the bounding rectangle of the entire scene to capture everything
-        scene_rect = self.scene().itemsBoundingRect()
-
-        # Increase resolution by scaling the QImage size
-        scale_factor = 1  # Increase this to generate a higher-resolution PNG
-        image_width = int(scene_rect.width() * scale_factor)
-        image_height = int(scene_rect.height() * scale_factor)
-
-        # Create a high-resolution QImage
-        image = QtGui.QImage(image_width, image_height, QtGui.QImage.Format_ARGB32)
-        image.fill(QtCore.Qt.white)  # Optional: Fill background with white
-
-        # Create a QPainter to paint the scene onto the QImage
-        painter = QtGui.QPainter(image)
-
-        # Apply scaling to render at a higher resolution
-        painter.scale(scale_factor, scale_factor)
-
-        # Render the scene onto the QImage
-        self.scene().render(painter)
-
-        # End the QPainter
-        painter.end()
-
-        # Save the image to the selected PNG file location
-        image.save(output_png_path, "PNG")
-
-        # Inform the user that the export was successful
-        QtWidgets.QMessageBox.information(None, "Export", f"The scene has been exported to {output_png_path}")

@@ -15,51 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QToolBar" name="left_tool_bar">
-   <property name="font">
-    <font>
-     <family>MV Boli</family>
-     <pointsize>14</pointsize>
-    </font>
-   </property>
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>LeftToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="add_class"/>
-   <addaction name="delete_class"/>
-   <addaction name="rename_class"/>
-   <addaction name="separator"/>
-   <addaction name="add_field"/>
-   <addaction name="delete_field"/>
-   <addaction name="rename_field"/>
-   <addaction name="separator"/>
-   <addaction name="add_method"/>
-   <addaction name="delete_method"/>
-   <addaction name="rename_method"/>
-   <addaction name="separator"/>
-   <addaction name="add_param"/>
-   <addaction name="delete_param"/>
-   <addaction name="rename_param"/>
-   <addaction name="replace_param"/>
-   <addaction name="separator"/>
-   <addaction name="add_rel"/>
-   <addaction name="delete_rel"/>
-   <addaction name="change_type"/>
-   <addaction name="separator"/>
-   <addaction name="default_state"/>
-   <addaction name="export_pdf"/>
-   <addaction name="export_png"/>
-   <addaction name="reset_view"/>
-   <addaction name="change_grid_color"/>
-   <addaction name="toggle_mode"/>
-   <addaction name="toggle_grid"/>
-  </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
@@ -73,6 +28,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="New"/>
     <addaction name="Open"/>
     <addaction name="separator"/>
     <addaction name="Save"/>
@@ -357,21 +313,6 @@
   <action name="replace_param">
    <property name="text">
     <string>Replace Parameter</string>
-   </property>
-  </action>
-  <action name="export_pdf">
-   <property name="text">
-    <string>PDF</string>
-   </property>
-  </action>
-  <action name="export_png">
-   <property name="text">
-    <string>PNG</string>
-   </property>
-  </action>
-  <action name="default_state">
-   <property name="text">
-    <string>Default State</string>
    </property>
   </action>
   <action name="add_rel">

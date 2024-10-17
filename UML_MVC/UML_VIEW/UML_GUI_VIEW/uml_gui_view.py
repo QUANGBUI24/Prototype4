@@ -32,6 +32,7 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
 
         # Create a grid view where UML class boxes and relationships will be displayed, and set it as the central widget
         self.grid_view = GridGraphicsView(self.interface)
+        self.grid_view.set_grid_visible(False)
         self.setCentralWidget(self.grid_view)
         self.box = UMLClassBox(self.interface)
 
@@ -40,16 +41,11 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         # Find and connect buttons to their respective actions for user interaction
         # These buttons control the visibility and appearance of the UML grid and handle adding/removing UML components
 
-        ## GRID/VIEW BUTTONS ##
-        self.toggle_grid_button = self.findChild(QtWidgets.QAction, "toggle_grid")  # Toggle grid visibility
-        self.change_grid_color_button = self.findChild(QtWidgets.QAction, "change_grid_color")  # Change grid color
-        self.reset_view_button = self.findChild(QtWidgets.QAction, "reset_view")  # Reset the view
+        ## DARK/LIGHT MODE BUTTONS ##
+
         self.toggle_mode_button = self.findChild(QtWidgets.QAction, "toggle_mode")  # Toggle light/dark mode
 
         # Connect grid/view actions to their respective methods
-        self.toggle_grid_button.triggered.connect(self.toggle_grid_method)
-        self.change_grid_color_button.triggered.connect(self.change_gridColor_method)
-        self.reset_view_button.triggered.connect(self.reset_view_method)
         self.toggle_mode_button.triggered.connect(self.toggle_mode_method)
 
         ## UML DIAGRAM BUTTONS ##
@@ -121,18 +117,8 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         self.save_action.triggered.connect(self.save_gui)
 
         #################################################################
-        # Action to reset to default state (session end)
-        self.default_state_action = self.findChild(QtWidgets.QAction, "default_state")  # End session and reset
-        self.default_state_action.triggered.connect(self.end_session_gui)
-
-        #################################################################
-        # Actions for exporting diagrams as images (PDF/PNG)
-        self.export_pdf_action = self.findChild(QtWidgets.QAction, "export_pdf")  # Export as PDF
-        self.export_png_action = self.findChild(QtWidgets.QAction, "export_png")  # Export as PNG
-
-        # Connect export actions to their respective methods
-        self.export_pdf_action.triggered.connect(self.export_pdf_gui)
-        self.export_png_action.triggered.connect(self.export_png_gui)
+        self.new_file_action = self.findChild(QtWidgets.QAction, "New")
+        self.new_file_action.triggered.connect(self.new_file_gui)
 
     #################################################################
     ### EVENT FUNCTIONS ###
@@ -263,60 +249,20 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         """
         self.grid_view.save_gui()
 
-    def end_session_gui(self):
+    def new_file_gui(self):
         """
         End the current session and reset to the default state.
         """
-        self.grid_view.end_session()
+        self.grid_view.new_file()
 
     #################################################################
-    ## GRID EVENTS ##
-    def toggle_grid_method(self, checked):
-        """
-        Toggle the visibility of the grid in the view.
-
-        Parameters:
-        - checked (bool): True if the grid should be visible, False otherwise.
-        """
-        self.grid_view.set_grid_visible(checked)
-
-    def change_gridColor_method(self):
-        """
-        Open a color dialog to change the grid color.
-        """
-        color = QtWidgets.QColorDialog.getColor(
-            initial=self.grid_view.grid_color,
-            parent=self,
-            title="Select Grid Color"
-        )
-        if color.isValid():
-            self.grid_view.set_grid_color(color)
-
-    def reset_view_method(self):
-        """
-        Reset the grid view to the default state (default zoom, pan, etc.).
-        """
-        self.grid_view.reset_view()
+    ## DARK/LIGHT MODE EVENTS ##
 
     def toggle_mode_method(self):
         """
         Toggle between light and dark modes in the application.
         """
         self.grid_view.toggle_mode()
-
-    #################################################################
-    ## EXPORT EVENTS ##
-    def export_pdf_gui(self):
-        """
-        Export the UML diagram as a PDF.
-        """
-        self.grid_view.export_pdf()
-
-    def export_png_gui(self):
-        """
-        Export the UML diagram as a PNG image.
-        """
-        self.grid_view.export_png()
 
     #################################################################
     ## WINDOW EVENTS ##

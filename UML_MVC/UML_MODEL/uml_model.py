@@ -1648,7 +1648,7 @@ class UMLModel:
         return False
     
     # End session and return to blank state #
-    def _end_session(self):
+    def _new_file(self):
         """
         Ends the current session and resets the program to its default blank state by resetting all data and turning off active files.
         """
