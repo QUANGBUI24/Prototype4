@@ -1088,23 +1088,6 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
             contextMenu.addSeparator()
 
             #################################
-            # FILE MANAGEMENT OPTIONS
-            # Add an option to open a folder (load a UML diagram)
-            open_action = contextMenu.addAction("Open")
-            open_action.triggered.connect(self.open_folder_gui)
-
-            # Add an option to save the current UML diagram
-            save_action = contextMenu.addAction("Save")
-            save_action.triggered.connect(self.save_gui)
-
-            # Add an option to save the UML diagram as a new file
-            save_as_action = contextMenu.addAction("Save As")
-            save_as_action.triggered.connect(self.save_as_gui)
-
-            # Add a separator before the end session button
-            contextMenu.addSeparator()
-
-            #################################
             # Execute the context menu at the global position (where the right-click happened)
             contextMenu.exec_(event.globalPos())
             
@@ -1310,9 +1293,7 @@ class GridGraphicsView(QtWidgets.QGraphicsView):
     def new_file(self):
         reply = QtWidgets.QMessageBox.question(self, "New File",
                                             "Any unsaved work will be deleted! Are you sure you want to create a new file? ",
-                                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Save,
-                                            QtWidgets.QMessageBox.No)
-
+                                            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Save)
         # If the user chooses 'Yes', the program will create a new file
         if reply == QtWidgets.QMessageBox.Yes:
             self.clear_current_scene()

@@ -274,14 +274,15 @@ class MainWindow(QtWidgets.QMainWindow, Observer):
         - event (QCloseEvent): The event that occurs when closing the window.
         """
         reply = QtWidgets.QMessageBox.question(self, "Exit",
-                                               "Are you sure you want to quit?",
-                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                                               QtWidgets.QMessageBox.No)
+                                               "Any unsaved work will be deleted! Are you sure you want to quit?",
+                                               QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Save)
 
         # If the user chooses 'Yes', the program will exit
         if reply == QtWidgets.QMessageBox.Yes:
             print("Program is exiting...")
             self.interface.exit()  # Call interface exit logic
             event.accept()  # Accept the close event to exit the application
+        elif reply == QtWidgets.QMessageBox.Save:
+            self.grid_view.save_gui()
         else:
             event.ignore()  # Ignore the close event to keep the application running
