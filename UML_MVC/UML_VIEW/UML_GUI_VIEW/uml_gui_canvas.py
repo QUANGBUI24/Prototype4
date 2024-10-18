@@ -163,10 +163,10 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     for each_relationship in item.relationship_list:
                         if each_relationship["source"].toPlainText() == old_class_name:
                             self.scene().removeItem(each_relationship["source"])
-                            each_relationship["source"] = item.create_text_item(new_class_name, selectable=True, color=item.text_color)
+                            each_relationship["source"] = item.create_text_item(new_class_name, selectable=False, color=item.text_color)
                         if each_relationship["dest"].toPlainText() == old_class_name:
                             self.scene().removeItem(each_relationship["dest"])
-                            each_relationship["dest"] = item.create_text_item(new_class_name, selectable=True, color=item.text_color)
+                            each_relationship["dest"] = item.create_text_item(new_class_name, selectable=False, color=item.text_color)
                     item.update_box()
             
     def add_field(self, loaded_class_name=None, loaded_field_name=None, is_loading=False):
@@ -195,7 +195,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     is_field_added = self.interface.add_field(loaded_class_name, loaded_field_name)
                     if is_field_added:
                         # Create a text item for the field and add it to the list of the found class box
-                        field_text = selected_class_box.create_text_item(loaded_field_name, is_field=True, selectable=True, color=selected_class_box.text_color)
+                        field_text = selected_class_box.create_text_item(loaded_field_name, is_field=True, selectable=False, color=selected_class_box.text_color)
                         selected_class_box.field_list[loaded_field_name] = field_text  # Add the field to the internal list
                         selected_class_box.field_name_list.append(loaded_field_name)  # Track the field name in the name list
                         selected_class_box.update_box()  # Update the box to reflect the changes
@@ -213,7 +213,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     is_field_added = self.interface.add_field(selected_class_name, field_name)
                     if is_field_added:
                         # Create a text item for the field and add it to the list
-                        field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=True, color=self.selected_class.text_color)
+                        field_text = self.selected_class.create_text_item(field_name, is_field=True, selectable=False, color=self.selected_class.text_color)
                         self.selected_class.field_list[field_name] = field_text  # Add the field to the internal list
                         self.selected_class.field_name_list.append(field_name)  # Track the field name in the name list
                         self.selected_class.update_box()  # Update the box to reflect the changes
@@ -307,7 +307,8 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     is_method_added = self.interface.add_method(loaded_class_name, loaded_method_name)
                     if is_method_added:
                         # Create a text item for the method and add it to the list of the found class box
-                        method_text = selected_class_box.create_text_item(loaded_method_name + "()", is_method=True, selectable=True, color=selected_class_box.text_color)
+                        param_place_holder = selected_class_box.create_text_item("", selectable=False, color=selected_class_box.text_color)
+                        method_text = selected_class_box.create_text_item(loaded_method_name + f"({param_place_holder})", is_method=True, selectable=False, color=selected_class_box.text_color)
                         selected_class_box.method_list[loaded_method_name] = method_text  # Add the method to the internal list
                         selected_class_box.method_name_list[loaded_method_name] = []  # Track the method name in the name list
                         if len(selected_class_box.method_name_list) == 1:  # If this is the first method, create a separator
@@ -327,7 +328,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     selected_class_name = self.selected_class.class_name_text.toPlainText()
                     is_method_added = self.interface.add_method(selected_class_name, method_name)
                     if is_method_added:
-                        method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=True, color=self.selected_class.text_color)
+                        method_text = self.selected_class.create_text_item(method_name + "()", is_method=True, selectable=False, color=self.selected_class.text_color)
                         self.selected_class.method_list[method_name] = method_text  # Store the method text
                         self.selected_class.method_name_list[method_name] = []  # Track the method's parameters
                         if len(self.selected_class.method_name_list) == 1:  # If this is the first method, create a separator
@@ -428,7 +429,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     is_param_added = self.interface.add_parameter(loaded_class_name, loaded_method_name, loaded_param_name)
                     if is_param_added:
                         # Add the parameter to the selected method and update the UML box
-                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=True, color=selected_class_box.text_color)
+                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=False, color=selected_class_box.text_color)
                         selected_class_box.method_name_list[loaded_method_name].append(loaded_param_name)  # Track the parameter
                         selected_class_box.parameter_list[loaded_param_name] = param_text  # Store the parameter text
                         selected_class_box.parameter_name_list.append(loaded_param_name)  # Add to the list of parameter names
@@ -450,7 +451,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                             is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
                             if is_param_added:
                                 # Add the parameter to the selected method and update the UML box
-                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=True, color=self.selected_class.text_color)
+                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=False, color=self.selected_class.text_color)
                                 self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
                                 self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
                                 self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
@@ -581,7 +582,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.method_name_list[method_name].clear()
                                 # Add new parameters to the method
                                 for new_param in new_param_list:
-                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=True, color=self.selected_class.text_color)
+                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=False, color=self.selected_class.text_color)
                                     self.selected_class.method_name_list[method_name].append(new_param)
                                     self.selected_class.parameter_list[new_param] = param_text
                                     self.selected_class.parameter_name_list.append(new_param)
@@ -619,9 +620,9 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         selected_class_box.source_class_list.append(loaded_source_class)
                         selected_class_box.dest_class_list.append(loaded_dest_class)
                         # Create text items for the source, destination, and type
-                        source_text = selected_class_box.create_text_item(loaded_source_class, selectable=True, color=selected_class_box.text_color)
-                        dest_text = selected_class_box.create_text_item(loaded_dest_class, selectable=True, color=selected_class_box.text_color)
-                        type_text = selected_class_box.create_text_item(loaded_type, selectable=True, color=selected_class_box.text_color)
+                        source_text = selected_class_box.create_text_item(loaded_source_class, selectable=False, color=selected_class_box.text_color)
+                        dest_text = selected_class_box.create_text_item(loaded_dest_class, selectable=False, color=selected_class_box.text_color)
+                        type_text = selected_class_box.create_text_item(loaded_type, selectable=False, color=selected_class_box.text_color)
                         # Append the relationship data to the class's relationship list
                         selected_class_box.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
                         if len(selected_class_box.relationship_list) == 1:
@@ -652,9 +653,9 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.source_class_list.append(source_class)
                                 self.selected_class.dest_class_list.append(dest_class)
                                 # Create text items for the source, destination, and type
-                                source_text = self.selected_class.create_text_item(source_class, selectable=True, color=self.selected_class.text_color)
-                                dest_text = self.selected_class.create_text_item(dest_class, selectable=True, color=self.selected_class.text_color)
-                                type_text = self.selected_class.create_text_item(relationship_type, selectable=True, color=self.selected_class.text_color)
+                                source_text = self.selected_class.create_text_item(source_class, selectable=False, color=self.selected_class.text_color)
+                                dest_text = self.selected_class.create_text_item(dest_class, selectable=False, color=self.selected_class.text_color)
+                                type_text = self.selected_class.create_text_item(relationship_type, selectable=False, color=self.selected_class.text_color)
                                 # Append the relationship data to the class's relationship list
                                 self.selected_class.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
                                 if len(self.selected_class.relationship_list) == 1:
@@ -751,7 +752,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                 each_relationship["dest"].toPlainText() == dest_class):
                 # Remove the old type and replace it with the new one
                 self.scene().removeItem(each_relationship["type"])
-                each_relationship["type"] = self.selected_class.create_text_item(new_type, selectable=True, color=self.selected_class.text_color)
+                each_relationship["type"] = self.selected_class.create_text_item(new_type, selectable=False, color=self.selected_class.text_color)
                 break
         self.selected_class.update_box()
 
@@ -873,7 +874,10 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         if not self.selected_class:
             # If no UML class is selected, display options for adding a class or selecting all classes
             self.add_context_menu_action(contextMenu, "Add Class", self.add_class, enabled=True)
-            self.add_context_menu_action(contextMenu, "Select All Class", self.select_items_in_rect, enabled=True)
+            if len(self.class_name_list) > 0:
+                self.add_context_menu_action(contextMenu, "Select All Class", self.select_items_in_rect, enabled=True)
+            else:
+                self.add_context_menu_action(contextMenu, "Select All Class", self.select_items_in_rect, enabled=False)
         else:
             self.add_context_menu_separator(contextMenu)
 
