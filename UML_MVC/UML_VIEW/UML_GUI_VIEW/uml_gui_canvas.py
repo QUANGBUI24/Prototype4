@@ -47,7 +47,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         self.is_panning = False  # Flag to indicate if panning is active
 
         # Track selected class or arrow
-        self.selected_class = None
+        self.selected_class = False
 
     #################################################################
     ## GRID VIEW RELATED ##
@@ -155,10 +155,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     self.selected_class.update_box()
                 else:
                     QtWidgets.QMessageBox.warning(None, "Warning", f"New class name'{new_class_name}' has already existed!")
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", f"Class name'{old_class_name}' does not exist!")
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
     
     def change_name_in_relationship_after_rename_class(self, old_class_name, new_class_name):
         for item in self.scene().items():
@@ -223,8 +219,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         self.selected_class.update_box()  # Update the box to reflect the changes
                     else:
                         QtWidgets.QMessageBox.warning(None, "Warning", f"Field name '{field_name}' has already existed!")
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
 
     def delete_field(self):
         """
@@ -250,10 +244,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         self.selected_class.field_name_list.remove(field_name)  # Remove from the name list
                         self.selected_class.scene().removeItem(self.selected_class.field_list.pop(field_name))  # Remove the text item from the scene
                         self.selected_class.update_box()  # Update the box to reflect the changes
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No field selected!")
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
 
     def rename_field(self):
         """
@@ -290,11 +280,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.update_box()  # Refresh the box display
                         else:
                             QtWidgets.QMessageBox.warning(None, "Warning", f"New field name '{new_field_name}' has already existed!")
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No fields to change!")
-        else:
-            # Show a warning if there are no fields to rename
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def add_method(self, loaded_class_name=None, loaded_method_name=None, is_loading=False):
         """
@@ -350,8 +335,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         self.selected_class.update_box()  # Update the UML box
                     else:
                         QtWidgets.QMessageBox.warning(None, "Warning", f"Method name '{method_name}' has already existed!")
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
     
     def delete_method(self):
         """
@@ -382,11 +365,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         self.selected_class.method_name_list.pop(method_name)  # Remove from method list
                         self.scene().removeItem(self.selected_class.method_list.pop(method_name))  # Remove the method text
                         self.selected_class.update_box()  # Refresh the UML box
-            else:
-                # Show a warning if there are no methods to remove
-                QtWidgets.QMessageBox.warning(None, "Warning", "No methods to remove!")
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
 
     def rename_method(self):
         """
@@ -423,11 +401,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.update_box()  # Refresh the UML box display
                         else:
                             QtWidgets.QMessageBox.warning(None, "Warning", f"New method name '{new_method_name}' has already existed!")
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No method to change name!")
-        else:
-            # Show a warning if there are no class selected
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def add_param(self,loaded_class_name=None, loaded_method_name=None, loaded_param_name=None, is_loading=False):
         """
@@ -484,12 +457,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.update_box()  # Update the UML box
                             else:
                                 QtWidgets.QMessageBox.warning(None, "Warning", f"New parameter name '{param_name}' has already existed!")
-                else:
-                    # Show a warning if there are no methods available
-                    QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose!")
-            else:
-                # Show a warning if there are no methods available
-                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
 
     def delete_param(self):
         """
@@ -523,17 +490,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.parameter_name_list.remove(param_name)  # Remove from the global parameter list
                                 self.scene().removeItem(self.selected_class.parameter_list.pop(param_name))  # Remove from the scene
                                 self.selected_class.update_box()  # Refresh the UML box
-                            else:
-                                QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to choose!")
-                    else:
-                        # Show a warning if there are no parameters to remove
-                        QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to choose!")
-            else:
-                # Show a warning if there are no methods available
-                QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose!")
-        else:
-            # Show a warning if there are no class selected
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def rename_param(self):
         """
@@ -577,15 +533,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                     self.selected_class.update_box()  # Refresh the UML box
                                 else:
                                     QtWidgets.QMessageBox.warning(None, "Warning", f"New param name '{new_param_name}' has already existed!")
-                    else:
-                        # Show a warning if there are no parameters to rename
-                        QtWidgets.QMessageBox.warning(None, "Warning", "No parameters to choose.")
-            else:
-                # Show a warning if there are no methods available
-                QtWidgets.QMessageBox.warning(None, "Warning", "No methods to choose.")
-        else:
-            # Show a warning if there are no class selected
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
 
     def replace_param(self):
         """
@@ -640,12 +587,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                     self.selected_class.parameter_name_list.append(new_param)
                                 # Update the box to reflect changes
                                 self.selected_class.update_box()
-            else:
-                # Display a warning if no methods are available
-                QtWidgets.QMessageBox.warning(None, "Warning", "No methods available to replace parameters.")
-        else:
-            # Show a warning if there are no class selected
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
             
     def add_relationship(self, loaded_class_name=None, loaded_source_class=None, loaded_dest_class=None, loaded_type=None, is_loading=False):
         """
@@ -723,9 +664,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 self.selected_class.update_box()
                             else:
                                 QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
-            else:
-                # Show a warning if no class is selected
-                QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
 
     def delete_relationship(self):
         """
@@ -760,10 +698,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         is_rel_deleted = self.interface.delete_relationship(source_class, dest_class)
                         if is_rel_deleted:
                             self.find_and_remove_relationship_helper(source_class, dest_class)
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No relationship exists!")
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
 
     def change_relationship_type(self):
         """
@@ -801,10 +735,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 self.find_and_replace_relationship_type_helper(source_class, dest_class, relationship_type)
                             else:
                                 QtWidgets.QMessageBox.warning(None, "Warning", f"New relationship type is identical to current type {relationship_type}!")
-            else:
-                QtWidgets.QMessageBox.warning(None, "Warning", "No relationship exists!")
-        else:
-            QtWidgets.QMessageBox.warning(None, "Warning", "No class selected!")
 
     def find_and_replace_relationship_type_helper(self, source_class, dest_class, new_type):
         """
@@ -927,133 +857,110 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                 self.scene().removeItem(item)
                 
     #################################################################
-    ## MOUSE RELATED ##
-
+    ## CONTEXT MENU ACTIONS ##
+            
     def contextMenuEvent(self, event):
         """
-        Show the context menu when right-clicking on the UMLClassBox or the background. 
+        Show the context menu when right-clicking on the UMLClassBox or the background.
         
         The context menu provides various options to modify the selected UML class or perform global actions 
         such as saving and loading UML diagrams.
-        
-        Parameters:
-        - event (QContextMenuEvent): The event that triggers the context menu, typically a right-click on the scene.
         """
-        
+
         # Create the context menu object
         contextMenu = QtWidgets.QMenu()
+        
+        if not self.selected_class:
+            # If no UML class is selected, display options for adding a class or selecting all classes
+            self.add_context_menu_action(contextMenu, "Add Class", self.add_class, enabled=True)
+            self.add_context_menu_action(contextMenu, "Select All Class", self.select_items_in_rect, enabled=True)
+        else:
+            self.add_context_menu_separator(contextMenu)
 
-        # Check if a class is selected
-        if self.selected_class:
-            """
-            If a UML class is selected, show the following options for modifying the class's appearance, 
-            fields, methods, and parameters.
-            """
+            # CLASS MANAGEMENT OPTIONS
+            self.add_context_menu_action(contextMenu, "Rename Class", self.rename_class, enabled=True)
 
-            #################################
-            # CLASS MANAGEMENT OPTIONS ##
-            
-            # Add an option to rename the selected class
-            rename_class_button = contextMenu.addAction("Rename Class")
-            # Connect the rename class action to the rename_class method
-            rename_class_button.triggered.connect(self.rename_class)
-            
-            # Add a separator to separate class management options from field options
-            contextMenu.addSeparator()
+            self.add_context_menu_separator(contextMenu)
 
-            #################################
-            ## FIELD OPTIONS ##
-            
-            # Add options to manage fields within the selected class
-            add_field_button = contextMenu.addAction("Add Field")  # Add a field
-            delete_field_button = contextMenu.addAction("Delete Field")  # Delete a field
-            rename_field_button = contextMenu.addAction("Rename Field")  # Rename a field
+            # FIELD OPTIONS
+            self.add_context_menu_action(contextMenu, "Add Field", self.add_field, enabled=True)
+            if self.selected_class.field_name_list:
+                self.add_context_menu_action(contextMenu, "Delete Field", self.delete_field, enabled=True)
+                self.add_context_menu_action(contextMenu, "Rename Field", self.rename_field, enabled=True)
+            else:
+                self.add_context_menu_action(contextMenu, "Delete Field", self.delete_field, enabled=False)
+                self.add_context_menu_action(contextMenu, "Rename Field", self.rename_field, enabled=False)
 
-            # Connect field actions to their respective methods
-            add_field_button.triggered.connect(self.add_field)
-            delete_field_button.triggered.connect(self.delete_field)
-            rename_field_button.triggered.connect(self.rename_field)
+            self.add_context_menu_separator(contextMenu)
 
-            # Add a separator to separate field options from method options
-            contextMenu.addSeparator()
+            # METHOD OPTIONS
+            self.add_context_menu_action(contextMenu, "Add Method", self.add_method, enabled=True)
+            if self.selected_class.method_name_list:
+                self.add_context_menu_action(contextMenu, "Delete Method", self.delete_method, enabled=True)
+                self.add_context_menu_action(contextMenu, "Rename Method", self.rename_method, enabled=True)
+                self.add_context_menu_separator(contextMenu)
+                self.add_context_menu_action(contextMenu, "Add Parameter", self.add_param, enabled=True)
+                # PARAMETER OPTIONS
+                if self.selected_class.parameter_name_list:
+                    self.add_context_menu_action(contextMenu, "Delete Parameter", self.delete_param, enabled=True)
+                    self.add_context_menu_action(contextMenu, "Rename Parameter", self.rename_param, enabled=True)
+                    self.add_context_menu_action(contextMenu, "Replace Parameter", self.replace_param, enabled=True)
+                else:
+                    self.add_context_menu_action(contextMenu, "Delete Parameter", self.delete_param, enabled=False)
+                    self.add_context_menu_action(contextMenu, "Rename Parameter", self.rename_param, enabled=False)
+                    self.add_context_menu_action(contextMenu, "Replace Parameter", self.replace_param, enabled=False)
+            else:
+                self.add_context_menu_action(contextMenu, "Delete Method", self.delete_method, enabled=False)
+                self.add_context_menu_action(contextMenu, "Rename Method", self.rename_method, enabled=False)
+                self.add_context_menu_separator(contextMenu)
+                self.add_context_menu_action(contextMenu, "Add Parameter", self.add_param, enabled=False)
+                self.add_context_menu_action(contextMenu, "Delete Parameter", self.delete_param, enabled=False)
+                self.add_context_menu_action(contextMenu, "Rename Parameter", self.rename_param, enabled=False)
+                self.add_context_menu_action(contextMenu, "Replace Parameter", self.replace_param, enabled=False)
 
-            #################################
-            # METHOD OPTIONS ##
-            
-            # Add options to manage methods within the selected class
-            add_method_button = contextMenu.addAction("Add Method")  # Add a method
-            delete_method_button = contextMenu.addAction("Delete Method")  # Delete a method
-            rename_method_button = contextMenu.addAction("Rename Method")  # Rename a method
+            self.add_context_menu_separator(contextMenu)
 
-            # Connect method actions to their respective methods
-            add_method_button.triggered.connect(self.add_method)
-            delete_method_button.triggered.connect(self.delete_method)
-            rename_method_button.triggered.connect(self.rename_method)
-
-            # Add a separator to separate method options from parameter options
-            contextMenu.addSeparator()
-
-            #################################
-            # PARAMETER OPTIONS ##
-            
-            # Add options to manage parameters within the selected class
-            add_parameter_button = contextMenu.addAction("Add Parameter")  # Add a parameter
-            delete_parameter_button = contextMenu.addAction("Delete Parameter")  # Delete a parameter
-            rename_parameter_button = contextMenu.addAction("Rename Parameter")  # Rename a parameter
-            replace_parameter_button = contextMenu.addAction("Replace Parameter")  # Replace a parameter
-
-            # Connect parameter actions to their respective methods
-            add_parameter_button.triggered.connect(self.add_param)
-            delete_parameter_button.triggered.connect(self.delete_param)
-            rename_parameter_button.triggered.connect(self.rename_param)
-            replace_parameter_button.triggered.connect(self.replace_param)
-
-            # Add a separator to separate method options from relationship options
-            contextMenu.addSeparator()
-            
-            #################################
-            # PARAMETER OPTIONS ##
-            
-            # Add options to manage relationship within the selected class
-            add_rel_button = contextMenu.addAction("Add Relationship")  # Add relationship
-            delete_rel_button = contextMenu.addAction("Delete Relationship")  # Delete relationship
-            change_type_button = contextMenu.addAction("Change Type")  # Change relationship type
-            
-            # Connect relationship actions to their respective methods
-            add_rel_button.triggered.connect(self.add_relationship)
-            delete_rel_button.triggered.connect(self.delete_relationship)
-            change_type_button.triggered.connect(self.change_relationship_type)
-            
-            # Execute the context menu at the global position (where the right-click happened)
-            contextMenu.exec_(event.globalPos())
+            # RELATIONSHIP OPTIONS
+            self.add_context_menu_action(contextMenu, "Add Relationship", self.add_relationship, enabled=True)
+            if self.selected_class.relationship_list:
+                self.add_context_menu_action(contextMenu, "Delete Relationship", self.delete_relationship, enabled=True)
+                self.add_context_menu_action(contextMenu, "Change Type", self.change_relationship_type, enabled=True)
+            else:
+                self.add_context_menu_action(contextMenu, "Delete Relationship", self.delete_relationship, enabled=False)
+                self.add_context_menu_action(contextMenu, "Change Type", self.change_relationship_type, enabled=False)
 
             # After executing an action, update the class box to reflect changes
             self.selected_class.update_box()
 
-        else:
-            """
-            If no UML class is selected, display options for adding a class, selecting all classes, 
-            or managing files (open, save, etc.).
-            """
+        # Execute the context menu at the global position (where the right-click happened)
+        contextMenu.exec_(event.globalPos())
 
-            #################################
-            # CLASS OPTIONS
-            # Add an option to create a new UML class
-            add_class_action = contextMenu.addAction("Add Class")
-            # Connect the add_class action to the add_class method
-            add_class_action.triggered.connect(self.add_class)
 
-            # Add an option to select all UML classes in the scene
-            select_all_class_action = contextMenu.addAction("Select All Class")
-            # Connect the action to a method that selects all items in the grid
-            select_all_class_action.triggered.connect(self.select_items_in_rect)
+    def add_context_menu_action(self, context_menu, label, callback=None, enabled=True):
+        """
+        Helper function to add an action to the context menu.
+        
+        Parameters:
+            context_menu (QMenu): The context menu to add the action to.
+            label (str): The text label for the action.
+            callback (function, optional): The function to be triggered when the action is selected.
+            enabled (bool): Whether the action should be enabled (default is True).
+        
+        Returns:
+            QAction: The created action.
+        """
+        action = context_menu.addAction(label)
+        if callback:
+            action.triggered.connect(callback)
+        action.setEnabled(enabled)
+        return action
 
-            # Add a separator before file management options
-            contextMenu.addSeparator()
+    def add_context_menu_separator(self, context_menu):
+        """ Helper function to add a separator in the context menu """
+        context_menu.addSeparator()
 
-            #################################
-            # Execute the context menu at the global position (where the right-click happened)
-            contextMenu.exec_(event.globalPos())
+            
+    ## MOUSE EVENTS ##
             
     def wheelEvent(self, event):
         """
