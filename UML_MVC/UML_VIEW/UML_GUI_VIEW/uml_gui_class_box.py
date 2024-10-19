@@ -131,15 +131,17 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         - Aligning fields, methods, and parameters.
         - Updating the separators.
         """
+        # Align method and its parameters within the UML box
+        self.update_method_and_param_alignment()
+        
         # Adjust the box's height and width based on its contents
         self.update_box_dimension()
 
         # Reposition the class name in the center of the UML box
         self.centering_class_name()
 
-        # Align the fields, methods, and parameters within the UML box
+        # Align the fields within the UML box
         self.update_field_alignment()
-        self.update_method_and_param_alignment()
         self.update_relationship_alignment()
 
         # # Update the position of the resize handles at the corners of the UML box
