@@ -65,15 +65,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         """
         super().scale(sx, sy)
 
-        # Resize UMLClassBox items in the scene
-        for item in self.scene().items():
-            if isinstance(item, UMLClassBox):
-                current_rect = item.rect()
-                new_width = current_rect.width() * sx
-                new_height = current_rect.height() * sy
-                item.setRect(0, 0, new_width, new_height)
-                item.update_box()
-
     def drawBackground(self, painter, rect):
         """
         Draw the background grid pattern.
@@ -984,7 +975,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                 self.scale(1.1, 1.1)
             elif delta < 0 and current_scale > zoom_limit:
                 self.scale(0.9, 0.9)
-            self.viewport().update()
             event.accept()
         else:
             event.ignore()
