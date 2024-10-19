@@ -1,9 +1,9 @@
 class UMLMethod:
     # UML class method constructor
     # Create a method to add to the UML Class
-    def __init__(self, method_name: str = "", type: str = ""):
-        self.__method_name = method_name
+    def __init__(self,type: str = "", method_name: str = ""):
         self.__type = type
+        self.__method_name = method_name
         
     def __str__(self):
         return f"{self.__type} {self.__method_name}"

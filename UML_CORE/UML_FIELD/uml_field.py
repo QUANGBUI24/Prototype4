@@ -1,9 +1,9 @@
 class UMLField:
     # UML class attribute constructor
     # Create an attribute to add to the UML Class
-    def __init__(self, field_name: str = "", type: str = ""):
-        self.__field_name = field_name
+    def __init__(self,type: str = "", field_name: str = ""):
         self.__type = type
+        self.__field_name = field_name
 
     def __str__(self):
             return f"{self.__type} {self.__field_name}"
