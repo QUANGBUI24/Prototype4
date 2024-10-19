@@ -35,6 +35,9 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         # Class name list
         self.class_name_list = []
         
+        # Relationship pair list
+        self.relationship_track_list = {}
+        
         # Initialize canvas properties
         self.is_dark_mode = False  # Flag for light/dark mode
 
@@ -393,7 +396,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     # Check if the new field name already exists
                     method_names = list(self.selected_class.method_name_list.keys())
                     if new_method_name in method_names:
-                        QtWidgets.QMessageBox.warning(None, "Warning", f"Field name '{new_method_name}' has already existed!")
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Method name '{new_method_name}' has already existed!")
                         return
                 
                     is_method_name_valid = self.interface.is_valid_input(new_name=new_method_name)
@@ -442,25 +445,30 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         else:
             if self.selected_class:
                 if self.selected_class.method_list:
-                    # Ask the user to choose a method to add a parameter to
-                    method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method to add parameter:", list(self.selected_class.method_name_list.keys()), 0, False)
-                    if ok and method_name:
-                        # Ask for the parameter name
-                        param_name, ok = QtWidgets.QInputDialog.getText(None, "Add Parameter", "Enter parameter name:")
-                        if ok and param_name:
-                            is_param_name_valid = self.interface.is_valid_input(parameter_name=param_name)
-                            if not is_param_name_valid:
-                                QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
-                                return
-                            selected_class_name = self.selected_class.class_name_text.toPlainText()
-                            is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
-                            if is_param_added:
-                                # Add the parameter to the selected method and update the UML box
-                                self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
-                                self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
-                                self.selected_class.update_box()  # Update the UML box
-                            else:
-                                QtWidgets.QMessageBox.warning(None, "Warning", f"New parameter name '{param_name}' has already existed!")
+                    # Initialize the dialog
+                    add_param_dialog = Dialog("Add Parameter")
+                    add_param_dialog.add_param_popup(self.selected_class)
+                    
+                    # Execute the dialog and wait for user confirmation (OK or Cancel)
+                    if add_param_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                        
+                        # Get the old and new field names after the dialog is accepted
+                        method_name = add_param_dialog.input_widgets['current_method'].currentText()  # Use `currentText()` for QComboBox
+                        param_name = add_param_dialog.input_widgets['new_param_name'].text()  # Use `text()` for QLineEdit
+                        if param_name in self.selected_class.method_name_list[method_name]:
+                            QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name '{param_name}' has already existed!")
+                            return
+                        is_param_name_valid = self.interface.is_valid_input(parameter_name=param_name)
+                        if not is_param_name_valid:
+                            QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                            return
+                        selected_class_name = self.selected_class.class_name_text.toPlainText()
+                        is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
+                        if is_param_added:
+                            # Add the parameter to the selected method and update the UML box
+                            self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
+                            self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
+                            self.selected_class.update_box()  # Update the UML box
 
     def delete_param(self):
         """
@@ -476,23 +484,23 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         """
         if self.selected_class:
             if self.selected_class.method_name_list:
-                # Ask the user to choose a method to remove a parameter from
-                method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method to remove parameter:", 
-                                                                 list(self.selected_class.method_name_list.keys()), 0, False)
-                if ok and method_name:
-                    # Check if the selected method has parameters
-                    if self.selected_class.method_name_list[method_name]:
-                        # Ask the user to choose the parameter to remove
-                        param_name, ok = QtWidgets.QInputDialog.getItem(None, "Delete Parameter", "Choose parameter name to remove:", 
-                                                                        self.selected_class.method_name_list[method_name], 0, False)
-                        if ok and param_name:
-                            selected_class_name = self.selected_class.class_name_text.toPlainText()
-                            is_param_deleted = self.interface.delete_parameter(selected_class_name, method_name, param_name)
-                            if is_param_deleted:
-                                # Remove the parameter and update the UML box
-                                self.selected_class.method_name_list[method_name].remove(param_name)  # Remove from method's parameter list
-                                self.selected_class.parameter_name_list.remove(param_name)  # Remove from the global parameter list
-                                self.selected_class.update_box()  # Refresh the UML box
+               # Initialize the dialog
+                delete_param_dialog = Dialog("Delete Parameter")
+                delete_param_dialog.delete_param_popup(self.selected_class)
+                
+                # Execute the dialog and wait for user confirmation (OK or Cancel)
+                if delete_param_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    
+                    # Get the old and new field names after the dialog is accepted
+                    method_name = delete_param_dialog.input_widgets['current_method'].currentText()  # Use `currentText()` for QComboBox
+                    param_name = delete_param_dialog.input_widgets['param_name'].currentText()  # Use `currentText()` for QComboBox
+                    selected_class_name = self.selected_class.class_name_text.toPlainText()
+                    is_param_deleted = self.interface.delete_parameter(selected_class_name, method_name, param_name)
+                    if is_param_deleted:
+                        # Remove the parameter and update the UML box
+                        self.selected_class.method_name_list[method_name].remove(param_name)  # Remove from method's parameter list
+                        self.selected_class.parameter_name_list.remove(param_name)  # Remove from the global parameter list
+                        self.selected_class.update_box()  # Refresh the UML box
             
     def rename_param(self):
         """
@@ -508,32 +516,32 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         """
         if self.selected_class:
             if self.selected_class.method_name_list:
-                # Ask the user to choose a method containing the parameter
-                method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", "Select method:", list(self.selected_class.method_name_list.keys()), 0, False)
-                if ok and method_name:
-                    # Check if the selected method has parameters
-                    if self.selected_class.method_name_list[method_name]:
-                        # Ask the user to choose the parameter to rename
-                        old_param_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Parameter", "Choose parameter name to rename:", 
-                                                                        self.selected_class.method_name_list[method_name], 0, False)
-                        if ok and old_param_name:
-                            # Ask for the new parameter name
-                            new_param_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Parameter", "Enter new parameter name:")
-                            if ok and new_param_name:
-                                is_param_name_valid = self.interface.is_valid_input(new_name=new_param_name)
-                                if not is_param_name_valid:
-                                    QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {new_param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
-                                    return
-                                selected_class_name = self.selected_class.class_name_text.toPlainText()
-                                is_param_renamed = self.interface.rename_parameter(selected_class_name, method_name, old_param_name, new_param_name)
-                                if is_param_renamed:
-                                    # Update the parameter name and refresh the UML box
-                                    param_list = self.selected_class.method_name_list[method_name]
-                                    param_list[param_list.index(old_param_name)] = new_param_name  # Update in the method's parameter list
-                                    self.selected_class.parameter_name_list[self.selected_class.parameter_name_list.index(old_param_name)] = new_param_name  # Track the change
-                                    self.selected_class.update_box()  # Refresh the UML box
-                                else:
-                                    QtWidgets.QMessageBox.warning(None, "Warning", f"New param name '{new_param_name}' has already existed!")
+                # Initialize the dialog
+                rename_param_dialog = Dialog("Rename Parameter")
+                rename_param_dialog.rename_param_popup(self.selected_class)
+                
+                # Execute the dialog and wait for user confirmation (OK or Cancel)
+                if rename_param_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    
+                    # Get the old and new field names after the dialog is accepted
+                    method_name = rename_param_dialog.input_widgets['current_method'].currentText()  # Use `currentText()` for QComboBox
+                    old_param_name = rename_param_dialog.input_widgets['old_param_name'].currentText()  # Use `currentText()` for QComboBox
+                    new_param_name = rename_param_dialog.input_widgets['new_param_name'].text()  # Use `text()` for QLineEdit
+                    if new_param_name in self.selected_class.method_name_list:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name '{new_param_name}' has already existed!")
+                        return
+                    is_param_name_valid = self.interface.is_valid_input(new_name=new_param_name)
+                    if not is_param_name_valid:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {new_param_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                        return
+                    selected_class_name = self.selected_class.class_name_text.toPlainText()
+                    is_param_renamed = self.interface.rename_parameter(selected_class_name, method_name, old_param_name, new_param_name)
+                    if is_param_renamed:
+                        # Update the parameter name and refresh the UML box
+                        param_list = self.selected_class.method_name_list[method_name]
+                        param_list[param_list.index(old_param_name)] = new_param_name  # Update in the method's parameter list
+                        self.selected_class.parameter_name_list[self.selected_class.parameter_name_list.index(old_param_name)] = new_param_name  # Track the change
+                        self.selected_class.update_box()  # Refresh the UML box
 
     def replace_param(self):
         """
@@ -550,39 +558,40 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         if self.selected_class:
             # Ensure there are methods to choose from
             if self.selected_class.method_name_list:
-                # Select the method to replace parameters for
-                method_name, ok = QtWidgets.QInputDialog.getItem(None, "Choose Method Name", 
-                                                             "Select method to replace parameters:", 
-                                                             list(self.selected_class.method_name_list.keys()), 0, False)
-                if ok and method_name:
-                    # Prompt user to enter the new parameters as a comma-separated string
-                    param_string, ok = QtWidgets.QInputDialog.getText(None, "Replace Parameters", 
-                                                                  "Enter new parameters (comma-separated):")
-                    if ok and param_string:
-                        # Split the input string by commas to form a list of parameters
-                        new_param_list = [param.strip() for param in param_string.split(",") if param.strip()]
-                        # Check for duplicate parameter names
-                        unique_param_names = list(set(new_param_list))
-                        for each_param in unique_param_names:
-                            is_param_name_valid = self.interface.is_valid_input(parameter_name=each_param)
-                            if not is_param_name_valid:
-                                QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {each_param} is invalid! Only allow a-zA-Z, number, and underscore!")
-                                return
-                        if len(unique_param_names) != len(new_param_list):
-                            duplicates = [param for param in new_param_list if new_param_list.count(param) > 1]
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"New list contain duplicate{duplicates}!")
-                        else:
-                            selected_class_name = self.selected_class.class_name_text.toPlainText()
-                            is_param_list_replaced = self.interface.replace_param_list_gui(selected_class_name, method_name, new_param_list)
-                            if is_param_list_replaced:
-                                # Clear the method's parameter list
-                                self.selected_class.method_name_list[method_name].clear()
-                                # Add new parameters to the method
-                                for new_param in new_param_list:
-                                    self.selected_class.method_name_list[method_name].append(new_param)
-                                    self.selected_class.parameter_name_list.append(new_param)
-                                # Update the box to reflect changes
-                                self.selected_class.update_box()
+                # Initialize the dialog
+                replace_param_dialog = Dialog("Rename Parameter")
+                replace_param_dialog.replace_param_list_popup(self.selected_class)
+                
+                # Execute the dialog and wait for user confirmation (OK or Cancel)
+                if replace_param_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    
+                    # Get the old and new field names after the dialog is accepted
+                    method_name = replace_param_dialog.input_widgets['current_method'].currentText()  # Use `currentText()` for QComboBox
+                    new_param_string = replace_param_dialog.input_widgets['new_param_string'].text()  # Use `text()` for QLineEdit
+                    # Split the input string by commas to form a list of parameters
+                    new_param_list = [param.strip() for param in new_param_string.split(",") if param.strip()]
+                    # Check for duplicate parameter names
+                    unique_param_names = list(set(new_param_list))
+                    for each_param in unique_param_names:
+                        is_param_name_valid = self.interface.is_valid_input(parameter_name=each_param)
+                        if not is_param_name_valid:
+                            QtWidgets.QMessageBox.warning(None, "Warning", f"Parameter name {each_param} is invalid! Only allow a-zA-Z, number, and underscore!")
+                            return
+                    if len(unique_param_names) != len(new_param_list):
+                        duplicates = [param for param in new_param_list if new_param_list.count(param) > 1]
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"New list contain duplicate{duplicates}!")
+                    else:
+                        selected_class_name = self.selected_class.class_name_text.toPlainText()
+                        is_param_list_replaced = self.interface.replace_param_list_gui(selected_class_name, method_name, new_param_list)
+                        if is_param_list_replaced:
+                            # Clear the method's parameter list
+                            self.selected_class.method_name_list[method_name].clear()
+                            # Add new parameters to the method
+                            for new_param in new_param_list:
+                                self.selected_class.method_name_list[method_name].append(new_param)
+                                self.selected_class.parameter_name_list.append(new_param)
+                            # Update the box to reflect changes
+                            self.selected_class.update_box()
             
     def add_relationship(self, loaded_class_name=None, loaded_source_class=None, loaded_dest_class=None, loaded_type=None, is_loading=False):
         """
@@ -611,15 +620,13 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     # Add the relationship via the interface
                     is_rel_added = self.interface.add_relationship_gui(source_class_name=loaded_source_class, destination_class_name=loaded_dest_class, type=loaded_type)
                     if is_rel_added:
-                        # Append the source and destination class names to their respective lists
-                        selected_class_box.source_class_list.append(loaded_source_class)
-                        selected_class_box.dest_class_list.append(loaded_dest_class)
                         # Create text items for the source, destination, and type
                         source_text = selected_class_box.create_text_item(loaded_source_class, selectable=False, color=selected_class_box.text_color)
                         dest_text = selected_class_box.create_text_item(loaded_dest_class, selectable=False, color=selected_class_box.text_color)
                         type_text = selected_class_box.create_text_item(loaded_type, selectable=False, color=selected_class_box.text_color)
                         # Append the relationship data to the class's relationship list
                         selected_class_box.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
+                        self.track_relationship(loaded_source_class, loaded_dest_class)
                         if len(selected_class_box.relationship_list) == 1:
                             # If this is the first relationship, create a separator
                             selected_class_box.create_separator(is_first=False, is_second=False)
@@ -627,33 +634,35 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         selected_class_box.update_box()
         else:
             if self.selected_class:
-                # Prompt the user to select a destination class
-                dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
-                if ok and dest_class:
-                    # Prompt the user to select the relationship type
-                    enum_items = [enum.value for enum in RelationshipType]
-                    relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose Relationship Type", "Select type:", enum_items, 0, False)
-                    if ok and relationship_type:
-                        source_class = self.selected_class.class_name_text.toPlainText()
-                        # Add the relationship via the interface
-                        is_rel_added = self.interface.add_relationship_gui(source_class_name=source_class, destination_class_name=dest_class, type=relationship_type)
-                        if is_rel_added:
-                            # Append the source and destination class names to their respective lists
-                            self.selected_class.source_class_list.append(source_class)
-                            self.selected_class.dest_class_list.append(dest_class)
-                            # Create text items for the source, destination, and type
-                            source_text = self.selected_class.create_text_item(source_class, selectable=False, color=self.selected_class.text_color)
-                            dest_text = self.selected_class.create_text_item(dest_class, selectable=False, color=self.selected_class.text_color)
-                            type_text = self.selected_class.create_text_item(relationship_type, selectable=False, color=self.selected_class.text_color)
-                            # Append the relationship data to the class's relationship list
-                            self.selected_class.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
-                            if len(self.selected_class.relationship_list) == 1:
-                                # If this is the first relationship, create a separator
-                                self.selected_class.create_separator(is_first=False, is_second=False)
-                            # Update the class box
-                            self.selected_class.update_box()
-                        else:
-                            QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
+                # Initialize the dialog
+                type_list = [enum.value for enum in RelationshipType]
+                add_rel_dialog = Dialog("Add Relationship")
+                add_rel_dialog.add_relationship_popup(self.class_name_list, type_list)
+                
+                # Execute the dialog and wait for user confirmation (OK or Cancel)
+                if add_rel_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    
+                    # Get the old and new field names after the dialog is accepted
+                    dest_class = add_rel_dialog.input_widgets["destination_class"].currentText()  # Use `currentText()` 
+                    type = add_rel_dialog.input_widgets["type"].currentText()  # Use `currentText()` 
+                    source_class = self.selected_class.class_name_text.toPlainText()
+                    # Add the relationship via the interface
+                    is_rel_added = self.interface.add_relationship_gui(source_class_name=source_class, destination_class_name=dest_class, type=type)
+                    if is_rel_added:
+                        # Create text items for the source, destination, and type
+                        source_text = self.selected_class.create_text_item(source_class, selectable=False, color=self.selected_class.text_color)
+                        dest_text = self.selected_class.create_text_item(dest_class, selectable=False, color=self.selected_class.text_color)
+                        type_text = self.selected_class.create_text_item(type, selectable=False, color=self.selected_class.text_color)
+                        # Append the relationship data to the class's relationship list
+                        self.selected_class.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
+                        self.track_relationship(source_class, dest_class)
+                        if len(self.selected_class.relationship_list) == 1:
+                            # If this is the first relationship, create a separator
+                            self.selected_class.create_separator(is_first=False, is_second=False)
+                        # Update the class box
+                        self.selected_class.update_box()
+                    else:
+                        QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
 
     def delete_relationship(self):
         """
@@ -669,25 +678,34 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         """
         if self.selected_class:
             if self.selected_class.relationship_list:
-                # Prompt the user to select a source class for the relationship to be deleted
-                source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class To Delete", "Select source class:", self.class_name_list, 0, False)
-                if ok and source_class:
-                    # Ensure the source class matches the current class name
-                    if source_class != self.selected_class.class_name_text.toPlainText():
-                        QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
-                        return
-                    # Prompt the user to select a destination class
-                    dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class To Delete", "Select destination class:", self.class_name_list, 0, False)
-                    if ok and dest_class:
-                        # Check if the relationship exists
-                        is_rel_exist = self.interface.relationship_exist(source_class, dest_class)
-                        if not is_rel_exist:
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"There is no relationship between '{source_class}' class and '{dest_class}' class!")
-                            return
-                        # Delete the relationship if found
-                        is_rel_deleted = self.interface.delete_relationship(source_class, dest_class)
-                        if is_rel_deleted:
-                            self.find_and_remove_relationship_helper(source_class, dest_class)
+                source_class = self.selected_class.class_name_text.toPlainText()
+                delete_rel_dialog = Dialog("Delete Relationship")
+                delete_rel_dialog.delete_relationship_popup(source_class, self.relationship_track_list)
+                
+                # Execute the dialog and wait for user confirmation (OK or Cancel)
+                if delete_rel_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    
+                    # Get the old and new field names after the dialog is accepted
+                    dest_class = delete_rel_dialog.input_widgets["destination_class_list_of_current_source_class"].currentText()  # Use `currentText()` 
+                    # Delete the relationship if found
+                    is_rel_deleted = self.interface.delete_relationship(source_class, dest_class)
+                    if is_rel_deleted:
+                        self.find_and_remove_relationship_helper(source_class, dest_class)
+                            
+    def track_relationship(self, source_class, dest_class):
+        """
+        Keep track of relationships between source class and destination class.
+        """
+        # If the source class is not in the dictionary, add it with an empty list
+        if source_class not in self.relationship_track_list:
+            self.relationship_track_list[source_class] = []
+
+        # Append the destination class to the source class's list if it's not already there
+        if dest_class not in self.relationship_track_list[source_class]:
+            self.relationship_track_list[source_class].append(dest_class)
+
+        # This is for checking the list in the terminal
+        print(f"Current relationship tracking: {self.relationship_track_list}")
 
     def change_relationship_type(self):
         """
@@ -703,28 +721,22 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         """
         if self.selected_class:
             if self.selected_class.relationship_list:
-                # Prompt the user to select a source class
-                source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class To Change Type", "Select source class:", self.class_name_list, 0, False)
-                if ok and source_class:
-                    if source_class != self.selected_class.class_name_text.toPlainText():
-                        QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
-                        return
-                    # Prompt the user to select a destination class
-                    dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class To Change Type", "Select destination class:", self.class_name_list, 0, False)
-                    if ok and dest_class:
-                        is_rel_exist = self.interface.relationship_exist(source_class, dest_class)
-                        if not is_rel_exist:
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"There is no relationship between '{source_class}' class and '{dest_class}' class!")
-                            return
-                        # Prompt the user to select a new relationship type
-                        enum_items = [enum.value for enum in RelationshipType]
-                        relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose New Relationship Type", "Select type:", enum_items, 0, False)
-                        if ok and relationship_type:
-                            is_type_changed = self.interface.change_type(source_class, dest_class, relationship_type)
-                            if is_type_changed:
-                                self.find_and_replace_relationship_type_helper(source_class, dest_class, relationship_type)
-                            else:
-                                QtWidgets.QMessageBox.warning(None, "Warning", f"New relationship type is identical to current type {relationship_type}!")
+                type_list = [enum.value for enum in RelationshipType]
+                source_class = self.selected_class.class_name_text.toPlainText()
+                change_rel_type_dialog = Dialog("Change Relationship Type")
+                change_rel_type_dialog.change_type_popup(source_class, self.relationship_track_list, type_list)
+                
+                # Execute the dialog and wait for user confirmation (OK or Cancel)
+                if change_rel_type_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    
+                    # Get the old and new field names after the dialog is accepted
+                    dest_class = change_rel_type_dialog.input_widgets["destination_class_list_of_current_source_class"].currentText()  # Use `currentText()` 
+                    type = change_rel_type_dialog.input_widgets["type"].currentText()  # Use `currentText()` 
+                    is_type_changed = self.interface.change_type(source_class, dest_class, type)
+                    if is_type_changed:
+                        self.find_and_replace_relationship_type_helper(source_class, dest_class, type)
+                    else:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"New relationship type is identical to current type {type}!")
 
     def find_and_replace_relationship_type_helper(self, source_class, dest_class, new_type):
         """
@@ -770,10 +782,9 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                 # Remove the relationship from the list
                 self.selected_class.relationship_list.remove(each_relationship)
                 break
-        
-        # Remove the source and destination class names from their respective lists
-        self.selected_class.source_class_list.remove(source_class)
-        self.selected_class.dest_class_list.remove(dest_class)
+        self.relationship_track_list[source_class].remove(dest_class)
+        # This is for checking the list in the terminal
+        print(f"Current relationship tracking: {self.relationship_track_list}")
         self.selected_class.update_box()
 
     #################################################################

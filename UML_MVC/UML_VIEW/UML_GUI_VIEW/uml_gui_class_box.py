@@ -53,8 +53,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.parameter_name_list: List = []
         
         self.relationship_list: Dict = relationship_list if relationship_list is not None else []
-        self.source_class_list: List = []
-        self.dest_class_list: List = []
         
         self.handles_list: List = []
         self.connection_points_list: List = []
