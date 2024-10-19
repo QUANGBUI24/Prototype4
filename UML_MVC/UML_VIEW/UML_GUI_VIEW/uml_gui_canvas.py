@@ -975,8 +975,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                 self.scale(1.1, 1.1)
             elif delta < 0 and current_scale > zoom_limit:
                 self.scale(0.9, 0.9)
-            
-            # No need to update the viewport manually as QGraphicsView handles it
             event.accept()
         else:
             event.ignore()
