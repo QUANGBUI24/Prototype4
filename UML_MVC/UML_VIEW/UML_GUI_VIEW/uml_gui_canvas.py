@@ -379,27 +379,36 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
         """
         if self.selected_class:
             if self.selected_class.method_list:
-                # Prompt the user to select the method to rename
-                old_method_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Method Name", "Select method to change:", self.selected_class.method_name_list, 0, False)
-                if ok and old_method_name:
-                    # Prompt for the new name
-                    new_method_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Method", f"Enter new name for the method '{old_method_name}':")
-                    if ok and new_method_name:
-                        is_method_name_valid = self.interface.is_valid_input(new_name=new_method_name)
-                        if not is_method_name_valid:
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"Method name {new_method_name} is invalid! Only allow a-zA-Z, number, and underscore!")
-                            return
-                        selected_class_name = self.selected_class.class_name_text.toPlainText()
-                        is_method_renamed = self.interface.rename_method(selected_class_name, old_method_name, new_method_name)
-                        if is_method_renamed:
-                            # Update the method name and refresh the UI
-                            if old_method_name in self.selected_class.method_list:
-                                self.selected_class.method_list[new_method_name] = self.selected_class.method_list.pop(old_method_name)  # Update the method name in the list
-                                self.selected_class.method_list[new_method_name].setPlainText(new_method_name + "()")  # Set the new name in the UML box
-                                self.selected_class.method_name_list[new_method_name] = self.selected_class.method_name_list.pop(old_method_name)  # Track the change
-                                self.selected_class.update_box()  # Refresh the UML box display
-                        else:
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"New method name '{new_method_name}' has already existed!")
+                # Initialize the dialog
+                rename_method_dialog = Dialog("Rename Field")
+                rename_method_dialog.rename_method_popup(self.selected_class)
+                
+                # Execute the dialog and wait for user confirmation (OK or Cancel)
+                if rename_method_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    
+                    # Get the old and new field names after the dialog is accepted
+                    old_method_name = rename_method_dialog.input_widgets['old_method_name'].currentText()  # Use `currentText()` for QComboBox
+                    new_method_name = rename_method_dialog.input_widgets['new_method_name'].text()  # Use `text()` for QLineEdit
+
+                    # Check if the new field name already exists
+                    method_names = list(self.selected_class.method_name_list.keys())
+                    if new_method_name in method_names:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Field name '{new_method_name}' has already existed!")
+                        return
+                
+                    is_method_name_valid = self.interface.is_valid_input(new_name=new_method_name)
+                    if not is_method_name_valid:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Method name {new_method_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                        return
+                    selected_class_name = self.selected_class.class_name_text.toPlainText()
+                    is_method_renamed = self.interface.rename_method(selected_class_name, old_method_name, new_method_name)
+                    if is_method_renamed:
+                        # Update the method name and refresh the UI
+                        if old_method_name in self.selected_class.method_list:
+                            self.selected_class.method_list[new_method_name] = self.selected_class.method_list.pop(old_method_name)  # Update the method name in the list
+                            self.selected_class.method_list[new_method_name].setPlainText(new_method_name + "()")  # Set the new name in the UML box
+                            self.selected_class.method_name_list[new_method_name] = self.selected_class.method_name_list.pop(old_method_name)  # Track the change
+                            self.selected_class.update_box()  # Refresh the UML box display
             
     def add_param(self,loaded_class_name=None, loaded_method_name=None, loaded_param_name=None, is_loading=False):
         """

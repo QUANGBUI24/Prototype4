@@ -37,8 +37,7 @@ class CustomInputDialog(QtWidgets.QDialog):
 
     def rename_field_popup(self, selected_class):
         """
-        Example: Creates a dialog for adding a field.
-        Uses the abstract method to dynamically create inputs.
+        Creates a dialog for renaming a field.
         """
         # Create combo box for class name
         old_field_name = self.add_input("Select Field To Rename:", widget_type="combo", options=selected_class.field_name_list)
@@ -49,6 +48,19 @@ class CustomInputDialog(QtWidgets.QDialog):
         self.input_widgets['new_field_name'] = new_field_name
         self.add_buttons()
         
+    def rename_method_popup(self, selected_class):
+        """
+        Creates a dialog for renaming a method.
+        """
+        # Create combo box for class name
+        method_names = list(selected_class.method_name_list.keys())
+        old_method_name = self.add_input("Select Method To Rename:", widget_type="combo", options=method_names)
+        new_method_name = self.add_input("Enter New Method Name:", widget_type="line")
+        
+        # Store the widgets for later use
+        self.input_widgets['old_method_name'] = old_method_name
+        self.input_widgets['new_method_name'] = new_method_name
+        self.add_buttons()
     
     def add_buttons(self):
         """
