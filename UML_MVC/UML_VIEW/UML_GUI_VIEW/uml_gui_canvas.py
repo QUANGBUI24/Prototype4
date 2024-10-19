@@ -1,6 +1,5 @@
 ###################################################################################################
 
-import re
 import os
 from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
