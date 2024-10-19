@@ -255,7 +255,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             if len(self.relationship_list) > 0:
                 class_name_height = self.class_name_text.boundingRect().height()
                 field_section_height = self.get_field_text_height()
-                method_section_height = self.get_method_text_height() + self.get_total_param_text_height()
+                method_section_height = self.get_method_text_height()
                 y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + method_section_height + self.default_margin
                 self.separator_line3.setLine(
                 self.rect().topLeft().x(), y_pos, 
@@ -473,7 +473,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             field_section_height = self.get_field_text_height()
             
             # Calculate the total height of the method text items to place the separator correctly.
-            method_section_height = self.get_method_text_height() + self.get_total_param_text_height()
+            method_section_height = self.get_method_text_height()
             
             # Set the y-position for the second separator line just below the fields, with some margin.
             y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + method_section_height + self.default_margin

@@ -425,7 +425,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     is_param_added = self.interface.add_parameter(loaded_class_name, loaded_method_name, loaded_param_name)
                     if is_param_added:
                         # Add the parameter to the selected method and update the UML box
-                        param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=False, color=selected_class_box.text_color)
                         selected_class_box.method_name_list[loaded_method_name].append(loaded_param_name)  # Track the parameter
                         selected_class_box.parameter_name_list.append(loaded_param_name)  # Add to the list of parameter names
                         selected_class_box.update_box()  # Update the UML box
@@ -617,39 +616,33 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         selected_class_box.update_box()
         else:
             if self.selected_class:
-                # Prompt the user to select a source class
-                source_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Source Class", "Select source class:", self.class_name_list, 0, False)
-                if ok and source_class:
-                    # Ensure the source class is the same as the current class's name
-                    if source_class != self.selected_class.class_name_text.toPlainText():
-                        QtWidgets.QMessageBox.warning(None, "Warning", "Source class must be the same as class name!")
-                        return
-                    # Prompt the user to select a destination class
-                    dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
-                    if ok and dest_class:
-                        # Prompt the user to select the relationship type
-                        enum_items = [enum.value for enum in RelationshipType]
-                        relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose Relationship Type", "Select type:", enum_items, 0, False)
-                        if ok and relationship_type:
-                            # Add the relationship via the interface
-                            is_rel_added = self.interface.add_relationship_gui(source_class_name=source_class, destination_class_name=dest_class, type=relationship_type)
-                            if is_rel_added:
-                                # Append the source and destination class names to their respective lists
-                                self.selected_class.source_class_list.append(source_class)
-                                self.selected_class.dest_class_list.append(dest_class)
-                                # Create text items for the source, destination, and type
-                                source_text = self.selected_class.create_text_item(source_class, selectable=False, color=self.selected_class.text_color)
-                                dest_text = self.selected_class.create_text_item(dest_class, selectable=False, color=self.selected_class.text_color)
-                                type_text = self.selected_class.create_text_item(relationship_type, selectable=False, color=self.selected_class.text_color)
-                                # Append the relationship data to the class's relationship list
-                                self.selected_class.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
-                                if len(self.selected_class.relationship_list) == 1:
-                                    # If this is the first relationship, create a separator
-                                    self.selected_class.create_separator(is_first=False, is_second=False)
-                                # Update the class box
-                                self.selected_class.update_box()
-                            else:
-                                QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
+                # Prompt the user to select a destination class
+                dest_class, ok = QtWidgets.QInputDialog.getItem(None, "Choose Destination Class", "Select destination class:", self.class_name_list, 0, False)
+                if ok and dest_class:
+                    # Prompt the user to select the relationship type
+                    enum_items = [enum.value for enum in RelationshipType]
+                    relationship_type, ok = QtWidgets.QInputDialog.getItem(None, "Choose Relationship Type", "Select type:", enum_items, 0, False)
+                    if ok and relationship_type:
+                        source_class = self.selected_class.class_name_text.toPlainText()
+                        # Add the relationship via the interface
+                        is_rel_added = self.interface.add_relationship_gui(source_class_name=source_class, destination_class_name=dest_class, type=relationship_type)
+                        if is_rel_added:
+                            # Append the source and destination class names to their respective lists
+                            self.selected_class.source_class_list.append(source_class)
+                            self.selected_class.dest_class_list.append(dest_class)
+                            # Create text items for the source, destination, and type
+                            source_text = self.selected_class.create_text_item(source_class, selectable=False, color=self.selected_class.text_color)
+                            dest_text = self.selected_class.create_text_item(dest_class, selectable=False, color=self.selected_class.text_color)
+                            type_text = self.selected_class.create_text_item(relationship_type, selectable=False, color=self.selected_class.text_color)
+                            # Append the relationship data to the class's relationship list
+                            self.selected_class.relationship_list.append({"source": source_text, "dest": dest_text, "type": type_text})
+                            if len(self.selected_class.relationship_list) == 1:
+                                # If this is the first relationship, create a separator
+                                self.selected_class.create_separator(is_first=False, is_second=False)
+                            # Update the class box
+                            self.selected_class.update_box()
+                        else:
+                            QtWidgets.QMessageBox.warning(None, "Warning", "Relationship has already existed!")
 
     def delete_relationship(self):
         """
