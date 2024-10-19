@@ -137,6 +137,9 @@
    </property>
   </action>
   <action name="toggle_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="icon">
     <iconset>
      <normaloff>UML_ICONS/bulb.png</normaloff>

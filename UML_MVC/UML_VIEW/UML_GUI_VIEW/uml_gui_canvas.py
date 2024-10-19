@@ -5,6 +5,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
 # from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import Arrow
 from UML_ENUM_CLASS.uml_enum import RelationshipType
+from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_custom_dialog import CustomInputDialog as Dialog
 
 ###################################################################################################
 
@@ -243,42 +244,44 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         self.selected_class.field_name_list.remove(field_name)  # Remove from the name list
                         self.selected_class.scene().removeItem(self.selected_class.field_list.pop(field_name))  # Remove the text item from the scene
                         self.selected_class.update_box()  # Update the box to reflect the changes
-
+    
     def rename_field(self):
-        """
-        Rename an existing field in the UML class.
-
-        This function allows the user to select a field and provide a new name.
-        The field's name is updated, and the UML class box is refreshed.
-
-        Steps:
-        1. Prompt the user to select a field to rename.
-        2. Ask the user for a new name and update the field's name.
-        3. If no class or field is selected, display a warning.
-        """
         if self.selected_class:
-            if self.selected_class.field_name_list:
-                # Display a dialog to choose the field to rename
-                old_field_name, ok = QtWidgets.QInputDialog.getItem(None, "Change Field Name", "Select field to change:", self.selected_class.field_name_list, 0, False)
-                if ok and old_field_name:
-                    # Ask for the new name for the selected field
-                    new_field_name, ok = QtWidgets.QInputDialog.getText(None, "Rename Field", f"Enter new name for the field '{old_field_name}':")
-                    if ok and new_field_name:
-                        is_field_name_valid = self.interface.is_valid_input(new_name=new_field_name)
-                        if not is_field_name_valid:
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"Field name {new_field_name} is invalid! Only allow a-zA-Z, number, and underscore!")
-                            return
-                        selected_class_name = self.selected_class.class_name_text.toPlainText()
-                        is_field_renamed = self.interface.rename_field(selected_class_name, old_field_name, new_field_name)
-                        if is_field_renamed:
-                            # Update the field name in the list and refresh the display
-                            if old_field_name in self.selected_class.field_list:
-                                self.selected_class.field_list[new_field_name] = self.selected_class.field_list.pop(old_field_name)  # Rename the field in the internal list
-                                self.selected_class.field_list[new_field_name].setPlainText(new_field_name)  # Set the new field name
-                                self.selected_class.field_name_list[self.selected_class.field_name_list.index(old_field_name)] = new_field_name  # Update the name list
-                                self.selected_class.update_box()  # Refresh the box display
-                        else:
-                            QtWidgets.QMessageBox.warning(None, "Warning", f"New field name '{new_field_name}' has already existed!")
+            if self.selected_class.field_name_list: 
+                # Initialize the dialog
+                rename_field_dialog = Dialog("Rename Field")
+                rename_field_dialog.rename_field_popup(self.selected_class)
+                
+                # Execute the dialog and wait for user confirmation (OK or Cancel)
+                if rename_field_dialog.exec_() == QtWidgets.QDialog.Accepted:
+                    
+                    # Get the old and new field names after the dialog is accepted
+                    old_field_name = rename_field_dialog.input_widgets['old_field_name'].currentText()  # Use `currentText()` for QComboBox
+                    new_field_name = rename_field_dialog.input_widgets['new_field_name'].text()  # Use `text()` for QLineEdit
+
+                    # Check if the new field name already exists
+                    if new_field_name in self.selected_class.field_name_list:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Field name '{new_field_name}' has already existed!")
+                        return
+
+                    # Validate the new field name
+                    is_field_name_valid = self.interface.is_valid_input(new_name=new_field_name)
+                    if not is_field_name_valid:
+                        QtWidgets.QMessageBox.warning(None, "Warning", f"Field name {new_field_name} is invalid! Only allow a-zA-Z, number, and underscore!")
+                        return
+
+                    # Proceed with renaming the field (example logic below)
+                    selected_class_name = self.selected_class.class_name_text.toPlainText()
+                    is_field_renamed = self.interface.rename_field(selected_class_name, old_field_name, new_field_name)
+                        
+                    if is_field_renamed:
+                        # Update the field name in the list and refresh the display
+                        if old_field_name in self.selected_class.field_list:
+                            self.selected_class.field_list[new_field_name] = self.selected_class.field_list.pop(old_field_name)  # Rename the field in the internal list
+                            self.selected_class.field_list[new_field_name].setPlainText(new_field_name)  # Set the new field name
+                            self.selected_class.field_name_list[self.selected_class.field_name_list.index(old_field_name)] = new_field_name  # Update the name list
+                            self.selected_class.update_box()  # Refresh the box display
+                    
             
     def add_method(self, loaded_class_name=None, loaded_method_name=None, is_loading=False):
         """
