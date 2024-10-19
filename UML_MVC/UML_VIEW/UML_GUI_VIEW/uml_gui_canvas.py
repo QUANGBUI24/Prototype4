@@ -307,8 +307,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     is_method_added = self.interface.add_method(loaded_class_name, loaded_method_name)
                     if is_method_added:
                         # Create a text item for the method and add it to the list of the found class box
-                        param_place_holder = selected_class_box.create_text_item("", selectable=False, color=selected_class_box.text_color)
-                        method_text = selected_class_box.create_text_item(loaded_method_name + f"({param_place_holder})", is_method=True, selectable=False, color=selected_class_box.text_color)
+                        method_text = selected_class_box.create_text_item(loaded_method_name + "()", is_method=True, selectable=False, color=selected_class_box.text_color)
                         selected_class_box.method_list[loaded_method_name] = method_text  # Add the method to the internal list
                         selected_class_box.method_name_list[loaded_method_name] = []  # Track the method name in the name list
                         if len(selected_class_box.method_name_list) == 1:  # If this is the first method, create a separator
@@ -360,9 +359,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                     selected_class_name = self.selected_class.class_name_text.toPlainText()
                     is_method_deleted = self.interface.delete_method(selected_class_name, method_name)
                     if is_method_deleted:
-                        # Remove associated parameters and the method itself
-                        for param_name in self.selected_class.method_name_list[method_name]:
-                            self.scene().removeItem(self.selected_class.parameter_list.pop(param_name))  # Remove parameter
                         self.selected_class.method_name_list.pop(method_name)  # Remove from method list
                         self.scene().removeItem(self.selected_class.method_list.pop(method_name))  # Remove the method text
                         self.selected_class.update_box()  # Refresh the UML box
@@ -431,7 +427,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                         # Add the parameter to the selected method and update the UML box
                         param_text = selected_class_box.create_text_item(loaded_param_name , is_parameter=True, selectable=False, color=selected_class_box.text_color)
                         selected_class_box.method_name_list[loaded_method_name].append(loaded_param_name)  # Track the parameter
-                        selected_class_box.parameter_list[loaded_param_name] = param_text  # Store the parameter text
                         selected_class_box.parameter_name_list.append(loaded_param_name)  # Add to the list of parameter names
                         selected_class_box.update_box()  # Update the UML box
         else:
@@ -451,9 +446,7 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                             is_param_added = self.interface.add_parameter(selected_class_name, method_name, param_name)
                             if is_param_added:
                                 # Add the parameter to the selected method and update the UML box
-                                param_text = self.selected_class.create_text_item(param_name , is_parameter=True, selectable=False, color=self.selected_class.text_color)
                                 self.selected_class.method_name_list[method_name].append(param_name)  # Track the parameter
-                                self.selected_class.parameter_list[param_name] = param_text  # Store the parameter text
                                 self.selected_class.parameter_name_list.append(param_name)  # Add to the list of parameter names
                                 self.selected_class.update_box()  # Update the UML box
                             else:
@@ -489,7 +482,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                 # Remove the parameter and update the UML box
                                 self.selected_class.method_name_list[method_name].remove(param_name)  # Remove from method's parameter list
                                 self.selected_class.parameter_name_list.remove(param_name)  # Remove from the global parameter list
-                                self.scene().removeItem(self.selected_class.parameter_list.pop(param_name))  # Remove from the scene
                                 self.selected_class.update_box()  # Refresh the UML box
             
     def rename_param(self):
@@ -528,8 +520,6 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                                     # Update the parameter name and refresh the UML box
                                     param_list = self.selected_class.method_name_list[method_name]
                                     param_list[param_list.index(old_param_name)] = new_param_name  # Update in the method's parameter list
-                                    self.selected_class.parameter_list[new_param_name] = self.selected_class.parameter_list.pop(old_param_name)  # Update the parameter list
-                                    self.selected_class.parameter_list[new_param_name].setPlainText(new_param_name)  # Set the new name in the UI
                                     self.selected_class.parameter_name_list[self.selected_class.parameter_name_list.index(old_param_name)] = new_param_name  # Track the change
                                     self.selected_class.update_box()  # Refresh the UML box
                                 else:
@@ -575,16 +565,11 @@ class UMLGraphicsView(QtWidgets.QGraphicsView):
                             selected_class_name = self.selected_class.class_name_text.toPlainText()
                             is_param_list_replaced = self.interface.replace_param_list_gui(selected_class_name, method_name, new_param_list)
                             if is_param_list_replaced:
-                                # Clear current parameters
-                                for param_name in self.selected_class.method_name_list[method_name]:
-                                    self.scene().removeItem(self.selected_class.parameter_list.pop(param_name))
                                 # Clear the method's parameter list
                                 self.selected_class.method_name_list[method_name].clear()
                                 # Add new parameters to the method
                                 for new_param in new_param_list:
-                                    param_text = self.selected_class.create_text_item(new_param, is_parameter=True, selectable=False, color=self.selected_class.text_color)
                                     self.selected_class.method_name_list[method_name].append(new_param)
-                                    self.selected_class.parameter_list[new_param] = param_text
                                     self.selected_class.parameter_name_list.append(new_param)
                                 # Update the box to reflect changes
                                 self.selected_class.update_box()

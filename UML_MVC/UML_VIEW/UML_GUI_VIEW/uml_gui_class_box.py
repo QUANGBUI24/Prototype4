@@ -50,7 +50,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         self.method_list: Dict = method_list if method_list is not None else {}
         self.method_name_list: Dict = {}
         
-        self.parameter_list: Dict = parameter_list if parameter_list is not None else {}
         self.parameter_name_list: List = []
         
         self.relationship_list: Dict = relationship_list if relationship_list is not None else []
@@ -321,30 +320,25 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         for method_name in self.method_name_list:
             # Get the method text item
             method_text = self.method_list[method_name]
-
             # Calculate the x-position for the method text (aligned to the left)
             method_x_pos = self.rect().topLeft().x() + self.default_margin
-
             # Set the position of the method text item
             method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset)
-
-            # Update y_offset for the next method or parameter (incremented by the height of this method)
-            y_offset += method_text.boundingRect().height()
-
+            
+            temp_param_list = []
             # Align parameters under the current method
             if method_name in self.method_name_list:
                 for param_name in self.method_name_list[method_name]:
-                    # Get the parameter text item
-                    param_text = self.parameter_list[param_name]
+                    temp_param_list.append(param_name)            
+                # Combine method name with its parameters, separated by commas
+                param_text_str = ", ".join(temp_param_list)
+                method_with_params = f"{method_name}({param_text_str})"
 
-                    # Calculate the x-position for the parameter text (indented)
-                    param_x_pos = self.rect().topLeft().x() + self.default_margin * 2
+                # Update the method text to show the method name with parameters
+                method_text.setPlainText(method_with_params)
+                # Update y_offset for the next method or parameter (incremented by the height of this method)
+                y_offset += method_text.boundingRect().height()
 
-                    # Set the position of the parameter text item
-                    param_text.setPos(param_x_pos, self.rect().topLeft().y() + y_offset)
-
-                    # Update y_offset after positioning the parameter (incremented by the height of the parameter)
-                    y_offset += param_text.boundingRect().height()
     
     def update_relationship_alignment(self):
         """
@@ -355,7 +349,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         y_offset = (self.class_name_text.boundingRect().height() 
                     + self.get_field_text_height() 
                     + self.get_method_text_height() 
-                    + self.get_total_param_text_height() 
                     + self.default_margin)
 
         # Iterate over the relationships in the list and reposition them
@@ -794,19 +787,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             param_text = self.parameter_list[param_name]  # Get the text item for each parameter
             param_tex_height += param_text.boundingRect().height()
         return param_tex_height
-
-    def get_total_param_text_height(self):
-        """
-        Calculate the total height of all parameter text items for all methods in the box.
-        
-        Returns:
-        - total_param_tex_height (int): The total height of all parameter text items.
-        """
-        total_param_tex_height = 0
-        # Loop through all methods and sum the heights of their parameter text items
-        for method_name in self.method_name_list:
-            total_param_tex_height += self.get_param_text_height_of_single_method(method_name)
-        return total_param_tex_height
     
     def get_relationship_height(self):
         relationship_text_height = 0
@@ -867,12 +847,12 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         max_method_width = max([self.method_list[method_name].boundingRect().width() for method_name in self.method_name_list], default=0)
         
         # Get the maximum width of all parameter text items
-        max_param_width = 0
-        for method_name in self.method_name_list:
-            # Check for parameters under the current method and calculate their widths
-            if method_name in self.method_name_list:
-                param_widths = [self.parameter_list[param_name].boundingRect().width() for param_name in self.method_name_list[method_name]]
-                max_param_width = max(max_param_width, max(param_widths, default=0))
+        # max_param_width = 0
+        # for method_name in self.method_name_list:
+        #     # Check for parameters under the current method and calculate their widths
+        #     if method_name in self.method_name_list:
+        #         param_widths = [self.parameter_list[param_name].boundingRect().width() for param_name in self.method_name_list[method_name]]
+        #         max_param_width = max(max_param_width, max(param_widths, default=0))
         
         # Get maximum width of relationship text items
         max_rel_width = self.get_relationship_max_text_width()
@@ -882,7 +862,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
             max_class_name_width,
             max_field_width,
             max_method_width,
-            max_param_width,
             max_rel_width
         )
         
@@ -901,16 +880,16 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
         # Get the total height of the methods section
         method_text_height = self.get_method_text_height()
-
-        # Get the total height of the parameters section
-        parameter_text_height = self.get_total_param_text_height()
         
         # Get the total height of the relationship section
         relationship_text_height = self.get_relationship_height()
 
         # Calculate the total height required for the box, including margins
-        total_height = (class_name_height + fields_text_height + method_text_height 
-                        + parameter_text_height + relationship_text_height + default_height)
+        total_height = (class_name_height 
+                        + fields_text_height 
+                        + method_text_height 
+                        + relationship_text_height 
+                        + default_height)
         
         return total_height
 
