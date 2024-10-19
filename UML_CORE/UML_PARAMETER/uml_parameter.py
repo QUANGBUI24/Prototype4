@@ -1,10 +1,10 @@
 class UMLParameter:
     # UML class attribute constructor
     # Create an attribute to add to the UML Class
-    def __init__(self, parameter_name: str = "", type: str = ""):
-        self.__parameter_name = parameter_name
+    def __init__(self, type: str = "", parameter_name: str = ""):
         self.__type = type
-
+        self.__parameter_name = parameter_name
+        
     def __str__(self):
         return f"{self.__type} {self.__parameter_name}"
         
