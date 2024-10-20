@@ -12,7 +12,28 @@
                     "type": "int"
                 }
             ],
-            "methods": []
+            "methods": [
+                {
+                    "name": "get_health",
+                    "return_type": "int",
+                    "params": []
+                },
+                {
+                    "name": "attack",
+                    "return_type": "void",
+                    "params": []
+                },
+                {
+                    "name": "sprint",
+                    "return_type": null,
+                    "params": []
+                },
+                {
+                    "name": "walk",
+                    "return_type": "void",
+                    "params": []
+                }
+            ]
         }
     ],
     "relationships": []

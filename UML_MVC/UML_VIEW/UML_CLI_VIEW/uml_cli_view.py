@@ -94,8 +94,9 @@ class UMLView(Observer):
         elif event_type == InterfaceOptions.ADD_METHOD.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
+            type = data["type"] + " " if data["type"] is not None else ""
             if not is_loading:
-                self.console.print(f"\n[bold green]Successfully added method [bold white]'{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
+                self.console.print(f"\n[bold green]Successfully added method [bold white]'{type}{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
         
         # Delete method
         elif event_type == InterfaceOptions.DELETE_METHOD.value:
@@ -108,7 +109,7 @@ class UMLView(Observer):
             class_name = data["class_name"]
             old_method_name = data["old_method_name"]
             new_method_name = data["new_method_name"]
-            self.console.print(f"\n[bold green]Successfully renamed method [bold white]'{old_method_name}'[/bold white] to method [bold white]'{new_method_name}' from class [bold white]'{class_name}'[/bold white]![/bold green]")
+            self.console.print(f"\n[bold green]Successfully renamed method [bold white]'{old_method_name}'[/bold white] to method [bold white]'{new_method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
         
         # Add parameter
         elif event_type == InterfaceOptions.ADD_PARAM.value:
@@ -116,7 +117,7 @@ class UMLView(Observer):
             method_name = data["method_name"]
             param_name = data["param_name"]
             if not is_loading:
-                self.console.print(f"\n[bold green]Successfully added parameter [bold white]'{param_name}'[/bold white] to method [bold white]'{method_name}' from class [bold white]'{class_name}'[/bold white]![/bold green]")
+                self.console.print(f"\n[bold green]Successfully added parameter [bold white]'{param_name}'[/bold white] to method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
         
         # Delete parameter
         elif event_type == InterfaceOptions.DELETE_PARAM.value:
@@ -290,7 +291,7 @@ class UMLView(Observer):
         methods_branch = class_branch.add("[bold yellow]Methods[/bold yellow]")
         for method in cls["methods"]:
             params = ', '.join(param["name"] for param in method["params"])
-            methods_branch.add(f'[bold dark_orange]{method["name"]}([bold slate_blue1]{params}[/bold slate_blue1])[/bold dark_orange]')
+            methods_branch.add(f'[bold dark_orange][italic cyan]{method["return_type"]}[/italic cyan] : {method["name"]}([bold slate_blue1]{params}[/bold slate_blue1])[/bold dark_orange]')
     
     def _display_class_names(self, main_data: Dict):
         """

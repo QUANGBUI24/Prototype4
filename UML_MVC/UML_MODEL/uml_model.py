@@ -104,8 +104,8 @@ class UMLModel:
     
     # Method creation method #
     @staticmethod
-    def create_method(method_name: str) -> Method:
-        return Method(method_name)
+    def create_method(type: str, method_name: str) -> Method:
+        return Method(type, method_name)
     
     # Parameter creation method #
     @staticmethod
@@ -227,7 +227,7 @@ class UMLModel:
             type: str
         """
         # Check valid input #
-        if not self._is_valid_input(class_name=class_name, field_name=field_name):
+        if not self._is_valid_input(class_name=class_name, field_name=field_name, type=type,):
             return False
         # Check if both the class and the field do not already exist
         is_class_and_field_exist = self._validate_entities(class_name=class_name, field_name=field_name, class_should_exist=True, field_should_exist=False)
@@ -280,7 +280,7 @@ class UMLModel:
             new_field_name (str): The new name for the field.
         """
         # Check valid input #
-        if not self._is_valid_input(class_name=class_name, field_name=old_field_name, new_name=new_field_name):
+        if not self._is_valid_input(class_name=class_name, field_name=old_field_name, new_name=new_field_name, type=old_type, new_type=new_type):
             return False
         # Check if renaming is possible (field name validation)
         is_able_to_rename = self.__check_field_or_method_rename(class_name, old_field_name, new_field_name, is_field=True)
@@ -301,29 +301,10 @@ class UMLModel:
         self._notify_observers(event_type=InterfaceOptions.RENAME_FIELD.value, data={"class_name": class_name, "old_field_name": old_field_name, "new_field_name": new_field_name})
         return True
     
-    # Change field type #
-    def _change_data_type(self, class_name: str=None, input_name: str=None, new_type=None, is_field: bool=None, is_method: bool=None, is_param: bool=None):
-        if is_field:
-            # Check valid input #
-            if not self._is_valid_input(class_name=class_name, field_name=input_name, new_type=None):
-                return False
-            is_class_and_field_exist = self._validate_entities(class_name=class_name, field_name=input_name, class_should_exist=True, field_should_exist=True)
-            if not is_class_and_field_exist:
-                return False
-            chosen_field = self.__get_chosen_field_or_method(class_name, input_name, is_field=True)
-            chosen_field._set_type(new_type)
-            self._notify_observers(event_type=InterfaceOptions.FIELD_TYPE.value, data={"class_name": class_name, "field_name": input_name, "new_type": new_type})
-            self._update_main_data_for_every_action()
-            return True
-        elif is_method:
-            pass
-        elif is_param:
-            pass
-        
     ## METHOD RELATED ##
     
     # Add method #
-    def _add_method(self, class_name: str, method_name: str, is_loading: bool):
+    def _add_method(self, class_name: str=None, type: str=None, method_name: str=None, is_loading: bool=None):
         """
         Adds a new method to a UML class. Notifies observers of the method addition event.
 
@@ -333,7 +314,7 @@ class UMLModel:
             is_loading (bool): Flag indicating whether the operation is part of loading saved data.
         """
         # Check valid input #
-        if not self._is_valid_input(class_name=class_name, method_name=method_name):
+        if not self._is_valid_input(class_name=class_name, method_name=method_name, type=type):
             return False
         # Check if the class exists and the method does not already exist
         is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=False)
@@ -342,14 +323,14 @@ class UMLModel:
         # Add the new method to the class's method list
         class_object = self.__class_list[class_name]
         method_list = class_object._get_class_method_list()
-        new_method = self.create_method(method_name)
+        new_method = self.create_method(type=type, method_name=method_name)
         method_list.append(new_method)
         # Initialize an empty parameter list for the new method
         method_and_parameter_list = self._get_method_and_parameter_list(class_name)
         method_and_parameter_list[method_name] = []
         # Update main data and notify observers
         self._update_main_data_for_every_action()
-        self._notify_observers(event_type=InterfaceOptions.ADD_METHOD.value, data={"class_name": class_name, "method_name": method_name}, is_loading=is_loading)
+        self._notify_observers(event_type=InterfaceOptions.ADD_METHOD.value, data={"class_name": class_name, "type": type, "method_name": method_name}, is_loading=is_loading)
         return True
         
     # Delete method #
@@ -381,7 +362,7 @@ class UMLModel:
         return True
         
     # Rename method #
-    def _rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
+    def _rename_method(self, class_name: str, old_type=None, old_method_name: str=None, new_type=None, new_method_name: str=None):
         """
         Renames an existing method in a UML class. Notifies observers of the method renaming event.
 
@@ -391,21 +372,27 @@ class UMLModel:
             new_method_name (str): The new name for the method.
         """
         # Check valid input #
-        if not self._is_valid_input(class_name=class_name, method_name=current_method_name, new_name=new_method_name):
+        if not self._is_valid_input(class_name=class_name, method_name=old_method_name, new_name=new_method_name, type=old_type, new_type=new_type):
             return False
         # Check if renaming is possible (method name validation)
-        is_able_to_rename = self.__check_field_or_method_rename(class_name, current_method_name, new_method_name, is_field=False)
+        is_able_to_rename = self.__check_field_or_method_rename(class_name, old_method_name, new_method_name, is_field=False)
         if not is_able_to_rename:
             return False
         # Rename the method in the class and update the method list
         class_object = self.__class_list[class_name]
         method_and_parameter_list = class_object._get_method_and_parameters_list()
-        method_and_parameter_list[new_method_name] = method_and_parameter_list.pop(current_method_name)
-        chosen_method = self.__get_chosen_field_or_method(class_name, current_method_name, is_field=False)
+        method_and_parameter_list[new_method_name] = method_and_parameter_list.pop(old_method_name)
+        chosen_method = self.__get_chosen_field_or_method(class_name, old_method_name, is_field=False)
         chosen_method._set_name(new_method_name)
+        if old_type and new_type or old_type is None and new_type:
+            chosen_method._set_type(new_type)
+            self._notify_observers(event_type=InterfaceOptions.RENAME_METHOD.value, data={"class_name": class_name, "old_method_name": old_method_name, 
+                                                                                         "new_method_name": new_method_name, "old_type": old_type, "new_type": new_type})
+            self._update_main_data_for_every_action()
+            return True
         # Update main data and notify observers
         self._update_main_data_for_every_action()
-        self._notify_observers(event_type=InterfaceOptions.RENAME_METHOD.value, data={"class_name": class_name, "old_method_name": current_method_name, "new_method_name": new_method_name})
+        self._notify_observers(event_type=InterfaceOptions.RENAME_METHOD.value, data={"class_name": class_name, "old_method_name": old_method_name, "new_method_name": new_method_name})
         return True
 
     ## PARAMETER RELATED ##
@@ -1381,17 +1368,20 @@ class UMLModel:
         for each_pair in extracted_class_data:
             for class_name, data in each_pair.items():
                 field_list = data["fields"]
-                method_param_list = data['methods_params']
+                method_list = data["method_list"]
                 # Add classes, fields, methods, and parameters to the program state
                 self._add_class(class_name, is_loading=True)
                 for each_field in field_list:
                     field_name = each_field["name"]
                     field_type = each_field["type"]
                     self._add_field(class_name, field_type, field_name, is_loading=True)
-                for method_name, param_list in method_param_list.items():
-                    self._add_method(class_name, method_name, is_loading=True)
-                    for param_name in param_list:
-                        self._add_parameter(class_name, method_name, param_name, is_loading=True)
+                for each_element in method_list:
+                    method_name = each_element["name"]
+                    return_type = each_element["return_type"]
+                    parameter_list = each_element["params"]
+                    self._add_method(class_name, return_type, method_name, is_loading=True)
+                    for param_name in parameter_list:
+                        self._add_param(class_name, method_name, param_name, is_loading=True)
         # Recreate relationships from the loaded data
         for each_dictionary in relationship_data:
             self._add_relationship(each_dictionary["source"], each_dictionary["destination"], each_dictionary["type"], is_loading=True, is_gui=False)
@@ -1447,7 +1437,7 @@ class UMLModel:
         class_info_list: List[Dict[str, Dict[str, List | Dict]]] = []
         # Loop through the class data to extract fields and methods
         for class_element in class_data:
-            method_and_param_list = {}
+            method_list = []
             class_name = class_element["name"]
             fields = [{"name": field["name"], "type": field["type"]} for field in class_element["fields"]]
             # Extract methods and their parameters
@@ -1455,8 +1445,12 @@ class UMLModel:
                 temp_param_list: List[str] = []
                 for param_element in method_element["params"]:
                     temp_param_list.append(param_element["name"])
-                method_and_param_list[method_element["name"]] = temp_param_list
-            class_info_list.append({class_name: {'fields': fields, 'methods_params': method_and_param_list}})
+                method_list.append({
+                    "name": method_element["name"],
+                    "return_type" : method_element["return_type"],
+                    "params": temp_param_list
+                })
+            class_info_list.append({class_name: {"fields": fields, "method_list": method_list}})
         return class_info_list
     
     # Delete saved file #
@@ -1835,5 +1829,24 @@ class UMLModel:
                                     "Only letters, numbers, and underscores are allowed![/bold red]")
                 return False
         return True
+    
+    # Change data type #
+    def _change_data_type(self, class_name: str=None, input_name: str=None, new_type=None, is_field: bool=None, is_method: bool=None, is_param: bool=None):
+        if is_field:
+            # Check valid input #
+            if not self._is_valid_input(class_name=class_name, field_name=input_name, new_type=None):
+                return False
+            is_class_and_field_exist = self._validate_entities(class_name=class_name, field_name=input_name, class_should_exist=True, field_should_exist=True)
+            if not is_class_and_field_exist:
+                return False
+            chosen_field = self.__get_chosen_field_or_method(class_name, input_name, is_field=True)
+            chosen_field._set_type(new_type)
+            self._notify_observers(event_type=InterfaceOptions.FIELD_TYPE.value, data={"class_name": class_name, "field_name": input_name, "new_type": new_type})
+            self._update_main_data_for_every_action()
+            return True
+        elif is_method:
+            pass
+        elif is_param:
+            pass
                            
 ###################################################################################################
