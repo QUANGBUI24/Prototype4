@@ -64,6 +64,7 @@ class UMLController:
         second_param = parameters[1] if len(parameters) > 1 else None
         third_param = parameters[2] if len(parameters) > 2 else None
         fourth_param = parameters[3] if len(parameters) > 3 else None
+        fifth_param = parameters[4] if len(parameters) > 4 else None
         
         #######################################################
         
@@ -94,8 +95,15 @@ class UMLController:
             command == InterfaceOptions.ADD_FIELD.value
             and first_param
             and second_param
+            and third_param
         ):
-            self.__model._add_field(first_param, second_param, is_loading=False)
+            self.__model._add_field(class_name=first_param, type=second_param, field_name=third_param, is_loading=False)
+        elif (
+            command == InterfaceOptions.ADD_FIELD.value
+            and first_param
+            and second_param
+        ):
+            self.__model._add_field(class_name=first_param, field_name=second_param, is_loading=False)
         
         # Delete field from class
         elif (
@@ -103,8 +111,26 @@ class UMLController:
             and first_param
             and second_param
         ):
-            self.__model._delete_field(first_param, second_param)
+            self.__model._delete_field(class_name=first_param, field_name=second_param)
         
+        # Rename field and its type in class
+        elif (
+            command == InterfaceOptions.RENAME_FIELD.value
+            and first_param
+            and second_param
+            and third_param
+            and fourth_param
+            and fifth_param
+        ):
+            self.__model._rename_field(class_name=first_param, old_type=second_param, old_field_name=third_param, new_type=fourth_param, new_field_name=fifth_param)
+        elif (
+            command == InterfaceOptions.RENAME_FIELD.value
+            and first_param
+            and second_param
+            and third_param
+            and fourth_param
+        ):
+            self.__model._rename_field(class_name=first_param, old_field_name=second_param, new_type=third_param, new_field_name=fourth_param)
         # Rename field in class
         elif (
             command == InterfaceOptions.RENAME_FIELD.value
@@ -113,6 +139,13 @@ class UMLController:
             and third_param
         ):
             self.__model._rename_field(first_param, second_param, third_param)
+        elif (
+            command == InterfaceOptions.FIELD_TYPE.value
+            and first_param
+            and second_param
+            and third_param
+        ):
+            self.__model._change_data_type(class_name=first_param, input_name=second_param, new_type=third_param, is_field=True)
 
         #######################################################
         
@@ -245,7 +278,7 @@ class UMLController:
         
         # Reset to a blank program
         elif command == InterfaceOptions.DEFAULT.value:
-            self.__model._end_session()
+            self.__model._new_file()
         
         # Sort the list of classes alphabetically
         elif command == InterfaceOptions.SORT.value:

@@ -99,8 +99,8 @@ class UMLModel:
     
     # Field creation method #
     @staticmethod
-    def create_field(field_name: str) -> Field:
-        return Field(field_name)
+    def create_field(type: str, field_name: str) -> Field:
+        return Field(type, field_name)
     
     # Method creation method #
     @staticmethod
@@ -215,14 +215,16 @@ class UMLModel:
     ## FIELD RELATED ##
     
     # Add field #
-    def _add_field(self, class_name: str, field_name: str, is_loading: bool):
+    def _add_field(self, class_name: str=None, type: str=None, field_name: str=None, is_loading: bool=None):
         """
         Adds a new field to a UML class. Notifies observers of the field addition event.
 
         Args:
             class_name (str): The name of the class to which the field will be added.
+            type (str): Data type of the field
             field_name (str): The name of the field to be added.
             is_loading (bool): Flag indicating whether the operation is part of loading saved data.
+            type: str
         """
         # Check valid input #
         if not self._is_valid_input(class_name=class_name, field_name=field_name):
@@ -234,11 +236,11 @@ class UMLModel:
         # Retrieve the class and add the new field to its field list
         class_object = self.__class_list[class_name]
         field_list = class_object._get_class_field_list()
-        new_field = self.create_field(field_name)
+        new_field = self.create_field(type, field_name)
         field_list.append(new_field)
         # Update main data and notify observers
         self._update_main_data_for_every_action()
-        self._notify_observers(event_type=InterfaceOptions.ADD_FIELD.value, data={"class_name": class_name, "field_name": field_name}, is_loading=is_loading)
+        self._notify_observers(event_type=InterfaceOptions.ADD_FIELD.value, data={"class_name": class_name, "type": type, "field_name": field_name}, is_loading=is_loading)
         return True
         
     # Delete field #
@@ -268,7 +270,7 @@ class UMLModel:
         return True
         
     # Rename field #
-    def _rename_field(self, class_name: str, current_field_name: str, new_field_name: str):
+    def _rename_field(self, class_name: str, old_type=None, old_field_name: str=None, new_type=None, new_field_name: str=None):
         """
         Renames an existing field in a UML class. Notifies observers of the field renaming event.
 
@@ -278,19 +280,45 @@ class UMLModel:
             new_field_name (str): The new name for the field.
         """
         # Check valid input #
-        if not self._is_valid_input(class_name=class_name, field_name=current_field_name, new_name=new_field_name):
+        if not self._is_valid_input(class_name=class_name, field_name=old_field_name, new_name=new_field_name):
             return False
         # Check if renaming is possible (field name validation)
-        is_able_to_rename = self.__check_field_or_method_rename(class_name, current_field_name, new_field_name, is_field=True)
+        is_able_to_rename = self.__check_field_or_method_rename(class_name, old_field_name, new_field_name, is_field=True)
         if not is_able_to_rename:
             return False
         # Rename the field in the class
-        chosen_field = self.__get_chosen_field_or_method(class_name, current_field_name, is_field=True)
+        chosen_field = self.__get_chosen_field_or_method(class_name, old_field_name, is_field=True)
         chosen_field._set_name(new_field_name)
+
+        if old_type and new_type or old_type is None and new_type:
+            chosen_field._set_type(new_type)
+            self._notify_observers(event_type=InterfaceOptions.RENAME_FIELD.value, data={"class_name": class_name, "old_field_name": old_field_name, 
+                                                                                         "new_field_name": new_field_name, "old_type": old_type, "new_type": new_type})
+            self._update_main_data_for_every_action()
+            return True
         # Update main data and notify observers
         self._update_main_data_for_every_action()
-        self._notify_observers(event_type=InterfaceOptions.RENAME_FIELD.value, data={"class_name": class_name, "old_field_name": current_field_name, "new_field_name": new_field_name})
+        self._notify_observers(event_type=InterfaceOptions.RENAME_FIELD.value, data={"class_name": class_name, "old_field_name": old_field_name, "new_field_name": new_field_name})
         return True
+    
+    # Change field type #
+    def _change_data_type(self, class_name: str=None, input_name: str=None, new_type=None, is_field: bool=None, is_method: bool=None, is_param: bool=None):
+        if is_field:
+            # Check valid input #
+            if not self._is_valid_input(class_name=class_name, field_name=input_name, new_type=None):
+                return False
+            is_class_and_field_exist = self._validate_entities(class_name=class_name, field_name=input_name, class_should_exist=True, field_should_exist=True)
+            if not is_class_and_field_exist:
+                return False
+            chosen_field = self.__get_chosen_field_or_method(class_name, input_name, is_field=True)
+            chosen_field._set_type(new_type)
+            self._notify_observers(event_type=InterfaceOptions.FIELD_TYPE.value, data={"class_name": class_name, "field_name": input_name, "new_type": new_type})
+            self._update_main_data_for_every_action()
+            return True
+        elif is_method:
+            pass
+        elif is_param:
+            pass
         
     ## METHOD RELATED ##
     
@@ -1352,12 +1380,14 @@ class UMLModel:
         extracted_class_data = self._extract_class_data(class_data)
         for each_pair in extracted_class_data:
             for class_name, data in each_pair.items():
-                field_list = data['fields']
+                field_list = data["fields"]
                 method_param_list = data['methods_params']
                 # Add classes, fields, methods, and parameters to the program state
                 self._add_class(class_name, is_loading=True)
                 for each_field in field_list:
-                    self._add_field(class_name, each_field, is_loading=True)
+                    field_name = each_field["name"]
+                    field_type = each_field["type"]
+                    self._add_field(class_name, field_type, field_name, is_loading=True)
                 for method_name, param_list in method_param_list.items():
                     self._add_method(class_name, method_name, is_loading=True)
                     for param_name in param_list:
@@ -1419,7 +1449,7 @@ class UMLModel:
         for class_element in class_data:
             method_and_param_list = {}
             class_name = class_element["name"]
-            fields = [field["name"] for field in class_element["fields"]]
+            fields = [{"name": field["name"], "type": field["type"]} for field in class_element["fields"]]
             # Extract methods and their parameters
             for method_element in class_element["methods"]:
                 temp_param_list: List[str] = []
@@ -1767,7 +1797,7 @@ class UMLModel:
         # Display updated UML data
         self.__user_view._display_uml_data(self.__main_data)
         
-    def _is_valid_input(self, class_name=None, field_name=None, method_name=None, parameter_name=None, source_class=None, destination_class=None, type=None, new_name=None):
+    def _is_valid_input(self, class_name=None, field_name=None, method_name=None, parameter_name=None, source_class=None, destination_class=None, type=None, new_type=None, new_name=None):
         """
         Check if the user input contains only letters, numbers, and underscores for all provided parameters.
 
@@ -1795,6 +1825,7 @@ class UMLModel:
             "source_class" : source_class,
             "destination_class" : destination_class,
             "type" : type,
+            "new_type" : new_type,
             "new_name" : new_name,
         }
 
