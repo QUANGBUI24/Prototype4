@@ -63,10 +63,10 @@ class UMLView(Observer):
         # Add field
         elif event_type == InterfaceOptions.ADD_FIELD.value:
             class_name = data["class_name"]
-            type = data["type"] + " " if data["type"] is not None else ""
+            type = data["type"] + " "
             field_name = data["field_name"]
             if not is_loading:
-                self.console.print(f"\n[bold green]Field [bold white]'{type}{field_name}'[/bold white] has been added to class [bold white]'{class_name}'[/bold white].[/bold green]")
+                self.console.print(f"\n[bold green]Field [bold white]'[italic cyan]{type}[/italic cyan]{field_name}'[/bold white] has been added to class [bold white]'{class_name}'[/bold white].[/bold green]")
         
         # Delete field
         elif event_type == InterfaceOptions.DELETE_FIELD.value:
@@ -77,11 +77,9 @@ class UMLView(Observer):
         # Rename field
         elif event_type == InterfaceOptions.RENAME_FIELD.value:
             class_name = data["class_name"]
-            old_type = data["old_type"] + " " if data["old_type"] is not None else ""
-            new_type = data["new_type"] + " " if data["new_type"] is not None else ""
             old_field_name = data["old_field_name"]
             new_field_name = data["new_field_name"]
-            self.console.print(f"\n[bold green]Field [bold white]'{old_type}{old_field_name}'[/bold white] in class [bold white]'{class_name}'[/bold white] has been renamed to [bold white]'{new_type}{new_field_name}'[/bold white].[/bold green]")
+            self.console.print(f"\n[bold green]Field [bold white]'{old_field_name}'[/bold white] in class [bold white]'{class_name}'[/bold white] has been renamed to [bold white]'{new_field_name}'[/bold white].[/bold green]")
         
         # Change field type
         elif event_type == InterfaceOptions.FIELD_TYPE.value:
@@ -96,7 +94,7 @@ class UMLView(Observer):
             method_name = data["method_name"]
             type = data["type"] + " " if data["type"] is not None else ""
             if not is_loading:
-                self.console.print(f"\n[bold green]Successfully added method [bold white]'{type}{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
+                self.console.print(f"\n[bold green]Successfully added method [bold white]'[italic cyan]{type}[/italic cyan]{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
         
         # Delete method
         elif event_type == InterfaceOptions.DELETE_METHOD.value:
@@ -110,6 +108,13 @@ class UMLView(Observer):
             old_method_name = data["old_method_name"]
             new_method_name = data["new_method_name"]
             self.console.print(f"\n[bold green]Successfully renamed method [bold white]'{old_method_name}'[/bold white] to method [bold white]'{new_method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
+        
+        # Change field type
+        elif event_type == InterfaceOptions.METHOD_TYPE.value:
+            class_name = data["class_name"]
+            field_name = data["method_name"]
+            new_type = data["new_type"] + " "
+            self.console.print(f"\n[bold green]Method [bold white]'{field_name}'[/bold white] from class [bold white]'{class_name}'[/bold white] has changed return type to [bold white]'{new_type}'[/bold white][/bold green]")
         
         # Add parameter
         elif event_type == InterfaceOptions.ADD_PARAM.value:
@@ -184,12 +189,13 @@ class UMLView(Observer):
             ["add_field [bright_white]<class_name> <type/Empty> <attr_name>[bright_white]", "Add a field to a class"],
             ["delete_field [bright_white]<class_name> <field_name>[bright_white]", "Delete a field from a class"],
             ["rename_field [bright_white]<class_name> <old_field_name> <new_name>[bright_white]", "Rename a field"],
-            ["rename_field [bright_white]<class_name> <old_field_name> <new_name>[bright_white] <old_type> <new_type>", "Rename a field and its type"],
-
+            ["field_type [bright_white]<class_name> <field_name> <new_data_type>[bright_white]", "Change field data type"],
+                
             ["[bold yellow]Method Commands[/bold yellow]", ""],
             ["add_method [bright_white]<class_name> <method_name>[bright_white]", "Add a method to a class"],
             ["delete_method [bright_white]<class_name> <method_name>[bright_white]", "Delete a method from a class"],
             ["rename_method [bright_white]<class_name> <current_method_name> <new_name>[bright_white]", "Rename a method"],
+            ["method_type [bright_white]<class_name> <method_name> <new_data_type>[bright_white]", "Change method data type"],
 
             ["[bold yellow]Parameter Commands[/bold yellow]", ""],
             ["add_param [bright_white]<class_name> <method_name> <param_name>[bright_white]", "Add a parameter to a method"],

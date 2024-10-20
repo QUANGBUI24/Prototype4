@@ -98,12 +98,6 @@ class UMLController:
             and third_param
         ):
             self.__model._add_field(class_name=first_param, type=second_param, field_name=third_param, is_loading=False)
-        elif (
-            command == InterfaceOptions.ADD_FIELD.value
-            and first_param
-            and second_param
-        ):
-            self.__model._add_field(class_name=first_param, field_name=second_param, is_loading=False)
         
         # Delete field from class
         elif (
@@ -113,24 +107,6 @@ class UMLController:
         ):
             self.__model._delete_field(class_name=first_param, field_name=second_param)
         
-        # Rename field and its type in class
-        elif (
-            command == InterfaceOptions.RENAME_FIELD.value
-            and first_param
-            and second_param
-            and third_param
-            and fourth_param
-            and fifth_param
-        ):
-            self.__model._rename_field(class_name=first_param, old_type=second_param, old_field_name=third_param, new_type=fourth_param, new_field_name=fifth_param)
-        elif (
-            command == InterfaceOptions.RENAME_FIELD.value
-            and first_param
-            and second_param
-            and third_param
-            and fourth_param
-        ):
-            self.__model._rename_field(class_name=first_param, old_field_name=second_param, new_type=third_param, new_field_name=fourth_param)
         # Rename field in class
         elif (
             command == InterfaceOptions.RENAME_FIELD.value
@@ -138,7 +114,9 @@ class UMLController:
             and second_param
             and third_param
         ):
-            self.__model._rename_field(first_param, second_param, third_param)
+            self.__model._rename_field(class_name=first_param, old_field_name=second_param, new_field_name=third_param)
+        
+        # Change field type in class
         elif (
             command == InterfaceOptions.FIELD_TYPE.value
             and first_param
@@ -159,12 +137,6 @@ class UMLController:
             and third_param
         ):
             self.__model._add_method(class_name=first_param, type=second_param, method_name=third_param, is_loading=False)
-        elif (
-            command == InterfaceOptions.ADD_METHOD.value
-            and first_param
-            and second_param
-        ):
-            self.__model._add_method(class_name=first_param, method_name=second_param, is_loading=False)
         
         # Delete method from class
         elif (
@@ -180,25 +152,17 @@ class UMLController:
             and first_param
             and second_param
             and third_param
-            and fourth_param
-            and fifth_param
         ):
-            self.__model._rename_method(class_name=first_param, old_type=second_param, old_method_name=third_param, new_type=fourth_param, new_method_name=fifth_param)
+            self.__model._rename_method(class_name=first_param, old_method_name=second_param, new_method_name=third_param)
+        
+        # Change method type in class
         elif (
-            command == InterfaceOptions.RENAME_METHOD.value
-            and first_param
-            and second_param
-            and third_param
-            and fourth_param
-        ):
-            self.__model._rename_method(class_name=first_param, old_method_name=second_param, new_type=third_param, new_method_name=fourth_param)
-        elif (
-            command == InterfaceOptions.RENAME_METHOD.value
+            command == InterfaceOptions.METHOD_TYPE.value
             and first_param
             and second_param
             and third_param
         ):
-            self.__model._rename_method(first_param, second_param, third_param)
+            self.__model._change_data_type(class_name=first_param, input_name=second_param, new_type=third_param, is_method=True)
 
         #######################################################
         
@@ -310,6 +274,6 @@ class UMLController:
         
         # Handle unknown command
         else:
-            self.__console.print(f"\n[bold red]Unknown command [bold white]'{command}'[/bold white]. Type 'help' for a list of commands.[/bold red]")
+            self.__console.print("\n[bold red]Unknown command. Type [bold white]'help'[/bold white] for a list of commands.[/bold red]")
 
 ###################################################################################################

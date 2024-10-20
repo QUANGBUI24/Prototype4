@@ -1845,7 +1845,16 @@ class UMLModel:
             self._update_main_data_for_every_action()
             return True
         elif is_method:
-            pass
+            # Check valid input #
+            if not self._is_valid_input(class_name=class_name, method_name=input_name, new_type=None):
+                return False
+            is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=input_name, class_should_exist=True, method_should_exist=True)
+            if not is_class_and_method_exist:
+                return False
+            chosen_method = self.__get_chosen_field_or_method(class_name, input_name, is_field=False)
+            chosen_method._set_type(new_type)
+            self._notify_observers(event_type=InterfaceOptions.METHOD_TYPE.value, data={"class_name": class_name, "method_name": input_name, "new_type": new_type})
+            self._update_main_data_for_every_action()
         elif is_param:
             pass
                            

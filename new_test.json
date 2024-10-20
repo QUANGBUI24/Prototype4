@@ -25,7 +25,7 @@
                 },
                 {
                     "name": "sprint",
-                    "return_type": null,
+                    "return_type": "void",
                     "params": []
                 },
                 {
