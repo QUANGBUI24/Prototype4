@@ -92,7 +92,7 @@ class UMLView(Observer):
         elif event_type == InterfaceOptions.ADD_METHOD.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
-            type = data["type"] + " " if data["type"] is not None else ""
+            type = data["type"] + " "
             if not is_loading:
                 self.console.print(f"\n[bold green]Successfully added method [bold white]'[italic cyan]{type}[/italic cyan]{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
         
@@ -109,12 +109,12 @@ class UMLView(Observer):
             new_method_name = data["new_method_name"]
             self.console.print(f"\n[bold green]Successfully renamed method [bold white]'{old_method_name}'[/bold white] to method [bold white]'{new_method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
         
-        # Change field type
+        # Change method type
         elif event_type == InterfaceOptions.METHOD_TYPE.value:
             class_name = data["class_name"]
-            field_name = data["method_name"]
-            new_type = data["new_type"] + " "
-            self.console.print(f"\n[bold green]Method [bold white]'{field_name}'[/bold white] from class [bold white]'{class_name}'[/bold white] has changed return type to [bold white]'{new_type}'[/bold white][/bold green]")
+            method_name = data["method_name"]
+            new_type = data["new_type"]
+            self.console.print(f"\n[bold green]Method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white] has changed return type to [italic cyan]'{new_type}'[/italic cyan][/bold green]")
         
         # Add parameter
         elif event_type == InterfaceOptions.ADD_PARAM.value:

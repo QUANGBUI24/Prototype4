@@ -16,7 +16,7 @@ class UMLClass:
         # so we can easily access to the its details
         self.__method_list: List[Method] = []
         # Store method and its parameters
-        self.__method_and_parameter_list: Dict[str, List[Parameter]] = {}
+        self.__method_and_parameter_list: List[Dict[str, List[Parameter]]] = {}
                 
 
     #################################################################
@@ -30,7 +30,7 @@ class UMLClass:
     def _get_class_method_list(self) -> List[Method]:
         return self.__method_list
     
-    def _get_method_and_parameters_list(self) ->Dict[str, List[Parameter]]:
+    def _get_method_and_parameters_list(self) -> List[Dict[str, List[Parameter]]]:
         return self.__method_and_parameter_list
     
     def __str__(self):

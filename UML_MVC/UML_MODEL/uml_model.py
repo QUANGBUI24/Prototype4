@@ -234,8 +234,7 @@ class UMLModel:
         if not is_class_and_field_exist:
             return False
         # Retrieve the class and add the new field to its field list
-        class_object = self.__class_list[class_name]
-        field_list = class_object._get_class_field_list()
+        field_list = self._get_data_from_chosen_class(class_name, is_field_list=True)
         new_field = self.create_field(type, field_name)
         field_list.append(new_field)
         # Update main data and notify observers
@@ -260,8 +259,7 @@ class UMLModel:
         if not is_class_and_field_exist:
             return False
         # Remove the field from the class's field list
-        class_object = self.__class_list[class_name]
-        field_list = class_object._get_class_field_list()
+        field_list = self._get_data_from_chosen_class(class_name, is_field_list=True)
         chosen_field = self.__get_chosen_field_or_method(class_name, field_name, is_field=True)
         field_list.remove(chosen_field)
         # Update main data and notify observers
@@ -321,12 +319,11 @@ class UMLModel:
         if not is_class_and_method_exist:
             return False
         # Add the new method to the class's method list
-        class_object = self.__class_list[class_name]
-        method_list = class_object._get_class_method_list()
+        method_list = self._get_data_from_chosen_class(class_name, is_method_list=True)
         new_method = self.create_method(type=type, method_name=method_name)
         method_list.append(new_method)
         # Initialize an empty parameter list for the new method
-        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list = self._get_data_from_chosen_class(class_name, is_method_and_param_list=True)
         method_and_parameter_list[method_name] = []
         # Update main data and notify observers
         self._update_main_data_for_every_action()
@@ -350,9 +347,8 @@ class UMLModel:
         if not is_class_and_method_exist:
             return False
         # Remove the method from the class's method list
-        class_object = self.__class_list[class_name]
-        method_list = class_object._get_class_method_list()
-        method_and_parameter_list = class_object._get_method_and_parameters_list()
+        method_list = self._get_data_from_chosen_class(class_name, is_method_list=True)
+        method_and_parameter_list = self._get_data_from_chosen_class(class_name, is_method_and_param_list=True)
         method_and_parameter_list.pop(method_name)
         chosen_method = self.__get_chosen_field_or_method(class_name, method_name, is_field=False)
         method_list.remove(chosen_method)
@@ -379,8 +375,7 @@ class UMLModel:
         if not is_able_to_rename:
             return False
         # Rename the method in the class and update the method list
-        class_object = self.__class_list[class_name]
-        method_and_parameter_list = class_object._get_method_and_parameters_list()
+        method_and_parameter_list = self._get_data_from_chosen_class(class_name, is_method_and_param_list=True)
         method_and_parameter_list[new_method_name] = method_and_parameter_list.pop(old_method_name)
         chosen_method = self.__get_chosen_field_or_method(class_name, old_method_name, is_field=False)
         chosen_method._set_name(new_method_name)
@@ -416,7 +411,7 @@ class UMLModel:
         if not is_class_and_method_and_parameter_exist:
             return False
         # Add the new parameter to the method's parameter list
-        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list = self._get_method_and_parameter_list_of_chosen_class(class_name)
         new_parameter = self.create_parameter(parameter_name)
         method_and_parameter_list[method_name].append(new_parameter)
         # Update main data and notify observers
@@ -442,7 +437,7 @@ class UMLModel:
         if not is_class_and_method_and_parameter_exist:
             return False
         # Remove the parameter from the method's parameter list
-        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list = self._get_method_and_parameter_list_of_chosen_class(class_name)
         chosen_parameter = self.__get_chosen_parameter(class_name, method_name, parameter_name)
         method_and_parameter_list[method_name].remove(chosen_parameter)
         # Update main data and notify observers
@@ -514,7 +509,7 @@ class UMLModel:
         for param_name in new_param_name_list:
             new_param = self.create_parameter(param_name)
             new_param_list.append(new_param)
-        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list = self._get_method_and_parameter_list_of_chosen_class(class_name)
         method_and_parameter_list[method_name] = new_param_list
         # Update main data and notify observers
         self._update_main_data_for_every_action()
@@ -530,7 +525,7 @@ class UMLModel:
         for param_name in new_param_name_list:
             new_param = self.create_parameter(param_name)
             new_param_list.append(new_param)
-        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list = self._get_method_and_parameter_list_of_chosen_class(class_name)
         method_and_parameter_list[method_name] = new_param_list
         # Update main data and notify observers
         self._update_main_data_for_every_action()
@@ -794,7 +789,7 @@ class UMLModel:
                 each_relationship._set_destination_class(new_name)
                 
     # Get method and parameter list of a chosen class #
-    def _get_method_and_parameter_list(self, class_name: str) -> Dict[str, List[Parameter]] | None:
+    def _get_data_from_chosen_class(self, class_name: str, is_field_list: bool=None, is_method_list: bool=None, is_method_and_param_list: bool=None) -> Dict[str, List[Parameter]] | None:
         """
         Retrieves the method and parameter list of a specified class.
 
@@ -807,7 +802,12 @@ class UMLModel:
         is_class_name_exist = self.__validate_class_existence(class_name, should_exist=True)
         if not is_class_name_exist:
             return None
-        return self.__class_list[class_name]._get_method_and_parameters_list()
+        if is_field_list:
+            return self.__class_list[class_name]._get_class_field_list()
+        elif is_method_list:
+            return self.__class_list[class_name]._get_class_method_list()
+        elif is_method_and_param_list:
+            return self.__class_list[class_name]._get_method_and_parameters_list()
     
     ## FIELD AND METHOD RELATED ##
     
@@ -828,13 +828,11 @@ class UMLModel:
         is_class_exist = self.__validate_class_existence(class_name, should_exist=True)
         if not is_class_exist:
             return
-        # Get class object
-        class_object = self.__class_list[class_name]
         # Select the correct list based on whether it's a field or method
         if is_field:
-            general_list = class_object._get_class_field_list()
+            general_list = self._get_data_from_chosen_class(class_name, is_field_list=True)
         else:
-            general_list = class_object._get_class_method_list()
+            general_list = self._get_data_from_chosen_class(class_name, is_method_list=True)
         # Loop through the list to find the field or method
         for element in general_list:
             current_name = element._get_name()
@@ -934,11 +932,11 @@ class UMLModel:
         Returns:
             Field | Method | None: The field or method object, or None if not found.
         """
-        class_object = self.__class_list[class_name]
+        # Select the correct list based on whether it's a field or method
         if is_field:
-            general_list = class_object._get_class_field_list()
+            general_list = self._get_data_from_chosen_class(class_name, is_field_list=True)
         else:
-            general_list = class_object._get_class_method_list()
+            general_list = self._get_data_from_chosen_class(class_name, is_method_list=True)
         for element in general_list:
             if element._get_name() == input_name:
                 return element
@@ -959,7 +957,7 @@ class UMLModel:
         Returns:
             bool: True if the parameter exists, False otherwise.
         """
-        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list = self._get_method_and_parameter_list_of_chosen_class_of_chosen_class(class_name)
         if method_name not in method_and_parameter_list:
             self.__console.print(f"\n[bold red]Method [bold white]'{method_name}'[/bold white] does not exist![/bold red]")
             return False
@@ -1005,7 +1003,7 @@ class UMLModel:
         Returns:
             Parameter: The parameter object, or None if not found.
         """
-        method_and_parameter_list = self._get_method_and_parameter_list(class_name)
+        method_and_parameter_list = self._get_method_and_parameter_list_of_chosen_class(class_name)
         parameter_list = method_and_parameter_list[method_name]
         for each_parameter in parameter_list:
             if each_parameter._get_parameter_name() == parameter_name:
@@ -1141,7 +1139,7 @@ class UMLModel:
         # Method format list to store methods in JSON format
         method_list_format: List[Dict] = []
         # Get method and parameter list for the specified class
-        method_and_parameter_list = self._get_method_and_parameter_list(class_object._get_class_name())
+        method_and_parameter_list = class_object._get_method_and_parameters_list()
         
         for each_method in method_list:
             # Convert method to JSON format
