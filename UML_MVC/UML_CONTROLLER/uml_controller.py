@@ -156,10 +156,8 @@ class UMLController:
         elif (
             command == InterfaceOptions.METHOD_TYPE.value
             and first_param
-            and second_param
-            and third_param
         ):
-            self.__model._change_data_type(class_name=first_param, input_name=second_param, new_type=third_param, is_method=True)
+            self.__model._change_data_type(class_name=first_param, is_method=True)
 
         #######################################################
         
@@ -177,10 +175,8 @@ class UMLController:
         elif (
             command == InterfaceOptions.ADD_PARAM.value
             and first_param
-            and second_param
-            and third_param
         ):
-            self.__model._add_parameter(class_name=first_param, type=second_param, parameter_name=third_param)
+            self.__model._add_parameter(class_name=first_param)
         # Delete parameter from method
         elif (
             command == InterfaceOptions.DELETE_PARAM.value
