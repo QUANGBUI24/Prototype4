@@ -1,38 +1,43 @@
-import readline
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLineEdit, QListWidget, QLabel
 
-# List of possible commands for tab completion
-COMMANDS = ['start', 'stop', 'restart', 'status', 'help', 'exit']
+class SearchApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        
+        # List of strings to search from
+        self.items = ["Apple", "Banana", "Cherry", "Date", "Elderberry", "Fig", "Grape"]
+        
+        # Create the search bar (QLineEdit)
+        self.search_bar = QLineEdit(self)
+        self.search_bar.setPlaceholderText("Search...")
+        self.search_bar.textChanged.connect(self.update_list)  # Connect to search function
 
-def completer(text, state):
-    """
-    This function is called every time tab is pressed.
-    It matches the input text with the available commands.
-    """
-    options = [cmd for cmd in COMMANDS if cmd.startswith(text)]
-    if state < len(options):
-        return options[state]
-    return None
+        # Create the list widget to display the search results
+        self.result_list = QListWidget(self)
+        self.update_list()  # Populate the list with all items initially
 
-def main():
-    # Enable tab completion
-    readline.parse_and_bind("tab: complete")
-    
-    # Set the completer function
-    readline.set_completer(completer)
-    
-    while True:
-        # Input prompt
-        user_input = input('Command> ').strip()
+        # Layout for widgets
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Search fruits:"))
+        layout.addWidget(self.search_bar)
+        layout.addWidget(self.result_list)
 
-        # If user types 'exit', break the loop
-        if user_input == 'exit':
-            break
+        self.setLayout(layout)
+        self.setWindowTitle("Simple Search App")
 
-        # If the command is valid, display it
-        elif user_input in COMMANDS:
-            print(f'Executing command: {user_input}')
-        else:
-            print(f'Unknown command: {user_input}')
+    # Update list based on search query
+    def update_list(self):
+        search_text = self.search_bar.text().lower()  # Get text from search bar and convert to lowercase
+        self.result_list.clear()  # Clear previous results
 
-if __name__ == '__main__':
-    main()
+        # Filter items that match the search text
+        for item in self.items:
+            if search_text in item.lower():  # Case-insensitive search
+                self.result_list.addItem(item)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = SearchApp()
+    window.show()
+    sys.exit(app.exec_())

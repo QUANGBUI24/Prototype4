@@ -43,7 +43,7 @@ class UMLModel:
         for managing UML classes, relationships, and observers. Also initializes the storage manager 
         for saving/loading UML diagrams.
 
-        Args:
+        Parameters:
             view: The view instance that presents data to the user.
             console: The console instance for displaying output via Rich.
         """
@@ -137,7 +137,7 @@ class UMLModel:
         Adds a new UML class to the class list. If the class already exists, no action is taken.
         Notifies observers of the addition event.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class to be added.
             is_loading (bool): Flag indicating whether the operation is part of loading saved data.
         """
@@ -163,7 +163,7 @@ class UMLModel:
         Deletes a UML class from the class list. Also removes any relationships involving the class.
         Notifies observers of the deletion event.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class to be deleted.
         """
         # Check valid input #
@@ -189,7 +189,7 @@ class UMLModel:
         Renames an existing UML class. Updates any associated relationships and notifies observers
         of the renaming event.
 
-        Args:
+        Parameters:
             current_name (str): The current name of the class.
             new_name (str): The new name for the class.
         """
@@ -219,7 +219,7 @@ class UMLModel:
         """
         Adds a new field to a UML class. Notifies observers of the field addition event.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class to which the field will be added.
             type (str): Data type of the field
             field_name (str): The name of the field to be added.
@@ -247,7 +247,7 @@ class UMLModel:
         """
         Deletes an existing field from a UML class. Notifies observers of the field deletion event.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class from which the field will be deleted.
             field_name (str): The name of the field to be deleted.
         """
@@ -272,7 +272,7 @@ class UMLModel:
         """
         Renames an existing field in a UML class. Notifies observers of the field renaming event.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the field.
             current_field_name (str): The current name of the field.
             new_field_name (str): The new name for the field.
@@ -294,159 +294,209 @@ class UMLModel:
         return True
     
     ## METHOD RELATED ##
-    
-    # Add method #
-    def _add_method(self, class_name: str=None, type: str=None, method_name: str=None, is_loading: bool=None):
-        """
-        Adds a new method to a UML class. Notifies observers of the method addition event.
 
-        Args:
-            class_name (str): The name of the class to which the method will be added.
-            method_name (str): The name of the method to be added.
-            is_loading (bool): Flag indicating whether the operation is part of loading saved data.
+    # Add method #
+    def _add_method(self, class_name: str = None, type: str = None, method_name: str = None, is_loading: bool = None):
         """
-        # Check valid input #
+        Adds a new method to a UML class and notifies observers.
+
+        Parameters:
+            class_name (str): The name of the class where the method will be added.
+            type (str): The return type of the method (e.g., int, void).
+            method_name (str): The name of the method to be added.
+            is_loading (bool): A flag indicating if the method addition is part of loading saved data.
+
+        Returns:
+            bool: True if the method was successfully added, False otherwise.
+        """
+        # Check if input values are valid (e.g., not None or empty strings) #
         if not self._is_valid_input(class_name=class_name, method_name=method_name, type=type):
             return False
-        # Check if the class exists and the method does not already exist
-        is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=False)
+
+        # Ensure the class exists and the method does not already exist #
+        is_class_and_method_exist = self._validate_entities(
+            class_name=class_name, method_name=method_name, class_should_exist=True, method_should_exist=False)
         if not is_class_and_method_exist:
             return False
-        # Add the new method to the class's method list
+
+        # Retrieve the method list for the class and create the new method #
         method_and_parameter_list = self._get_data_from_chosen_class(class_name, is_method_and_param_list=True)
         new_method = self.create_method(type=type, method_name=method_name)
-        method_and_pram_list_element = {new_method : []}
+        method_and_pram_list_element = {new_method: []}  # Create a dictionary with method and an empty parameter list
+
+        # If not loading, check if a method with the same signature already exists #
         if not is_loading:
-            # Check if a method with the same signature already exists
             is_new_method_valid = self._check_method_param_list(new_method, method_and_parameter_list, method_and_pram_list_element)
             if not is_new_method_valid:
                 return False
+
+        # Add the new method and its empty parameter list to the method_and_parameter_list #
         method_and_parameter_list.append(method_and_pram_list_element)
-        # Update main data and notify observers
+
+        # Notify observers and update internal data #
         self._update_main_data_for_every_action()
-        self._notify_observers(event_type=InterfaceOptions.ADD_METHOD.value, data={"class_name": class_name, "type": type, "method_name": method_name}, is_loading=is_loading)
+        self._notify_observers(event_type=InterfaceOptions.ADD_METHOD.value,
+                               data={"class_name": class_name, "type": type, "method_name": method_name}, is_loading=is_loading)
         return True
-    
-    def _check_method_param_list(self, new_method_object: Method, method_and_parameter_list: List, method_and_pram_list_element: Dict):
+
+    def _check_method_param_list(self, new_method_object: 'Method', method_and_parameter_list: list, method_and_pram_list_element: dict):
+        """
+        Checks if a method with the same signature (name and parameter types) already exists in the class.
+
+        Parameters:
+            new_method_object (Method): The new method being added.
+            method_and_parameter_list (list): The list of existing methods and their parameters for the class.
+            method_and_pram_list_element (dict): A dictionary representing the new method and its (empty) parameter list.
+
+        Returns:
+            bool: True if no method with the same signature exists, False otherwise.
+        """
+        # Loop through each method in the existing method list #
         for each_element in method_and_parameter_list:
-            # each_element is a dictionary with {Method: param_list}
             for each_method, param_list in each_element.items():
-                # Check if both method name and type are the same
+                # Compare method names #
                 if each_method._get_name() == new_method_object._get_name():
-                    # Get the parameter lists for comparison
-                    first_param_type_list = [param._get_type() for param in param_list]  # Existing method's parameters
-                    second_param_type_list = [param._get_type() for param in method_and_pram_list_element[new_method_object]]  # The new method has no parameters yet
+                    # Retrieve parameter types for both methods (existing and new) #
+                    first_param_type_list = [param._get_type() for param in param_list]
+                    second_param_type_list = [param._get_type() for param in method_and_pram_list_element[new_method_object]]
                     
-                    # Check if the parameter lists are the same
+                    # If parameter lists match, the new method is a duplicate #
                     if first_param_type_list == second_param_type_list:
-                        self.__console.print(f"\n[bold red]New method [bold white]'{new_method_object._get_name()}'[/bold white] has same parameters list signature![bold red]")
-                        return False  # Method with the same signature (name, type, and params) exists
-        return True  # No matching method found
-                        
-        
+                        self.__console.print(f"\n[bold red]New method [bold white]'{new_method_object._get_name()}'[/bold white] "
+                                             f"has the same parameter list signature![bold red]")
+                        return False
+        return True
+
     # Delete method #
     def _delete_method(self, class_name: str):
         """
-        Deletes an existing method from a UML class. Notifies observers of the method deletion event.
+        Deletes an existing method from a UML class and notifies observers.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class from which the method will be deleted.
-            method_name (str): The name of the method to be deleted.
+
+        Returns:
+            bool: True if the method was successfully deleted, False otherwise.
         """
-        # Check valid input #
+        # Check if the class name is valid #
         if not self._is_valid_input(class_name=class_name):
             return False
-        # Check class exist #
+
+        # Ensure that the class exists #
         is_class_exist = self._validate_entities(class_name=class_name, class_should_exist=True)
         if not is_class_exist:
             return False
+
+        # Prompt the user to choose a method to delete #
         self.__console.print("\n[bold yellow]Please choose a method to delete or type [bold white]'quit'[/bold white] to return[/bold yellow]")
         method_and_parameter_list = self._get_data_from_chosen_class(class_name, is_method_and_param_list=True)
         is_list_empty = self.__user_view._display_method_and_parameter_list(method_and_parameter_list)
         if not is_list_empty:
             return False
+
+        # Get user input for method selection #
         self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
         user_input = input()
+
+        # Allow user to quit the delete operation #
         if user_input == "quit":
             self.__console.print("\n[bold green]Canceled deleting method[/bold green]")
             return
-        # Validate if the input is numeric
+
+        # Ensure the input is a valid number (numeric input check) #
         if not user_input.isdigit():
             self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
-            return False    
-        # Convert user input to integer and adjust for 0-based indexing
+            return False
+
+        # Convert the input to an index and validate the selection #
         selected_index = int(user_input) - 1
-        chosen_pair = method_and_parameter_list[selected_index]
-        # Extract method and param_list (key and value) from the dictionary
-        method, param_list = next(iter(chosen_pair.items()))
-        # Check if the index is valid
         if 0 <= selected_index < len(method_and_parameter_list):
-            method_and_parameter_list.pop(selected_index)
-        # Update main data and notify observers
-        self._update_main_data_for_every_action()
-        self._notify_observers(event_type=InterfaceOptions.DELETE_METHOD.value, data={"class_name": class_name, "method_name": method._get_name()})
-        return True
-        
+            method_and_parameter_list.pop(selected_index)  # Remove the selected method
+            # Update data and notify observers #
+            chosen_pair = method_and_parameter_list[selected_index]
+            # Extract method and param_list (key and value) from the dictionary
+            method, param_list = next(iter(chosen_pair.items()))
+            self._update_main_data_for_every_action()
+            self._notify_observers(event_type=InterfaceOptions.DELETE_METHOD.value,
+                                   data={"class_name": class_name, "method_name": method._get_name()})
+            return True
+        else:
+            self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
+            return False
+
     # Rename method #
     def _rename_method(self, class_name: str):
         """
-        Renames an existing method in a UML class. Notifies observers of the method renaming event.
+        Renames an existing method in a UML class and notifies observers.
 
-        Args:
-            class_name (str): The name of the class containing the method.
-            current_method_name (str): The current name of the method.
-            new_method_name (str): The new name for the method.
+        Parameters:
+            class_name (str): The name of the class containing the method to rename.
+
+        Returns:
+            bool: True if the method was successfully renamed, False otherwise.
         """
-        # Check valid input #
+        # Check if the class name is valid #
         if not self._is_valid_input(class_name=class_name):
             return False
-        # Check class exist #
+
+        # Ensure the class exists #
         is_class_exist = self._validate_entities(class_name=class_name, class_should_exist=True)
         if not is_class_exist:
             return False
+
+        # Prompt the user to choose a method to rename #
         self.__console.print("\n[bold yellow]Please choose a method to rename or type [bold white]'quit'[/bold white] to return[/bold yellow]")
         method_and_parameter_list = self._get_data_from_chosen_class(class_name, is_method_and_param_list=True)
         is_list_empty = self.__user_view._display_method_and_parameter_list(method_and_parameter_list)
         if not is_list_empty:
             return False
+
+        # Get user input for method selection #
         self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
         user_input = input()
+
+        # Allow user to quit the rename operation #
         if user_input == "quit":
             self.__console.print("\n[bold green]Canceled renaming method[/bold green]")
             return
-        # Validate if the input is numeric
+
+        # Ensure the input is a valid number (numeric input check) #
         if not user_input.isdigit():
             self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
-            return False 
-        # Convert user input to integer and adjust for 0-based indexing
+            return False
+
+        # Convert the input to an index and validate the selection #
         selected_index = int(user_input) - 1
-        chosen_pair = method_and_parameter_list[selected_index]
-        # Extract method and param_list (key and value) from the dictionary
-        method, param_list = next(iter(chosen_pair.items()))
-        
-        self.__console.print("\nEnter new method name")
-        user_input = input()
-        self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
-        
-        # Check valid input #
-        if not self._is_valid_input(new_name=user_input):
-            return False
-        
-        old_method_name = method._get_name()
-        new_method_name = user_input
-        # Check if renaming is possible (method name validation)
-        is_able_to_rename = self.__check_field_or_method_rename(class_name,old_method_name, new_method_name, is_field=False)
-        if not is_able_to_rename:
-            return False
-    
-        # Check if the index is valid
         if 0 <= selected_index < len(method_and_parameter_list):
+            chosen_pair = method_and_parameter_list[selected_index]
+            method, param_list = next(iter(chosen_pair.items()))
+
+            # Prompt user for the new method name #
+            self.__console.print("\nEnter new method name")
+            self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
+            new_method_name = input()
+
+            # Validate the new method name #
+            if not self._is_valid_input(new_name=new_method_name):
+                return False
+
+            old_method_name = method._get_name()
+
+            # Check if renaming the method is possible #
+            is_able_to_rename = self.__check_field_or_method_rename(class_name, old_method_name, new_method_name, is_field=False)
+            if not is_able_to_rename:
+                return False
+
+            # Set the new method name and update observers #
             method._set_name(new_method_name)
-            
-        # Update main data and notify observers
-        self._update_main_data_for_every_action()
-        self._notify_observers(event_type=InterfaceOptions.RENAME_METHOD.value, data={"class_name": class_name, "old_method_name": old_method_name, "new_method_name": new_method_name})
-        return True
+            self._update_main_data_for_every_action()
+            self._notify_observers(event_type=InterfaceOptions.RENAME_METHOD.value,
+                                   data={"class_name": class_name, "old_method_name": old_method_name, "new_method_name": new_method_name})
+            return True
+        else:
+            self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
+            return False
+
 
     ## PARAMETER RELATED ##
     
@@ -494,7 +544,7 @@ class UMLModel:
     #     """
     #     Adds a new parameter to a method in a UML class. Notifies observers of the parameter addition event.
 
-    #     Args:
+    #     Parameters:
     #         class_name (str): The name of the class containing the method.
     #         method_name (str): The name of the method to which the parameter will be added.
     #         parameter_name (str): The name of the parameter to be added.
@@ -527,7 +577,7 @@ class UMLModel:
         """
         Deletes an existing parameter from a method in a UML class. Notifies observers of the parameter deletion event.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the method.
             method_name (str): The name of the method from which the parameter will be deleted.
             parameter_name (str): The name of the parameter to be deleted.
@@ -553,7 +603,7 @@ class UMLModel:
         """
         Renames an existing parameter in a method of a UML class. Notifies observers of the parameter renaming event.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the method.
             method_name (str): The name of the method containing the parameter.
             current_parameter_name (str): The current name of the parameter.
@@ -580,7 +630,7 @@ class UMLModel:
         """
         Replaces the parameter list for a method in a UML class. The user is prompted to enter the new parameter names.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the method.
             method_name (str): The name of the method whose parameter list will be replaced.
         """
@@ -644,7 +694,7 @@ class UMLModel:
         Wrapper method for adding a new relationship between UML classes. Prompts the user to input 
         the source class, destination class, and relationship type.
 
-        Args:
+        Parameters:
             is_loading (bool): Flag indicating whether the operation is part of loading saved data.
         """
         if len(self.__class_list) == 0:
@@ -693,7 +743,7 @@ class UMLModel:
         """
         Adds a new relationship between two UML classes. Notifies observers of the relationship addition event.
 
-        Args:
+        Parameters:
             source_class_name (str): The name of the source class.
             destination_class_name (str): The name of the destination class.
             rel_type (str): The type of the relationship (e.g., aggregation, composition).
@@ -726,7 +776,7 @@ class UMLModel:
         """
         Deletes an existing relationship between two UML classes. Notifies observers of the relationship deletion event.
 
-        Args:
+        Parameters:
             source_class_name (str): The name of the source class.
             destination_class_name (str): The name of the destination class.
         """
@@ -757,7 +807,7 @@ class UMLModel:
         """
         Changes the type of an existing relationship between two UML classes. Notifies observers of the type modification event.
 
-        Args:
+        Parameters:
             source_class_name (str): The name of the source class.
             destination_class_name (str): The name of the destination class.
             new_type (str): The new type for the relationship (e.g., change from aggregation to composition).
@@ -798,7 +848,7 @@ class UMLModel:
         """
         Checks if the specified class name exists in the class list.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class to check.
 
         Returns:
@@ -812,7 +862,7 @@ class UMLModel:
         Validates the existence of a class name based on the expected existence (should_exist).
         If the class should exist but does not, or if it should not exist but does, the method prints an error message.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class to validate.
             should_exist (bool): True if the class is expected to exist, False if it should not exist.
 
@@ -837,7 +887,7 @@ class UMLModel:
         Checks whether the class can be renamed by validating the existence of both the current class name and
         the new class name. Ensures that the current class exists and the new class name does not exist.
 
-        Args:
+        Parameters:
             current_class_name (str): The current name of the class.
             new_class_name (str): The proposed new name for the class.
 
@@ -860,7 +910,7 @@ class UMLModel:
         Cleans up relationships by removing any relationships where the specified class is either the source or 
         destination. This is useful when deleting a class.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class to clean relationships for.
         """
         # Create a new list that excludes relationships with dest or source equal to class_name
@@ -876,7 +926,7 @@ class UMLModel:
         """
         Updates the source or destination class name in existing relationships when a class is renamed.
 
-        Args:
+        Parameters:
             current_name (str): The current class name.
             new_name (str): The new class name to update in relationships.
         """
@@ -896,7 +946,7 @@ class UMLModel:
         """
         Retrieves the method and parameter list of a specified class.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class to retrieve the method and parameter list for.
 
         Returns:
@@ -919,7 +969,7 @@ class UMLModel:
         """
         Checks if a field or method exists in the specified class.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class.
             input_name (str): The name of the field or method to check.
             is_field (bool): True if checking for a field, False if checking for a method.
@@ -952,7 +1002,7 @@ class UMLModel:
         """
         Validates the existence of a field in a class based on whether it should or should not exist.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the field.
             field_name (str): The name of the field to validate.
             should_exist (bool): True if the field should exist, False if it should not.
@@ -974,7 +1024,7 @@ class UMLModel:
         """
         Validates the existence of a method in a class based on whether it should or should not exist.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the method.
             method_name (str): The name of the method to validate.
             should_exist (bool): True if the method should exist, False if it should not.
@@ -996,7 +1046,7 @@ class UMLModel:
         """
         Checks if a field or method can be renamed by validating the existence of the current and new names.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the field or method.
             current_name (str): The current name of the field or method.
             new_name (str): The proposed new name for the field or method.
@@ -1031,7 +1081,7 @@ class UMLModel:
         """
         Retrieves the specified field or method from a class.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the field or method.
             input_name (str): The name of the field or method to retrieve.
             is_field (bool): True if retrieving a field, False if retrieving a method.
@@ -1056,7 +1106,7 @@ class UMLModel:
         """
         Checks if a parameter exists for a specified method in a class.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the method.
             method_name (str): The name of the method.
             parameter_name (str): The name of the parameter to check.
@@ -1075,7 +1125,7 @@ class UMLModel:
         """
         Validates the existence of a parameter in a method based on whether it should or should not exist.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the method.
             method_name (str): The name of the method containing the parameter.
             parameter_name (str): The name of the parameter to validate.
@@ -1098,7 +1148,7 @@ class UMLModel:
         """
         Retrieves a specified parameter from a method in a class.
 
-        Args:
+        Parameters:
             class_name (str): The name of the class containing the method.
             method_name (str): The name of the method containing the parameter.
             parameter_name (str): The name of the parameter to retrieve.
@@ -1120,7 +1170,7 @@ class UMLModel:
         """
         Checks if a relationship type exists in the available relationship types.
 
-        Args:
+        Parameters:
             type_name (str): The name of the relationship type to check.
 
         Returns:
@@ -1135,7 +1185,7 @@ class UMLModel:
         """
         Validates the existence of a relationship type based on whether it should or should not exist.
 
-        Args:
+        Parameters:
             type_name (str): The name of the relationship type to validate.
             should_exist (bool): True if the type should exist, False if it should not.
 
@@ -1153,7 +1203,7 @@ class UMLModel:
         """
         Checks if a relationship exists between the source and destination classes.
 
-        Args:
+        Parameters:
             source_class_name (str): The source class name.
             destination_class_name (str): The destination class name.
 
@@ -1171,7 +1221,7 @@ class UMLModel:
         """
         Retrieves the relationship between the specified source and destination classes.
 
-        Args:
+        Parameters:
             source_class_name (str): The source class name.
             destination_class_name (str): The destination class name.
 
@@ -1189,7 +1239,7 @@ class UMLModel:
         """
         Retrieves the type of the relationship between two classes.
 
-        Args:
+        Parameters:
             source_class_name (str): The source class name.
             destination_class_name (str): The destination class name.
 
@@ -1210,7 +1260,7 @@ class UMLModel:
         """
         Retrieves a list of fields from the given class object, converting each field to a JSON-compatible format.
         
-        Args:
+        Parameters:
             class_object (Class): The UMLClass object from which fields are extracted.
         
         Returns:
@@ -1231,7 +1281,7 @@ class UMLModel:
         Retrieves a list of methods from the given class object, converting each method and its associated parameters 
         to a JSON-compatible format.
         
-        Args:
+        Parameters:
             class_object (Class): The UMLClass object from which methods and parameters are extracted.
         
         Returns:
@@ -1282,7 +1332,7 @@ class UMLModel:
         """
         Generates a JSON-compatible dictionary representing the specified class, including its fields and methods.
         
-        Args:
+        Parameters:
             class_name (str): The name of the class to format.
         
         Returns:
@@ -1347,7 +1397,7 @@ class UMLModel:
         """
         Saves UML data through the GUI, saving to the specified file name and path.
         
-        Args:
+        Parameters:
             file_name (str): The name of the file to save.
             file_path (str): The file path for saving the data.
         """
@@ -1425,7 +1475,7 @@ class UMLModel:
         """
         Updates the main data to be saved into a JSON file by compiling class data and relationship data.
 
-        Args:
+        Parameters:
             user_input (str): The name of the file to save or load.
             class_data_list (List): A list to store formatted class data.
             relationship_data_list (List): A list to store formatted relationship data.
@@ -1454,7 +1504,7 @@ class UMLModel:
         """
         Updates the internal data members (class and relationship) after loading from a JSON file.
 
-        Args:
+        Parameters:
             main_data (Dict): The data dictionary loaded from a JSON file.
         """
         class_data = main_data["classes"]
@@ -1490,7 +1540,7 @@ class UMLModel:
         """
         Updates the internal data members (class and relationship) after loading from a JSON file.
 
-        Args:
+        Parameters:
             main_data (Dict): The data dictionary loaded from a JSON file.
         """
         class_data = main_data["classes"]
@@ -1528,7 +1578,7 @@ class UMLModel:
         """
         Extracts class, field, method, and parameter information from the loaded JSON data and prepares it for further processing.
 
-        Args:
+        Parameters:
             class_data (List[Dict]): A list of dictionaries representing class data loaded from JSON.
 
         Returns:
@@ -1601,7 +1651,7 @@ class UMLModel:
         """
         Checks if a saved file exists by looking for the file name in the saved list.
 
-        Args:
+        Parameters:
             file_name (str): The name of the file to check.
 
         Returns:
@@ -1619,7 +1669,7 @@ class UMLModel:
         """
         Checks if a saved file exists by looking for the file name in the saved list.
 
-        Args:
+        Parameters:
             file_name (str): The name of the file to check.
 
         Returns:
@@ -1715,7 +1765,7 @@ class UMLModel:
         """
         Sets the status of a specific file in the saved list.
 
-        Args:
+        Parameters:
             file_name (str): The name of the file.
             status (str): The new status to assign to the file ('on' or 'off').
         """
@@ -1730,7 +1780,7 @@ class UMLModel:
         """
         Ensures only the selected file is marked as 'on', setting all others to 'off'.
 
-        Args:
+        Parameters:
             file_name (str): The name of the file to activate.
         """
         saved_list = self.__storage_manager._get_saved_list()
@@ -1754,7 +1804,7 @@ class UMLModel:
         """
         Sets the status of a specific file in the saved list.
 
-        Args:
+        Parameters:
             file_name (str): The name of the file.
             status (str): The new status to assign to the file ('on' or 'off').
         """
@@ -1770,7 +1820,7 @@ class UMLModel:
         """
         Ensures only the selected file is marked as 'on', setting all others to 'off'.
 
-        Args:
+        Parameters:
             file_name (str): The name of the file to activate.
         """
         saved_list = self.__storage_manager._get_saved_list_gui()
@@ -1798,7 +1848,7 @@ class UMLModel:
         """
         Checks if a saved file name exists in the saved list.
 
-        Args:
+        Parameters:
             save_file_name (str): The name of the file to check.
 
         Returns:
@@ -1842,7 +1892,7 @@ class UMLModel:
         """
         General validation function for class, field, method, and parameter existence.
 
-        Args:
+        Parameters:
             class_name (str, optional): Name of the class to check.
             field_name (str, optional): Name of the field to check.
             method_name (str, optional): Name of the method to check.
@@ -1896,7 +1946,7 @@ class UMLModel:
         """
         Check if the user input contains only letters, numbers, and underscores for all provided parameters.
 
-        Args:
+        Parameters:
             class_name (str, optional): The name of the class to validate.
             field_name (str, optional): The name of the field to validate.
             method_name (str, optional): The name of the method to validate.
