@@ -66,7 +66,7 @@ class UMLView(Observer):
             type = data["type"] + " "
             field_name = data["field_name"]
             if not is_loading:
-                self.console.print(f"\n[bold green]Field [bold white]'[italic cyan]{type}[/italic cyan]{field_name}'[/bold white] has been added to class [bold white]'{class_name}'[/bold white].[/bold green]")
+                self.console.print(f"\n[bold green]Field [bold white]'[bold italic cyan]{type}[/bold italic cyan]{field_name}'[/bold white] has been added to class [bold white]'{class_name}'[/bold white].[/bold green]")
         
         # Delete field
         elif event_type == InterfaceOptions.DELETE_FIELD.value:
@@ -94,7 +94,7 @@ class UMLView(Observer):
             method_name = data["method_name"]
             type = data["type"] + " "
             if not is_loading:
-                self.console.print(f"\n[bold green]Successfully added method [bold white]'[italic cyan]{type}[/italic cyan]{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
+                self.console.print(f"\n[bold green]Successfully added method [bold white]'[bold italic cyan]{type}[/bold italic cyan]{method_name}'[/bold white] to class [bold white]'{class_name}'[/bold white]![/bold green]")
         
         # Delete method
         elif event_type == InterfaceOptions.DELETE_METHOD.value:
@@ -114,15 +114,16 @@ class UMLView(Observer):
             class_name = data["class_name"]
             method_name = data["method_name"]
             new_type = data["new_type"]
-            self.console.print(f"\n[bold green]Method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white] has changed return type to [italic cyan]'{new_type}'[/italic cyan][/bold green]")
+            self.console.print(f"\n[bold green]Method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white] has changed return type to [bold italic cyan]'{new_type}'[/bold italic cyan][/bold green]")
         
         # Add parameter
         elif event_type == InterfaceOptions.ADD_PARAM.value:
             class_name = data["class_name"]
             method_name = data["method_name"]
             param_name = data["param_name"]
+            type = data["type"] + " "
             if not is_loading:
-                self.console.print(f"\n[bold green]Successfully added parameter [bold white]'{param_name}'[/bold white] to method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
+                self.console.print(f"\n[bold green]Successfully added parameter [bold white]'[bold italic cyan]{type}[/bold italic cyan]{param_name}'[/bold white] to method [bold white]'{method_name}'[/bold white] from class [bold white]'{class_name}'[/bold white]![/bold green]")
         
         # Delete parameter
         elif event_type == InterfaceOptions.DELETE_PARAM.value:
@@ -292,12 +293,12 @@ class UMLView(Observer):
         """
         fields_branch = class_branch.add("[bold yellow]Fields[/bold yellow]")
         for field in cls["fields"]:
-            fields_branch.add(f'[italic cyan]{field["type"]}[/italic cyan] : [bold dark_slate_gray2]{field["name"]}[/bold dark_slate_gray2]')
+            fields_branch.add(f'[bold italic cyan]{field["type"]}[/bold italic cyan] : [bold dark_slate_gray2]{field["name"]}[/bold dark_slate_gray2]')
 
         methods_branch = class_branch.add("[bold yellow]Methods[/bold yellow]")
         for method in cls["methods"]:
-            params = ', '.join(param["name"] for param in method["params"])
-            methods_branch.add(f'[bold dark_orange][italic cyan]{method["return_type"]}[/italic cyan] : {method["name"]}([bold slate_blue1]{params}[/bold slate_blue1])[/bold dark_orange]')
+            params = ', '.join(f'[bold italic cyan]{param["type"]}[/bold italic cyan] {param["name"]}' for param in method["params"])
+            methods_branch.add(f'[bold dark_orange][bold italic cyan]{method["return_type"]}[/bold italic cyan] : {method["name"]}([bold slate_blue1]{params}[/bold slate_blue1])[/bold dark_orange]')
     
     def _display_class_names(self, main_data: Dict):
         """
@@ -398,7 +399,48 @@ class UMLView(Observer):
         # Print the saved files table
         self.console.print(table)
         return True
-    
+        
+    def _display_method_and_parameter_list(self, method_and_param_list: List):
+        """
+        Displays the list of methods and their parameters in a UML diagram using a table format.
+        
+        Args:
+            method_and_param_list (List): A list of methods and their parameter lists.
+        """
+        if len(method_and_param_list) == 0:
+            self.console.print("\n[bold red]No method exists![/bold red]")
+            return False
+        
+        # Create the table with headers
+        table = Table(title="\n[bold white]Method and Parameter List[bold white]", show_header=True, header_style="bold yellow", border_style="bold dodger_blue2")
+        table.add_column("No.", style="bold green", justify="center")  # Right align for numbers
+        table.add_column("Method List", style="bold white", justify="left")  # Left align for method names
+
+        # Counter to dynamically number the methods
+        method_counter = 1
+
+        for each_element in method_and_param_list:
+            for method, param_list in each_element.items():
+                # Extract method name and return type
+                method_name = method._get_name()
+                return_type = method._get_type() + " "  # Assuming method has a return type
+                
+                # Extract and format parameters as "type param"
+                formatted_params = ', '.join([f"[bold italic cyan]{param._get_type()}[/bold italic cyan] {param._get_parameter_name()}" for param in param_list])
+                
+                # Format the method as "method_name(type param1, type param2)"
+                method_signature = f"[bold italic cyan]{return_type}[/bold italic cyan][bold dark_orange]{method_name}([bold white]{formatted_params}[/bold white])[/bold dark_orange]"
+                
+                # Add the numbered method and the formatted parameters to the table
+                table.add_row(f"{method_counter}", f"[bold cyan]{method_signature}[/bold cyan]")
+                
+                # Increment the counter for the next method
+                method_counter += 1
+
+        # Use the console to print the table
+        self.console.print(table)
+        return True
+
     def _ask_user_choices(self, action: str) -> bool:
         """
         Asks the user a yes/no question and returns their response.

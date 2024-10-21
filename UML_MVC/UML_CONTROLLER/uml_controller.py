@@ -142,18 +142,15 @@ class UMLController:
         elif (
             command == InterfaceOptions.DELETE_METHOD.value
             and first_param
-            and second_param
         ):
-            self.__model._delete_method(first_param, second_param)
+            self.__model._delete_method(class_name=first_param)
         
         # Rename method in class
         elif (
             command == InterfaceOptions.RENAME_METHOD.value
             and first_param
-            and second_param
-            and third_param
         ):
-            self.__model._rename_method(class_name=first_param, old_method_name=second_param, new_method_name=third_param)
+            self.__model._rename_method(class_name=first_param)
         
         # Change method type in class
         elif (
@@ -169,14 +166,21 @@ class UMLController:
         # Handle parameter-related commands
 
         # Add parameter to method
+        # elif (
+        #     command == InterfaceOptions.ADD_PARAM.value
+        #     and first_param
+        #     and second_param
+        #     and third_param
+        #     and fourth_param
+        # ):
+        #     self.__model._add_parameter(class_name=first_param, method_name=second_param, type=third_param, parameter_name=fourth_param, is_loading=False)
         elif (
             command == InterfaceOptions.ADD_PARAM.value
             and first_param
             and second_param
             and third_param
         ):
-            self.__model._add_parameter(first_param, second_param, third_param, is_loading=False)
-        
+            self.__model._add_parameter(class_name=first_param, type=second_param, parameter_name=third_param)
         # Delete parameter from method
         elif (
             command == InterfaceOptions.DELETE_PARAM.value
