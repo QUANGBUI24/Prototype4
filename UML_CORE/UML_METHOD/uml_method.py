@@ -29,5 +29,6 @@ class UMLMethod:
     #################################################################
     # Method to convert method to json format #
     def _convert_to_json_method(self) -> dict[str, str]:
-        return {"name": self.__method_name, "params":[],
-                "type": self.__type}
+        return {"name": self.__method_name, 
+                "return_type": self.__type, 
+                "params":[],}
