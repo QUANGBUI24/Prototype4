@@ -194,9 +194,9 @@ class UMLView(Observer):
                 
             ["[bold yellow]Method Commands[/bold yellow]", ""],
             ["add_method [bright_white]<class_name> <method_name>[bright_white]", "Add a method to a class"],
-            ["delete_method [bright_white]<class_name> <method_name>[bright_white]", "Delete a method from a class"],
-            ["rename_method [bright_white]<class_name> <current_method_name> <new_name>[bright_white]", "Rename a method"],
-            ["method_type [bright_white]<class_name> <method_name> <new_data_type>[bright_white]", "Change method data type"],
+            ["delete_method [bright_white]<class_name>[bright_white]", "Delete a method from a class"],
+            ["rename_method [bright_white]<class_name>[bright_white]", "Rename a method"],
+            ["method_type [bright_white]<class_name>[bright_white]", "Change method data type"],
 
             ["[bold yellow]Parameter Commands[/bold yellow]", ""],
             ["add_param [bright_white]<class_name> <method_name> <param_name>[bright_white]", "Add a parameter to a method"],

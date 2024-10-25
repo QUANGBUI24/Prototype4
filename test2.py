@@ -1,108 +1,126 @@
-from PyQt5 import QtWidgets
+class Command:
+    """
+    Command interface with execute and undo methods.
+    """
+    def execute(self):
+        raise NotImplementedError("Execute method must be implemented.")
 
-class CustomInputDialog(QtWidgets.QDialog):
-    def __init__(self, title="Input Dialog"):
-        super().__init__()
-        self.setWindowTitle(title)
-        self.input_widgets = {}  # Store all input widgets for retrieval
-        self.layout = QtWidgets.QVBoxLayout()
-        self.setLayout(self.layout)
+    def undo(self):
+        raise NotImplementedError("Undo method must be implemented.")
 
-    def add_input(self, label_text, widget_type, options=None):
-        """
-        Abstract method to add various types of input fields to the dialog.
 
-        Parameters:
-        - label_text (str): The label text for the input.
-        - widget_type (str): Type of the widget ('combo', 'line', etc.).
-        - options (list): Optional list of options for combo boxes.
+class TextEditor:
+    """
+    A simple text editor class that stores the current text.
+    """
+    def __init__(self):
+        self.text = ""
 
-        Returns:
-        - QWidget: The created input widget.
-        """
-        label = QtWidgets.QLabel(label_text)
-        self.layout.addWidget(label)
-        
-        if widget_type == 'combo':
-            combo_box = QtWidgets.QComboBox()
-            if options:
-                combo_box.addItems(options)
-            self.layout.addWidget(combo_box)
-            return combo_box
-        
-        elif widget_type == 'line':
-            line_edit = QtWidgets.QLineEdit()
-            self.layout.addWidget(line_edit)
-            return line_edit
-        
-        # Add more widget types as needed (e.g., checkboxes, date pickers)
-        # Example for a checkbox:
-        elif widget_type == 'checkbox':
-            checkbox = QtWidgets.QCheckBox()
-            self.layout.addWidget(checkbox)
-            return checkbox
+    def add_text(self, new_text: str):
+        self.text += new_text
 
-    def add_field_popup(self, class_list):
-        """
-        Example: Creates a dialog for adding a field.
-        Uses the abstract method to dynamically create inputs.
-        """
-        class_combo_box = self.add_input("Select Class:", widget_type="combo", options=class_list)
-        field_name_input = self.add_input("Enter Field Name:", widget_type="line")
-        
-        # Store the widgets for later use
-        self.input_widgets['class_combo_box'] = class_combo_box
-        self.input_widgets['field_name_input'] = field_name_input
-        
-        self.add_buttons()
+    def remove_text(self, length: int):
+        self.text = self.text[:-length]
 
-    def add_method_popup(self, class_list):
-        """
-        Example: Creates a dialog for adding a method.
-        Uses the abstract method to dynamically create inputs.
-        """
-        class_combo_box = self.add_input("Select Class:", widget_type="combo", options=class_list)
-        method_name_input = self.add_input("Enter Method Name:", widget_type="line")
-        
-        # Store the widgets for later use
-        self.input_widgets['class_combo_box'] = class_combo_box
-        self.input_widgets['method_name_input'] = method_name_input
-        
-        self.add_buttons()
+    def __str__(self):
+        return self.text
 
-    def add_buttons(self):
-        """
-        Helper function to add OK and Cancel buttons.
-        """
-        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-        buttons.accepted.connect(self.accept)
-        buttons.rejected.connect(self.reject)
-        self.layout.addWidget(buttons)
 
-    def get_inputs(self):
-        """
-        Retrieve input values based on the stored widgets.
-        """
-        inputs = {}
-        for key, widget in self.input_widgets.items():
-            if isinstance(widget, QtWidgets.QComboBox):
-                inputs[key] = widget.currentText()
-            elif isinstance(widget, QtWidgets.QLineEdit):
-                inputs[key] = widget.text()
-        return inputs
+class AddTextCommand(Command):
+    """
+    Command to add text to the text editor.
+    """
+    def __init__(self, editor: TextEditor, text_to_add: str):
+        self.editor = editor
+        self.text_to_add = text_to_add
 
-# Example usage
+    def execute(self):
+        """
+        Adds the specified text to the text editor.
+        """
+        self.editor.add_text(self.text_to_add)
+
+    def undo(self):
+        """
+        Removes the added text from the text editor (undo).
+        """
+        self.editor.remove_text(len(self.text_to_add))
+
+
+class CommandManager:
+    """
+    Manages the commands for undo and redo operations.
+    """
+    def __init__(self):
+        self.undo_stack = []  # Stack for undo commands
+        self.redo_stack = []  # Stack for redo commands
+
+    def execute_command(self, command: Command):
+        """
+        Executes a command and stores it in the undo stack.
+        Clears the redo stack when a new command is executed.
+        """
+        command.execute()
+        self.undo_stack.append(command)
+        self.redo_stack.clear()  # Clear redo stack when a new command is executed
+
+    def undo(self):
+        """
+        Undoes the last executed command.
+        """
+        if self.undo_stack:
+            command = self.undo_stack.pop()
+            command.undo()
+            self.redo_stack.append(command)
+        else:
+            print("Nothing to undo.")
+
+    def redo(self):
+        """
+        Redoes the last undone command.
+        """
+        if self.redo_stack:
+            command = self.redo_stack.pop()
+            command.execute()
+            self.undo_stack.append(command)
+        else:
+            print("Nothing to redo.")
+
+
+def main():
+    editor = TextEditor()
+    command_manager = CommandManager()
+
+    # Simulate adding text
+    command_manager.execute_command(AddTextCommand(editor, "Hello, "))
+    print(f"Editor content: {editor}")
+
+    command_manager.execute_command(AddTextCommand(editor, "World!"))
+    print(f"Editor content: {editor}")
+
+    # Undo last command
+    command_manager.undo()
+    print(f"Editor content after undo: {editor}")
+
+    # Redo last undone command
+    command_manager.redo()
+    print(f"Editor content after redo: {editor}")
+
+    # Add more text
+    command_manager.execute_command(AddTextCommand(editor, " How are you?"))
+    print(f"Editor content: {editor}")
+
+    # Undo twice
+    command_manager.undo()
+    print(f"Editor content after undo: {editor}")
+
+    command_manager.undo()
+    print(f"Editor content after second undo: {editor}")
+
+    # Redo
+    command_manager.redo()
+    print(f"Editor content after redo: {editor}")
+
+
 if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    
-    dialog = CustomInputDialog(title="Add Field")
-    
-    # Example 1: Add Field
-    dialog.add_field_popup(class_list=["Class1", "Class2", "Class3"])
-    
-    if dialog.exec_() == QtWidgets.QDialog.Accepted:
-        inputs = dialog.get_inputs()
-        print(f"Selected Class: {inputs['class_combo_box']}, Entered Field: {inputs['field_name_input']}")
-    
-    sys.exit(app.exec_())
+    main()

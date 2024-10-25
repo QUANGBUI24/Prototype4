@@ -339,7 +339,7 @@ class UMLModel:
                                data={"class_name": class_name, "type": type, "method_name": method_name}, is_loading=is_loading)
         return True
 
-    def _check_method_param_list(self, new_method_object: 'Method', method_and_parameter_list: list, method_and_pram_list_element: dict):
+    def _check_method_param_list(self, new_method_object: Method, method_and_parameter_list: list, method_and_pram_list_element: dict):
         """
         Checks if a method with the same signature (name and parameter types) already exists in the class.
 
@@ -421,7 +421,7 @@ class UMLModel:
                                    data={"class_name": class_name, "method_name": method._get_name()})
             return True
         else:
-            self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
+            self.__console.print("\n[bold red]Number out of range! Please enter a valid number.[/bold red]")
             return False
 
     # Rename method #
@@ -494,51 +494,97 @@ class UMLModel:
                                    data={"class_name": class_name, "old_method_name": old_method_name, "new_method_name": new_method_name})
             return True
         else:
-            self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
+            self.__console.print("\n[bold red]Number out of range! Please enter a valid number.[/bold red]")
             return False
 
 
     ## PARAMETER RELATED ##
     
     # Add parameter wrapper #
-    def _add_parameter(self, class_name: str=None, type: str=None, parameter_name: str=None):
-        # Check valid input #
-        if not self._is_valid_input(class_name=class_name, type=type, parameter_name=parameter_name):
+    def _add_parameter(self, class_name: str = None):
+        """
+        Adds a parameter to a chosen method of a UML class. Notifies observers of the parameter addition event.
+
+        Args:
+            class_name (str): The name of the class containing the method where the parameter will be added.
+
+        Returns:
+            bool: True if the parameter was successfully added, False otherwise.
+        """
+        # Check if the input class name is valid #
+        if not self._is_valid_input(class_name=class_name):
             return False
-        # Check if the class exists or not
+        
+        # Ensure the class exists #
         is_class_exist = self._validate_entities(class_name=class_name, class_should_exist=True)
         if not is_class_exist:
             return False
-        self.__console.print("\nPlease choose a method to add parameter")
+        
+        # Display the list of methods and prompt the user to choose one #
+        self.__console.print("\n[bold yellow]Please choose a method to add a parameter:[/bold yellow]")
         method_and_parameter_list = self._get_data_from_chosen_class(class_name, is_method_and_param_list=True)
         self.__user_view._display_method_and_parameter_list(method_and_parameter_list)
+        
+        # Get user input to select a method #
         self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
         user_input = input()
-        # Convert user input to integer and adjust for 0-based indexing
+
+        # Convert user input to an integer (1-based index) and adjust for 0-based indexing #
+        if not user_input.isdigit():
+            self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
+            return False
+        
         selected_index = int(user_input) - 1
 
-        # Check if the index is valid
+        # Ensure the selected index is valid #
         if 0 <= selected_index < len(method_and_parameter_list):
             chosen_pair = method_and_parameter_list[selected_index]
-            # Check if the parameter exists or not
-            is_param_exist = self._validate_entities(class_name=class_name, method_and_param_list=chosen_pair, parameter_name=parameter_name, 
-                                                    class_should_exist=True, method_should_exist=True, parameter_should_exist=False)
+
+            # Extract the selected method and its parameter list #
+            method, param_list = next(iter(chosen_pair.items()))
+
+            # Ask the user to input the type and parameter name (must be two strings) #
+            self.__console.print("\n[bold yellow]Enter [bold white]<type> and <parameter_name>[/bold white] separated by a space:[/bold yellow]")
+            self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
+            type_and_name = input().split()
+
+            # Ensure exactly two values were provided (type and parameter name) #
+            if len(type_and_name) != 2:
+                self.__console.print("\n[bold red]Invalid input. Please enter exactly two values for [bold white]<type>[/bold white] and [bold white]<parameter_name>[/bold white].[/bold red]")
+                return False
+
+            # Assign type and parameter name from user input #
+            param_type, param_name = type_and_name
+
+            # Check if the parameter already exists in the method #
+            is_param_exist = self._validate_entities(
+                class_name=class_name, method_and_param_list=chosen_pair, 
+                parameter_name=param_name, class_should_exist=True, method_should_exist=True, parameter_should_exist=False
+            )
             if not is_param_exist:
                 return False
-            # Extract method and param_list (key and value) from the dictionary
-            method, param_list = next(iter(chosen_pair.items()))
-            new_param = self.create_parameter(type, parameter_name)
+
+            # Create a new parameter and add it to the method's parameter list #
+            new_param = self.create_parameter(param_type, param_name)
             param_list.append(new_param)
-            print(f"{method._get_name()}")
-            for param in param_list:
-                print(f"{param._get_parameter_name()}")
-            # Update main data and notify observers
+
+            # Update main data and notify observers #
             self._update_main_data_for_every_action()
-            self._notify_observers(event_type=InterfaceOptions.ADD_PARAM.value, 
-            data={"class_name": class_name, "method_name": method._get_name(), "param_name": parameter_name, "type": type})
+            self._notify_observers(event_type=InterfaceOptions.ADD_PARAM.value,
+                                   data={"class_name": class_name, "method_name": method._get_name(), "param_name": param_name, "type": param_type})
+
+            return True
         else:
-            self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
+            self.__console.print("\n[bold red]Number out of range! Please enter a valid number.[/bold red]")
+            return False
         
+    # def _param_signature_check_for_method_duplicate(self, method_with_new_added_param: Method, method_and_parameter_list: List, method_and_pram_list_element: dict):
+    #     for each_element in method_and_parameter_list:
+    #         for method, param_list in each_element.items():
+    #             if method._get_name() == method_with_new_added_param._get_name():
+    #                 first_param_type_list = [param._get_type() for param in param_list]
+    #                 second_param_type_list = [param._get_type() for param in method_and_pram_list_element[method_with_new_added_param]]
+                    
     # # Add parameter #
     # def _add_parameter(self, class_name: str=None, method_name: str=None, type: str=None, parameter_name: str=None, method_and_parameter_list=None, is_loading: bool=None):
     #     """
@@ -1996,16 +2042,60 @@ class UMLModel:
             self._update_main_data_for_every_action()
             return True
         elif is_method:
-            # Check valid input #
-            if not self._is_valid_input(class_name=class_name, method_name=input_name, new_type=None):
+            # Check if the class name is valid #
+            if not self._is_valid_input(class_name=class_name):
                 return False
-            is_class_and_method_exist = self._validate_entities(class_name=class_name, method_name=input_name, class_should_exist=True, method_should_exist=True)
-            if not is_class_and_method_exist:
+
+            # Ensure the class exists #
+            is_class_exist = self._validate_entities(class_name=class_name, class_should_exist=True)
+            if not is_class_exist:
                 return False
-            chosen_method = self.__get_chosen_field_or_method(class_name, input_name, is_field=False)
-            chosen_method._set_type(new_type)
-            self._notify_observers(event_type=InterfaceOptions.METHOD_TYPE.value, data={"class_name": class_name, "method_name": input_name, "new_type": new_type})
-            self._update_main_data_for_every_action()
+
+            # Prompt the user to choose a method to rename #
+            self.__console.print("\n[bold yellow]Please choose a method to change return type or type [bold white]'quit'[/bold white] to return[/bold yellow]")
+            method_and_parameter_list = self._get_data_from_chosen_class(class_name, is_method_and_param_list=True)
+            is_list_empty = self.__user_view._display_method_and_parameter_list(method_and_parameter_list)
+            if not is_list_empty:
+                return False
+            
+            # Get user input for method selection #
+            self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
+            user_input = input()
+
+            # Allow user to quit the rename operation #
+            if user_input == "quit":
+                self.__console.print("\n[bold green]Canceled changing method return type[/bold green]")
+                return
+
+            # Ensure the input is a valid number (numeric input check) #
+            if not user_input.isdigit():
+                self.__console.print("\n[bold red]Invalid input. Please enter a valid number.[/bold red]")
+                return False
+            
+            # Convert the input to an index and validate the selection #
+            selected_index = int(user_input) - 1
+            if 0 <= selected_index < len(method_and_parameter_list):
+                chosen_pair = method_and_parameter_list[selected_index]
+                method, param_list = next(iter(chosen_pair.items()))
+
+                # Prompt user for the new method name #
+                self.__console.print("\nEnter new return type name")
+                self.__console.print("\n[bold yellow]==>[/bold yellow] ", end="")
+                new_return_type = input()
+
+                # Validate the new method name #
+                if not self._is_valid_input(new_type=new_return_type):
+                    return False
+
+                method._set_type(new_return_type)
+                
+                self._update_main_data_for_every_action()
+                self._notify_observers(event_type=InterfaceOptions.METHOD_TYPE.value,
+                                    data={"class_name": class_name, "method_name": method._get_name(), "new_type": new_return_type})
+                return True
+            else:
+                self.__console.print("\n[bold red]Number out of range! Please enter a valid number.[/bold red]")
+                return False
         elif is_param:
             pass
                            
