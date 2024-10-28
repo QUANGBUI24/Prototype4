@@ -142,22 +142,27 @@ class UMLController:
         elif (
             command == InterfaceOptions.DELETE_METHOD.value
             and first_param
+            and second_param
         ):
-            self.__model._delete_method(class_name=first_param)
+            self.__model._delete_method(class_name=first_param, method_num=second_param)
         
         # Rename method in class
         elif (
             command == InterfaceOptions.RENAME_METHOD.value
             and first_param
+            and second_param
+            and third_param
         ):
-            self.__model._rename_method(class_name=first_param)
+            self.__model._rename_method(class_name=first_param, method_num=second_param, new_name=third_param)
         
         # Change method type in class
         elif (
-            command == InterfaceOptions.METHOD_TYPE.value
+            command == InterfaceOptions.EDIT_METHOD_TYPE.value
             and first_param
+            and second_param
+            and third_param
         ):
-            self.__model._change_data_type(class_name=first_param, is_method=True)
+            self.__model._change_data_type(class_name=first_param, method_num=second_param, new_type=third_param,is_method=True)
 
         #######################################################
         
@@ -175,8 +180,11 @@ class UMLController:
         elif (
             command == InterfaceOptions.ADD_PARAM.value
             and first_param
+            and second_param
+            and third_param
+            and fourth_param
         ):
-            self.__model._add_parameter(class_name=first_param)
+            self.__model._add_parameter(class_name=first_param, method_num=second_param, param_type=third_param, param_name=fourth_param)
         # Delete parameter from method
         elif (
             command == InterfaceOptions.DELETE_PARAM.value
@@ -184,8 +192,16 @@ class UMLController:
             and second_param
             and third_param
         ):
-            self.__model._delete_parameter(first_param, second_param, third_param)
-        
+            self.__model._delete_parameter(class_name=first_param, method_num=second_param, param_name=third_param)
+
+        elif(
+            command == InterfaceOptions.EDIT_PARAM_TYPE.value
+            and first_param
+            and second_param
+            and third_param
+            and fourth_param
+        ):
+            self.__model._edit_parameter_type(class_name=first_param, method_num=second_param, param_name=third_param, new_type=fourth_param)
         # Rename parameter in method
         elif (
             command == InterfaceOptions.RENAME_PARAM.value
@@ -194,7 +210,7 @@ class UMLController:
             and third_param
             and fourth_param
         ):
-            self.__model._rename_parameter(first_param, second_param, third_param, fourth_param)
+            self.__model._rename_parameter(class_name=first_param, method_num=second_param, current_param_name=third_param, new_param_name=fourth_param)
         
         # Replace parameter list in method
         elif command == InterfaceOptions.REPLACE_PARAM.value and first_param and second_param:
