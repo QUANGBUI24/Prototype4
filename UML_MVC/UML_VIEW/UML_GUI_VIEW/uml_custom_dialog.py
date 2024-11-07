@@ -228,22 +228,6 @@ class CustomInputDialog(QtWidgets.QDialog):
         """
         Creates a dialog for renaming a parameter.
         """
-<<<<<<< Updated upstream
-        method_names_list = list(selected_class.method_name_list.keys())
-        
-        # Create combo box for methods
-        method_name = self.__add_input("Select Method To Rename Parameter:", widget_type="combo", options=method_names_list)
-        
-        # Create combo box for parameters (initially based on the first method in the list)
-        old_param_name = self.__add_input("Select Parameter To Delete:", widget_type="combo", options=selected_class.method_name_list[method_name.currentText()])
-        
-        # Create input for the new parameter name
-        new_param_name = self.__add_input("Enter New Parameter Name:", widget_type="line")
-        
-        self.input_widgets["current_method"] = method_name
-        self.input_widgets["old_param_name"] = old_param_name
-        self.input_widgets["new_param_name"] = new_param_name
-=======
         method_names = []
         method_keys = []
 
@@ -269,7 +253,6 @@ class CustomInputDialog(QtWidgets.QDialog):
 
         old_param_name_widget = self.__add_input("Select Parameter To Change:", widget_type="combo", options=param_options)
         new_param_name_widget = self.__add_input("Enter New Parameter:", widget_type="line")
->>>>>>> Stashed changes
         
         self.input_widgets["method_name_widget"] = method_name_widget
         self.input_widgets["old_param_name_widget"] = old_param_name_widget
@@ -390,14 +373,6 @@ class CustomInputDialog(QtWidgets.QDialog):
         """
         Creates a dialog for deleting a relationship.
         """
-<<<<<<< Updated upstream
-        # Extract all dest_class names from the list of tuples
-        dest_classes = [dest_class for dest_class, arrow_line in relationship_track_list[source_class_name]]
-        
-        # Create combo box for source class names
-        destination_class_list_of_current_source_class = self.__add_input("Select Destination Class To Delete Relationship:", 
-                                                                          widget_type="combo", options=dest_classes)
-=======
         # Extract all dest_class names from the relationship track list
         dest_classes = []
         relationships = relationship_track_list.get(source_class_name, [])
@@ -412,7 +387,6 @@ class CustomInputDialog(QtWidgets.QDialog):
             widget_type="combo", 
             options=dest_classes
         )
->>>>>>> Stashed changes
         self.input_widgets["destination_class_list_of_current_source_class"] = destination_class_list_of_current_source_class
         
         # Add buttons (OK/Cancel)
@@ -422,20 +396,9 @@ class CustomInputDialog(QtWidgets.QDialog):
         """
         Creates a dialog for changing the type of a relationship.
         """
-<<<<<<< Updated upstream
-        # Extract all dest_class names from the list of tuples
-        dest_classes = [dest_class for dest_class, arrow_line in relationship_track_list[source_class_name]]
-        # Create combo box for source class names
-        destination_class_list_of_current_source_class = self.__add_input("Select Destination Class To Change Relationship Type:", 
-                                                                          widget_type="combo", 
-                                                                          options=dest_classes)
-         # Create combo box for type
-        type = self.__add_input("Select A New Type For The Relationship:", widget_type="combo", options=type_list)
-=======
         # Extract all dest_class names from the relationship track list
         dest_classes = []
         relationships = relationship_track_list.get(source_class_name, [])
->>>>>>> Stashed changes
         
         for relationship in relationships:
             dest_class = relationship["dest_class"]  # Access the dest_class key in the dictionary

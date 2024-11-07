@@ -286,11 +286,8 @@ class UMLInterface:
             class_name (str): The name of the class.
             field_name (str): The name of the field to be added.
         """
-<<<<<<< Updated upstream
         return self.Model._add_field(class_name, type, field_name, is_loading=False)
-=======
-        return self.Model._add_field(class_name, type, field_name)
->>>>>>> Stashed changes
+
         
     # Delete field interface #
     def delete_field(self, class_name: str, field_name: str):
@@ -332,12 +329,8 @@ class UMLInterface:
             class_name (str): The name of the class.
             method_name (str): The name of the method to be added.
         """
-<<<<<<< Updated upstream
         return self.Model._add_method(class_name, type, method_name, is_loading=False)
-=======
-        return self.Model._add_method(class_name, type, method_name)
->>>>>>> Stashed changes
-    
+
     # Delete method interface #
     def delete_method(self, class_name: str, method_num: int):
         """
