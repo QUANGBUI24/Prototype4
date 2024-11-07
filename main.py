@@ -11,17 +11,27 @@ def main():
     parser = argparse.ArgumentParser(description="Run the UML application in GUI or CLI mode.")
     parser.add_argument('--cli', action='store_true', help="Run the program in CLI mode")
     args = parser.parse_args()
+<<<<<<< Updated upstream
 
     # CLI Mode
     if args.cli:
         cli_view = CLIView()
         interface = Interface(cli_view)
+=======
+    
+    cli_view = CLIView()
+    interface = Interface(cli_view)
+    # CLI Mode
+    if args.cli:
+        
+>>>>>>> Stashed changes
         interface.attach_observer(cli_view)
         interface.main_program_loop()
 
     # GUI Mode
     else:
         app = QApplication(sys.argv)
+<<<<<<< Updated upstream
         cli_view = CLIView()  # CLI view can still be attached if needed
         interface = Interface(cli_view)
         
@@ -33,6 +43,24 @@ def main():
         
         # Start GUI event loop
         sys.exit(app.exec_())
+=======
+        
+        # GUI View
+        gui_view = GUIView(interface)  # Pass the interface to the GUI view
+        # gui_view2 = GUIView(interface)  # For testing Singleton, if we have multiple window, then it won't let us run program
+        
+        # Show GUI
+        gui_view.show()
+
+        # Start GUI event loop
+        sys.exit(app.exec_())
+        
+        
+    # cli_view = CLIView()
+    # interface = Interface(cli_view)
+    # interface.attach_observer(cli_view)
+    # interface.main_program_loop()
+>>>>>>> Stashed changes
 
 if __name__ == "__main__":
     main()

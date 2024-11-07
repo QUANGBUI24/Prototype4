@@ -12,6 +12,8 @@ from rich.console import Console
 from typing import List, Dict
 from UML_MVC.UML_MODEL.uml_model import UMLModel as Model
 from UML_MVC.UML_CONTROLLER.uml_controller import UMLController as Controller, InterfaceOptions
+from UML_MVC.UML_CONTROLLER.cli_completer import create_prompt_session
+from prompt_toolkit import HTML
 
 ###################################################################################################
 
@@ -37,6 +39,9 @@ class UMLInterface:
         self.Model = Model(self.View, self.Console)  # UML model instance
         self.Controller = Controller(self.Model, view, self.Console)  # UML controller instance
     
+        # Initialize prompt_toolkit session for autocompletion
+        self.session = create_prompt_session()
+        
     #################################################################
     ### INTERFACE FUNCTIONS THAT CONNECT WITH THE MANAGER ###
     
@@ -118,6 +123,9 @@ class UMLInterface:
     # Get the relationship type between two classes #
     def get_chosen_relationship_type(self, source_class_name: str, destination_class_name: str):
         return self.Model._get_chosen_relationship_type(source_class_name, destination_class_name)
+    
+    def get_param_list(self, class_name: str, method_num: str):
+        return self.Model._get_param_list(class_name, method_num)
     
     # Check if relationship exist or not #
     def relationship_exist(self, source_class_name: str, destination_class_name: str):
@@ -224,6 +232,15 @@ class UMLInterface:
             class_should_exist, field_should_exist, 
             method_should_exist, parameter_should_exist
         )
+        
+    def get_method_based_on_index(self,class_name: str, method_num: str):
+        return self.Model._get_method_based_on_index(class_name, method_num)
+    
+    def get_param_based_on_index(self, class_name: str, method_num: str, parameter_name: str):
+        return self.Model._get_param_based_on_index(class_name, method_num, parameter_name)
+    
+    def get_rel_type(self, source_class_name: str, destination_class_name: str):
+        return self.Model._get_rel_type(source_class_name, destination_class_name)
     
     ## CLASS RELATED ##
     
@@ -235,7 +252,7 @@ class UMLInterface:
         Parameters:
             class_name (str): The name of the class to be added.
         """
-        return self.Model._add_class(class_name, is_loading=False)
+        return self.Model._add_class(class_name)
         
     # Delete class interface #
     def delete_class(self, class_name: str):
@@ -269,7 +286,11 @@ class UMLInterface:
             class_name (str): The name of the class.
             field_name (str): The name of the field to be added.
         """
+<<<<<<< Updated upstream
         return self.Model._add_field(class_name, type, field_name, is_loading=False)
+=======
+        return self.Model._add_field(class_name, type, field_name)
+>>>>>>> Stashed changes
         
     # Delete field interface #
     def delete_field(self, class_name: str, field_name: str):
@@ -311,10 +332,14 @@ class UMLInterface:
             class_name (str): The name of the class.
             method_name (str): The name of the method to be added.
         """
+<<<<<<< Updated upstream
         return self.Model._add_method(class_name, type, method_name, is_loading=False)
+=======
+        return self.Model._add_method(class_name, type, method_name)
+>>>>>>> Stashed changes
     
     # Delete method interface #
-    def delete_method(self, class_name: str, method_name: str):
+    def delete_method(self, class_name: str, method_num: int):
         """
         Deletes a method from a UML class by delegating the operation to the model.
 
@@ -322,10 +347,10 @@ class UMLInterface:
             class_name (str): The name of the class.
             method_name (str): The name of the method to be deleted.
         """
-        return self.Model._delete_method(class_name, method_name)
+        return self.Model._delete_method(class_name, method_num)
         
     # Rename method interface #
-    def rename_method(self, class_name: str, current_method_name: str, new_method_name: str):
+    def rename_method(self, class_name: str, method_num: int, new_name: str):
         """
         Renames a method in a UML class by delegating the operation to the model.
 
@@ -334,12 +359,12 @@ class UMLInterface:
             current_method_name (str): The current name of the method.
             new_method_name (str): The new name for the method.
         """
-        return self.Model._rename_method(class_name, current_method_name, new_method_name)
+        return self.Model._rename_method(class_name, method_num, new_name)
         
     ## PARAMETER RELATED ##
     
     # Add parameter interface #
-    def add_parameter(self, class_name: str, method_name: str, parameter_name: str):
+    def add_parameter(self, class_name: str = None, method_num: str = None, param_type: str = None, param_name: str = None):
         """
         Adds a parameter to a UML method by delegating the operation to the model.
 
@@ -348,10 +373,10 @@ class UMLInterface:
             method_name (str): The name of the method.
             parameter_name (str): The name of the parameter to be added.
         """
-        return self.Model._add_parameter(class_name, method_name, parameter_name, is_loading=False)
+        return self.Model._add_parameter(class_name, method_num, param_type, param_name)
         
     # Delete parameter interface #
-    def delete_parameter(self, class_name: str, method_name: str, parameter_name: str):
+    def delete_parameter(self, class_name: str,  method_num: str, param_name: str):
         """
         Deletes a parameter from a UML method by delegating the operation to the model.
 
@@ -360,10 +385,10 @@ class UMLInterface:
             method_name (str): The name of the method.
             parameter_name (str): The name of the parameter to be deleted.
         """
-        return self.Model._delete_parameter(class_name, method_name, parameter_name)
+        return self.Model._delete_parameter(class_name, method_num, param_name)
         
     # Rename parameter interface #
-    def rename_parameter(self, class_name: str, method_name: str, current_parameter_name: str, new_parameter_name: str):
+    def rename_parameter(self, class_name: str,  method_num: str, current_param_name: str, new_param_name: str):
         """
         Renames a parameter in a UML method by delegating the operation to the model.
 
@@ -373,10 +398,10 @@ class UMLInterface:
             current_parameter_name (str): The current name of the parameter.
             new_parameter_name (str): The new name for the parameter.
         """
-        return self.Model._rename_parameter(class_name, method_name, current_parameter_name, new_parameter_name)
+        return self.Model._rename_parameter(class_name, method_num, current_param_name, new_param_name)
         
     # Replace parameter list interface #
-    def replace_param_list(self, class_name: str, method_name: str):
+    def replace_param_list(self, class_name: str, method_num: str, new_param_list: list):
         """
         Replaces the parameter list of a UML method by delegating the operation to the model.
 
@@ -384,7 +409,7 @@ class UMLInterface:
             class_name (str): The name of the class.
             method_name (str): The name of the method.
         """
-        return self.Model._replace_param_list(class_name, method_name)
+        return self.Model._replace_param_list(class_name, method_num, new_param_list)
     
     # Replace parameter list interface for GUI #
     def replace_param_list_gui(self, class_name: str, method_name: str, new_param_list: List):
@@ -399,7 +424,19 @@ class UMLInterface:
         
     ## RELATIONSHIP RELATED ##
     
-    # Add relationship interface #
+    # Add relationship interface for CLI#
+    def add_relationship_cli(self, source_class_name: str, destination_class_name: str, rel_type: str):
+        """
+        Adds a relationship between two UML classes by delegating the operation to the model.
+
+        Parameters:
+            source_class_name (str): The name of the source class.
+            destination_class_name (str): The name of the destination class.
+            type (str): The type of relationship.
+        """
+        return self.Model._add_relationship(source_class_name=source_class_name, destination_class_name=destination_class_name, rel_type=rel_type, is_gui=False)
+    
+    # Add relationship interface for GUI#
     def add_relationship_gui(self, source_class_name: str, destination_class_name: str, type: str):
         """
         Adds a relationship between two UML classes by delegating the operation to the model.
@@ -409,7 +446,7 @@ class UMLInterface:
             destination_class_name (str): The name of the destination class.
             type (str): The type of relationship.
         """
-        return self.Model._add_relationship(source_class_name=source_class_name, destination_class_name=destination_class_name, rel_type=type, is_loading=False, is_gui=True)
+        return self.Model._add_relationship(source_class_name=source_class_name, destination_class_name=destination_class_name, rel_type=type, is_gui=True)
     
     # Delete relationship interface #
     def delete_relationship(self, source_class_name: str, destination_class_name: str):
@@ -434,8 +471,16 @@ class UMLInterface:
         """
         return self.Model._change_type(source_class_name, destination_class_name, new_type)
     
-    def change_data_type(self, class_name: str=None, input_name: str=None, new_type=None, is_field: bool=None, is_method: bool=None, is_param: bool=None):
-        return self.Model._change_data_type(class_name, input_name, new_type, is_field, is_method, is_param)
+    def change_data_type(self, 
+                    class_name: str=None, method_num:int = None, 
+                    input_name: str=None, source_class: str=None,
+                    dest_class: str=None, new_type: str=None, 
+                    is_field: bool=None,is_method: bool=None, 
+                    is_param: bool=None, is_rel: bool=None):
+        return self.Model._change_data_type(class_name=class_name, input_name=input_name, 
+                                            source_class=source_class, dest_class=dest_class, 
+                                            new_type=new_type, is_field=is_field, is_method=is_method, 
+                                            is_param=is_param, is_rel=is_rel, method_num=method_num)
     
     ## SAVE/LOAD RELATED ##
     
@@ -447,7 +492,7 @@ class UMLInterface:
         self.Model._save()
         
     # Save data GUI #
-    def save_gui(self, file_name, file_path):
+    def save_gui(self, file_name, file_path, class_name_list_from_gui):
         """
         Saves the UML diagram data to a specified file and path for GUI-based saving.
 
@@ -455,7 +500,7 @@ class UMLInterface:
             file_name: The name of the file to save.
             file_path: The path where the file will be saved.
         """
-        self.Model._save_gui(file_name, file_path)
+        self.Model._save_gui(file_name, file_path, class_name_list_from_gui)
         
     # Load data #
     def load(self):
@@ -573,10 +618,11 @@ class UMLInterface:
         self.Model._notify_observer()
     
     # Check for valid input
-    def is_valid_input(self, class_name=None, field_name=None, 
-                        method_name=None, parameter_name=None, 
-                        source_class=None, destination_class=None, 
-                        type=None, new_name=None):
+    def is_valid_input(self, class_name=None, field_name=None, method_name=None, 
+                       parameter_name=None, source_class=None, 
+                       destination_class=None, field_type=None, method_type=None, 
+                       rel_type=None, new_type=None, new_name=None, 
+                       parameter_type=None, return_type=None):
         """
         Check if the user input contains only letters, numbers, and underscores for all provided parameters.
 
@@ -596,7 +642,9 @@ class UMLInterface:
         return self.Model._is_valid_input(class_name=class_name, field_name=field_name,
                                           method_name=method_name, parameter_name=parameter_name,
                                           source_class=source_class, destination_class=destination_class,
-                                          type=type, new_name=new_name)
+                                          field_type=field_type, method_type=method_type,
+                                          rel_type=rel_type, new_type=new_type,
+                                          parameter_type=parameter_type, return_type=return_type, new_name=new_name)
         
     #################################################################
     
@@ -617,10 +665,10 @@ class UMLInterface:
             if current_active_file != "No active file!":
                 current_active_file = current_active_file + ".json"
             self.Console.print(f"\n[bold yellow](Current active file: [bold white]{current_active_file}[/bold white])[/bold yellow]")
-            self.Console. print("\n[bold yellow]==>[/bold yellow] ", end="")
+            # self.Console.print("\n[bold yellow]==>[/bold yellow] ", end="")
             
             # Collect input from the user
-            user_input: str = input()  # User provides the input
+            user_input: str = self.session.prompt(HTML("<b><style color='#fdca5b'>==></style></b> ")).strip()
             user_input_component = user_input.split()  # Split the input by space
 
             # Parse command and parameters
@@ -631,7 +679,9 @@ class UMLInterface:
             
             # Handle the 'help' command to show the menu again
             if command == InterfaceOptions.HELP.value:
+                print("\n")
                 self.View._prompt_menu()
+                continue
             # Handle the 'exit' command to break out of the loop
             elif command == InterfaceOptions.EXIT.value:
                 break

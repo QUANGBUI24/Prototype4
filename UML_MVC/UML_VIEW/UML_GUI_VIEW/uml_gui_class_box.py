@@ -1,13 +1,7 @@
-import sys
-import os
-from PyQt5 import QtWidgets, QtGui, QtCore
-from functools import partial
+from PyQt5 import QtWidgets, QtGui
 from typing import Dict, List
 
 ###################################################################################################
-# ADD ROOT PATH #
-root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-sys.path.append(root_path)
 
 from UML_ENUM_CLASS.uml_enum import BoxDefaultStat as Default
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_editable_text_item import UMLEditableTextItem as Text
@@ -20,9 +14,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
     It contains attributes like class name, fields, methods, parameters, 
     and provides handles for resizing the box.
     """
-    def __init__(self, interface, class_name="ClassName", 
-                 field_list=None, method_list=None, 
-                 parameter_list=None, relationship_list=None, parent=None):
+    def __init__(self, interface, class_name="ClassName", x=None, y=None, parent=None):
         """
         Initialize the UMLTestBox with default settings, including the class name, fields, methods, and handles.
         
@@ -44,17 +36,29 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         #################################################################
         ### FIELD, METHOD, PARAMETER, HANDLE AND CONNECT POINT LIST ###
         # Initialize lists for fields, methods, parameters, and resize handles.
-        self.field_list: Dict = field_list if field_list is not None else {}
-        self.field_name_list: List = []
+        self.field_list: Dict = {}
+        self.field_key_list: List = []
         
-        self.method_list: Dict = method_list if method_list is not None else {}
-        self.method_name_list: Dict = {}
+        self.method_list: List = []
         
+<<<<<<< Updated upstream
         self.parameter_name_list: List = []
+=======
+        # Parameter track
+        self.param_num = 0
+>>>>>>> Stashed changes
         
         self.handles_list: List = []
         self.connection_points_list: Dict = {}
         self.arrow_line_list: List = []
+<<<<<<< Updated upstream
+=======
+        
+        self.box_position = {
+            "x" : x, 
+            "y" : y
+        } 
+>>>>>>> Stashed changes
 
         #################################################################
         ### UML CLASS BOX DEFAULT SETUP ###
@@ -149,10 +153,34 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Update the separators between the class name, fields, and methods
         self.update_separators()
         
+<<<<<<< Updated upstream
+=======
+        self.update_arrow_lines()
+        
+        self.update_box_position()
+        
+    def update_box_position(self):
+        self.box_position["x"] = self.pos().x()
+        self.box_position["y"] = self.pos().y()
+        print(f"Current location: ({self.box_position["x"]} , {self.box_position["y"]})")
+        
+    def set_box_position(self):
+        # Retrieve the desired x and y positions from the box_position dictionary
+        new_x = self.box_position.get("x", 0)  # Default to 0 if 'x' not found
+        new_y = self.box_position.get("y", 0)  # Default to 0 if 'y' not found
+        
+        # Set the new position using setPos()
+        self.setPos(new_x, new_y)
+
+>>>>>>> Stashed changes
     def itemChange(self, change, value):
         if change == QtWidgets.QGraphicsItem.ItemPositionChange:
             # Update arrow positions when the position of the box changes
             self.update_arrow_lines()
+<<<<<<< Updated upstream
+=======
+            self.update_box_position()
+>>>>>>> Stashed changes
         return super().itemChange(change, value)
     
     def update_arrow_lines(self):
@@ -243,9 +271,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
                 self.rect().topRight().x(), y_pos
             )
             self.separator_line1.setPen(QtGui.QPen(QtGui.QColor(30,144,255)))  
-            
+             
         if hasattr(self, 'separator_line2') and self.separator_line2.scene() == self.scene():
-            if len(self.method_name_list) > 0:
+            if len(self.method_list) > 0:
                 class_name_height = self.class_name_text.boundingRect().height()
                 field_section_height = self.get_field_text_height()
                 y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + self.default_margin
@@ -288,7 +316,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         # Starting y-position for the first field (below the class name)
         y_offset = self.class_name_text.boundingRect().height() + self.default_margin
 
-        for field_name in self.field_name_list:
+        for field_name in self.field_key_list:
             # Get the text item for the field
             field_text = self.field_list[field_name]
         
@@ -311,28 +339,38 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         y_offset = self.class_name_text.boundingRect().height() + self.get_field_text_height() + self.default_margin
 
         # Iterate through each method and align them, along with their parameters
-        for method_name in self.method_name_list:
-            # Get the method text item
-            method_text = self.method_list[method_name]
+        for method_entry in self.method_list:
+            method_key = method_entry["method_key"]
+            method_text = method_entry["method_text"]
+            param_list = method_entry["parameters"]
+            
             # Calculate the x-position for the method text (aligned to the left)
             method_x_pos = self.rect().topLeft().x() + self.default_margin
             # Set the position of the method text item
             method_text.setPos(method_x_pos, self.rect().topLeft().y() + y_offset)
             
+            if len(param_list) == 0:
+                method_text.setPlainText(f"{method_key[0]} {method_key[1]}()")
+                
             temp_param_list = []
             # Align parameters under the current method
-            if method_name in self.method_name_list:
-                for param_name in self.method_name_list[method_name]:
-                    temp_param_list.append(param_name)            
+            for param_type, param_name in param_list:
+                temp_param_list.append(f"{param_type} {param_name}")   
                 # Combine method name with its parameters, separated by commas
                 param_text_str = ", ".join(temp_param_list)
-                method_with_params = f"{method_name}({param_text_str})"
-
+                method_with_params = f"{method_key[0]} {method_key[1]}({param_text_str})"         
                 # Update the method text to show the method name with parameters
                 method_text.setPlainText(method_with_params)
+<<<<<<< Updated upstream
                 # Update y_offset for the next method or parameter (incremented by the height of this method)
                 y_offset += method_text.boundingRect().height()
 
+=======
+
+           # Update y_offset for the next method or parameter (incremented by the height of this method)
+            y_offset += method_text.boundingRect().height()
+                
+>>>>>>> Stashed changes
     #################################
     
     def create_separator(self, is_first=True, is_second=True):
@@ -386,28 +424,6 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
 
             # Create the second separator as a horizontal line (QGraphicsLineItem) spanning the entire width of the UML box.
             self.separator_line2 = QtWidgets.QGraphicsLineItem(
-                self.rect().topLeft().x(),  # Starting x-coordinate (left side of the box)
-                y_pos,                      # Y-coordinate (below the fields section)
-                self.rect().topRight().x(),  # Ending x-coordinate (right side of the box)
-                y_pos,                      # Keep the same y-coordinate to make the line horizontal
-                self  # Set the UML class box as the parent for this line item.
-            )
-        # If it's not the second separator, create a separator (placed below the method section)
-        else:
-            # Calculate the height of the class name to start the separator calculation.
-            class_name_height = self.class_name_text.boundingRect().height()
-
-            # Calculate the total height of all the field text items to place the separator correctly.
-            field_section_height = self.get_field_text_height()
-            
-            # Calculate the total height of the method text items to place the separator correctly.
-            method_section_height = self.get_method_text_height()
-            
-            # Set the y-position for the second separator line just below the fields, with some margin.
-            y_pos = self.rect().topLeft().y() + class_name_height + field_section_height + method_section_height + self.default_margin
-            
-            # Create the second separator as a horizontal line (QGraphicsLineItem) spanning the entire width of the UML box.
-            self.separator_line3 = QtWidgets.QGraphicsLineItem(
                 self.rect().topLeft().x(),  # Starting x-coordinate (left side of the box)
                 y_pos,                      # Y-coordinate (below the fields section)
                 self.rect().topRight().x(),  # Ending x-coordinate (right side of the box)
@@ -682,8 +698,7 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         """
         field_tex_height = 0
         # Sum the heights of all field text items
-        for field_name in self.field_name_list:
-            field_text = self.field_list[field_name]  # Get the text item for each field
+        for field_text in self.field_list.values():
             field_tex_height += field_text.boundingRect().height()
         return field_tex_height
 
@@ -696,11 +711,13 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         """
         method_tex_height = 0
         # Sum the heights of all method text items
-        for method_name in self.method_name_list:
-            method_text = self.method_list[method_name]  # Get the text item for each method
+        for each_pair in self.method_list:
+            # Get the method text item
+            method_text = each_pair["method_text"]
             method_tex_height += method_text.boundingRect().height()
         return method_tex_height
 
+<<<<<<< Updated upstream
     def get_param_text_height_of_single_method(self, method_name):
         """
         Calculate the total height of all parameter text items for a specific method.
@@ -719,6 +736,8 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         return param_tex_height
     
 
+=======
+>>>>>>> Stashed changes
     def get_maximum_width(self):
         """
         Calculate the maximum width of the UML box based on the widths of its fields, methods, and parameters.
@@ -732,8 +751,9 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         max_class_name_width = self.class_name_text.boundingRect().width()
         
         # Get the maximum width of all field text items
-        max_field_width = max([self.field_list[field_name].boundingRect().width() for field_name in self.field_name_list], default=0)
+        max_field_width = max([self.field_list[field_key].boundingRect().width() for field_key in self.field_key_list], default=0)
         
+<<<<<<< Updated upstream
         # Get the maximum width of all method text items
         max_method_width = max([self.method_list[method_name].boundingRect().width() for method_name in self.method_name_list], default=0)
         
@@ -746,6 +766,16 @@ class UMLClassBox(QtWidgets.QGraphicsRectItem):
         #         max_param_width = max(max_param_width, max(param_widths, default=0))
         
         # Get maximum width of relationship text items
+=======
+        # Get the maximum width of all method text items, including parameters
+        max_method_width = max(
+            [
+                entry["method_text"].boundingRect().width() 
+                for entry in self.method_list  # Assuming `self.method_key_list` is the list of dictionaries
+            ],
+            default=0
+        )
+>>>>>>> Stashed changes
         
         # Determine the largest width among all components
         content_max_width = max(
