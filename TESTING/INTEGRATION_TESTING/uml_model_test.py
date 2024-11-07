@@ -2,10 +2,7 @@ import sys
 import os
 import pytest
 from rich.console import Console
-<<<<<<< Updated upstream
-=======
 from unittest.mock import patch, MagicMock
->>>>>>> Stashed changes
 
 # ADD ROOT PATH #
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -46,26 +43,16 @@ def sample_observer():
         def __init__(self):
             self.events = []
 
-<<<<<<< Updated upstream
-        def _update(self, event_type=None, data=None, is_loading=None):
-            self.events.append({
-                "event_type": event_type,
-                "data": data,
-                "is_loading": is_loading
-=======
         def _update(self, event_type=None, data=None, is_loading=None, is_undo_or_redo=None):
             self.events.append({
                 "event_type": event_type,
                 "data": data,
                 "is_loading": is_loading,
                 "is_undo_or_redo": is_undo_or_redo
->>>>>>> Stashed changes
             })
 
     return TestObserver()
 
-<<<<<<< Updated upstream
-=======
 @pytest.fixture
 def sample_class2():
     # Initialize a UMLClass instance with a sample name
@@ -88,7 +75,6 @@ def sample_param():
     return UMLParameter(type="int", parameter_name="param1")
 
 
->>>>>>> Stashed changes
 ###############################################################################
 # Initialization
 ###############################################################################
@@ -129,8 +115,6 @@ def test_detach_observer(uml_model, sample_observer):
     uml_model._notify_observers(event_type="test_event", data={"key": "value"})
     assert len(sample_observer.events) == 0
 
-<<<<<<< Updated upstream
-=======
 def test_notify_observers(uml_model, sample_observer):
     # Create additional observer instances
     observer1 = sample_observer
@@ -167,7 +151,6 @@ def test_observer_notification_on_class_addition(uml_model, sample_observer):
     assert sample_observer.events[0]["event_type"] == "add_class"
 
 
->>>>>>> Stashed changes
 ###############################################################################
 # Getter Methods Tests
 ###############################################################################
@@ -186,8 +169,6 @@ def test_get_storage_manager(uml_model):
     storage_manager = uml_model._get_storage_manager()
     assert storage_manager is not None
 
-<<<<<<< Updated upstream
-=======
 def test_get_main_data(uml_model):
     main_data = uml_model._get_main_data()
     assert isinstance(main_data, dict), "Expected main_data to be a dictionary"
@@ -205,7 +186,6 @@ def test_get_user_view(uml_model):
     user_view = uml_model._get_user_view()
     assert user_view is not None, "Expected user_view to not be None"
 
->>>>>>> Stashed changes
 ###############################################################################
 # Static Methods Tests
 ###############################################################################
@@ -265,10 +245,6 @@ def test_delete_class(uml_model, sample_class, sample_observer):
     assert sample_observer.events[0]["event_type"] == "add_class"
     assert sample_observer.events[1]["event_type"] == "delete_class"
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 def test_rename_class(uml_model, sample_class, sample_observer):
     uml_model._attach_observer(sample_observer)
     
@@ -282,8 +258,6 @@ def test_rename_class(uml_model, sample_class, sample_observer):
     assert sample_observer.events[0]["event_type"] == "add_class"
     assert sample_observer.events[1]["event_type"] == "rename_class"
 
-<<<<<<< Updated upstream
-=======
 def test_add_class_duplicate(uml_model, sample_observer):
     uml_model._attach_observer(sample_observer)
     uml_model._add_class(class_name="NewClass", is_loading=False)
@@ -363,20 +337,11 @@ def test_add_duplicate_class(uml_model):
 
     assert result is False
 
->>>>>>> Stashed changes
 ###############################################################################
 # Field Management Tests
 ###############################################################################
 
 def test_add_field(uml_model, sample_class, sample_observer):
-<<<<<<< Updated upstream
-    uml_model._attach_observer(sample_observer)
-    
-    uml_model._add_class(class_name="TestClass", is_loading=False)
-    
-    result = uml_model._add_field(class_name="TestClass", type="string", field_name="newField", is_loading=False)
-    assert result is True
-=======
     # Attach observer
     uml_model._attach_observer(sample_observer)
     
@@ -388,18 +353,11 @@ def test_add_field(uml_model, sample_class, sample_observer):
     assert result is True
     
     # Verify the field was added
->>>>>>> Stashed changes
     class_data = uml_model._get_class_list()["TestClass"]
     fields = class_data._get_class_field_list()
     assert len(fields) == 1
     assert fields[0]._get_name() == "newField"
     assert fields[0]._get_type() == "string"
-<<<<<<< Updated upstream
-    assert len(sample_observer.events) == 2
-    assert sample_observer.events[1]["event_type"] == "add_field"
-
-def test_delete_field(uml_model, sample_class, sample_field, sample_observer):
-=======
     
     # Verify observer notification
     assert len(sample_observer.events) == 2  # add_class and add_field events
@@ -413,21 +371,11 @@ def test_delete_field(uml_model, sample_class, sample_field, sample_observer):
 
 
 def test_delete_field(uml_model, sample_class, sample_observer):
->>>>>>> Stashed changes
     # Attach observer
     uml_model._attach_observer(sample_observer)
     
     # Add class and field to the model
     uml_model._add_class(class_name="TestClass", is_loading=False)
-<<<<<<< Updated upstream
-    uml_model._add_field(class_name="TestClass", type="int", field_name="testField", is_loading=False)
-    
-    # Delete the field
-    result = uml_model._delete_field(class_name="TestClass", field_name="testField")
-    
-    # Check if field was successfully deleted
-    assert result is True
-=======
     uml_model._add_field(class_name="TestClass", field_type="int", field_name="testField", is_loading=False)
     
     # Delete the field
@@ -435,21 +383,10 @@ def test_delete_field(uml_model, sample_class, sample_observer):
     assert result is True
     
     # Verify the field was deleted
->>>>>>> Stashed changes
     class_data = uml_model._get_class_list()["TestClass"]
     fields = class_data._get_class_field_list()
     assert len(fields) == 0
     
-<<<<<<< Updated upstream
-    # Check that observers were notified
-    assert len(sample_observer.events) == 3  # Expecting three events now
-    assert sample_observer.events[0]["event_type"] == "add_class"
-    assert sample_observer.events[1]["event_type"] == "add_field"
-    assert sample_observer.events[2]["event_type"] == "delete_field"
-    assert sample_observer.events[2]["data"] == {"class_name": "TestClass", "field_name": "testField"}
-
-def test_rename_field(uml_model, sample_class, sample_field, sample_observer):
-=======
     # Verify observer notification
     assert len(sample_observer.events) == 3  # add_class, add_field, delete_field events
     assert sample_observer.events[2]["event_type"] == "delete_field"
@@ -461,21 +398,11 @@ def test_rename_field(uml_model, sample_class, sample_field, sample_observer):
 
 
 def test_rename_field(uml_model, sample_class, sample_observer):
->>>>>>> Stashed changes
     # Attach observer
     uml_model._attach_observer(sample_observer)
     
     # Add class and field to the model
     uml_model._add_class(class_name="TestClass", is_loading=False)
-<<<<<<< Updated upstream
-    uml_model._add_field(class_name="TestClass", type="int", field_name="testField", is_loading=False)
-    
-    # Rename the field
-    result = uml_model._rename_field(class_name="TestClass", old_field_name="testField", new_field_name="renamedField")
-    
-    # Check if field was successfully renamed
-    assert result is True
-=======
     uml_model._add_field(class_name="TestClass", field_type="int", field_name="testField", is_loading=False)
     
     # Rename the field
@@ -483,29 +410,19 @@ def test_rename_field(uml_model, sample_class, sample_observer):
     assert result is True
     
     # Verify the field was renamed
->>>>>>> Stashed changes
     class_data = uml_model._get_class_list()["TestClass"]
     fields = class_data._get_class_field_list()
     assert len(fields) == 1
     assert fields[0]._get_name() == "renamedField"
     
-<<<<<<< Updated upstream
-    # Check that observers were notified
-    assert len(sample_observer.events) == 3  # Expecting three events
-    assert sample_observer.events[0]["event_type"] == "add_class"
-    assert sample_observer.events[1]["event_type"] == "add_field"
-=======
     # Verify observer notification
     assert len(sample_observer.events) == 3  # add_class, add_field, rename_field events
->>>>>>> Stashed changes
     assert sample_observer.events[2]["event_type"] == "rename_field"
     assert sample_observer.events[2]["data"] == {
         "class_name": "TestClass",
         "old_field_name": "testField",
         "new_field_name": "renamedField"
     }
-<<<<<<< Updated upstream
-=======
     assert sample_observer.events[2]["is_undo_or_redo"] is False
     
 def test_add_field_duplicate(uml_model, sample_observer):
@@ -577,7 +494,6 @@ def test_rename_field_invalid_input_name(uml_model, sample_class):
     # Verify that the renaming fails, expecting the method to return False
     assert result is False, "Expected rename to fail for a invalid input field name in existing class"
 
->>>>>>> Stashed changes
 ###############################################################################
 # Method Management Tests
 ###############################################################################
@@ -590,11 +506,7 @@ def test_add_method(uml_model, sample_class, sample_observer):
     uml_model._add_class(class_name="TestClass", is_loading=False)
     
     # Add method to the class
-<<<<<<< Updated upstream
-    result = uml_model._add_method(class_name="TestClass", type="int", method_name="testMethod", is_loading=False)
-=======
     result = uml_model._add_method(class_name="TestClass", method_type="int", method_name="testMethod", is_loading=False)
->>>>>>> Stashed changes
     
     # Check if method was successfully added
     assert result is True
@@ -612,13 +524,6 @@ def test_add_method(uml_model, sample_class, sample_observer):
         "method_name": "testMethod"
     }
 
-<<<<<<< Updated upstream
-###############################################################################
-# File Handling Tests (Mocking save/load)
-###############################################################################
-
-
-=======
 def test_check_method_param_list(uml_model, sample_class, sample_observer):
     # Attach observer
     uml_model._attach_observer(sample_observer)
@@ -2166,4 +2071,3 @@ def test_delete_saved_file_NAME_LIST(uml_model):
 
         # Verify that the function returns None (or whatever the function returns on quit)
         assert result is None
->>>>>>> Stashed changes

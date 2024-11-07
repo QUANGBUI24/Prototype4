@@ -159,37 +159,30 @@ class UMLController:
         elif (
             command == InterfaceOptions.DELETE_METHOD.value
             and first_param
+            and second_param
         ):
-<<<<<<< Updated upstream
-            self.__model._delete_method(class_name=first_param)
-=======
             delete_method_command = Command.DeleteMethodCommand(self.__model, class_name=first_param, method_num=second_param)
             self.__input_handler.execute_command(delete_method_command)
->>>>>>> Stashed changes
         
         # Rename method in class
         elif (
             command == InterfaceOptions.RENAME_METHOD.value
             and first_param
+            and second_param
+            and third_param
         ):
-<<<<<<< Updated upstream
-            self.__model._rename_method(class_name=first_param)
-=======
             rename_method_command = Command.RenameMethodCommand(self.__model, class_name=first_param, method_num=second_param, new_name=third_param)
             self.__input_handler.execute_command(rename_method_command)
->>>>>>> Stashed changes
         
         # Change method type in class
         elif (
-            command == InterfaceOptions.METHOD_TYPE.value
+            command == InterfaceOptions.EDIT_METHOD_TYPE.value
             and first_param
+            and second_param
+            and third_param
         ):
-<<<<<<< Updated upstream
-            self.__model._change_data_type(class_name=first_param, is_method=True)
-=======
             edit_method_type_command = Command.ChangeTypeCommand(self.__model, class_name=first_param, method_num=second_param, new_type=third_param, is_method=True)
             self.__input_handler.execute_command(edit_method_type_command)
->>>>>>> Stashed changes
 
         #######################################################
         
@@ -197,13 +190,12 @@ class UMLController:
         elif (
             command == InterfaceOptions.ADD_PARAM.value
             and first_param
+            and second_param
+            and third_param
+            and fourth_param
         ):
-<<<<<<< Updated upstream
-            self.__model._add_parameter(class_name=first_param)
-=======
             add_param_command = Command.AddParameterCommand(self.__model, class_name=first_param, method_num=second_param, param_type=third_param, param_name=fourth_param)
             self.__input_handler.execute_command(add_param_command)
->>>>>>> Stashed changes
         # Delete parameter from method
         elif (
             command == InterfaceOptions.DELETE_PARAM.value
@@ -211,9 +203,6 @@ class UMLController:
             and second_param
             and third_param
         ):
-<<<<<<< Updated upstream
-            self.__model._delete_parameter(first_param, second_param, third_param)
-=======
             delete_param_command = Command.DeleteParameterCommand(self.__model, class_name=first_param, method_num=second_param, param_name=third_param)
             self.__input_handler.execute_command(delete_param_command)
 
@@ -226,7 +215,6 @@ class UMLController:
         ):
             edit_param_type_command = Command.ChangeTypeCommand(self.__model, class_name=first_param, method_num=second_param, input_name=third_param, new_type=fourth_param, is_param=True)
             self.__input_handler.execute_command(edit_param_type_command)
->>>>>>> Stashed changes
         
         # Rename parameter in method
         elif (
@@ -236,12 +224,8 @@ class UMLController:
             and third_param
             and fourth_param
         ):
-<<<<<<< Updated upstream
-            self.__model._rename_parameter(first_param, second_param, third_param, fourth_param)
-=======
             rename_param_command = Command.RenameParameterCommand(self.__model, class_name=first_param, method_num=second_param, old_param_name=third_param, new_param_name=fourth_param)
             self.__input_handler.execute_command(rename_param_command)
->>>>>>> Stashed changes
         
         # Replace parameter list in method
         elif (

@@ -11,12 +11,12 @@ def main():
     parser = argparse.ArgumentParser(description="Run the UML application in GUI or CLI mode.")
     parser.add_argument('--cli', action='store_true', help="Run the program in CLI mode")
     args = parser.parse_args()
-
     
     cli_view = CLIView()
     interface = Interface(cli_view)
     # CLI Mode
     if args.cli:
+        
         interface.attach_observer(cli_view)
         interface.main_program_loop()
 
@@ -33,7 +33,8 @@ def main():
 
         # Start GUI event loop
         sys.exit(app.exec_())
-          
+        
+        
     # cli_view = CLIView()
     # interface = Interface(cli_view)
     # interface.attach_observer(cli_view)
