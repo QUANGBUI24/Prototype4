@@ -1,5 +1,8 @@
 [
     {
         "test_file": "off"
+    },
+    {
+        "position_test": "off"
     }
 ]
