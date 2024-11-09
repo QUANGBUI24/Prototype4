@@ -31,10 +31,7 @@ class MoveUnitCommand(Command):
             self.class_box.update_box()
             return True
         return False
-
-
-
-
+    
 class AddClassCommand(Command):
     def __init__(self, uml_model, class_name, view=None, class_box=None, is_gui=False):
         self.uml_model = uml_model
