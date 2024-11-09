@@ -6,7 +6,6 @@ from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_class_box import UMLClassBox
 from UML_ENUM_CLASS.uml_enum import RelationshipType
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_custom_dialog import CustomInputDialog as Dialog
 from UML_MVC.UML_VIEW.UML_GUI_VIEW.uml_gui_arrow_line import UMLArrow as ArrowLine
-from UML_MVC import uml_command_pattern as Command
 from UML_MVC.uml_command_factory import CommandFactory
 
 ###################################################################################################
