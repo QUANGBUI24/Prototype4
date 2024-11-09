@@ -698,13 +698,14 @@ class DeleteParameterCommand(Command):
         if chosen_param is None:
             return False
         self.param_type = chosen_param._get_type()
-        if self.is_gui:
+        is_param_deleted = self.uml_model._delete_parameter(self.class_name, str(self.method_num), self.param_name, is_undo_or_redo=is_undo_or_redo)
+        if is_param_deleted and self.is_gui:
             # Access the "parameters" list for the selected method and remove the parameter by index
             method_entry = self.class_box.method_list[int(self.method_num) - 1]
             method_entry["parameters"].pop(self.selected_param_index)
             self.class_box.update_box()  # Refresh the UML box
             self.class_box.param_num -= 1
-        return self.uml_model._delete_parameter(self.class_name, str(self.method_num), self.param_name, is_undo_or_redo=is_undo_or_redo)
+        return is_param_deleted
         
     def undo(self):
         if self.param_type:
